@@ -26,8 +26,8 @@ public class DaProcessStepConstants {
 	static final String COMMENT_HEADER = new StringBuilder().append(CHKSUMPREFIX).append("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX////////////////////////").append(NL).append(SPACES_AND_SLASHES).append(NL).append(INTRO_TEXT).append(NL).append("    // written by Ola Aronsson in 2020, courtesy of nollettnoll AB").append(NL).append(SPACES_AND_SLASHES).append(NL).append("    // DO NOT edit this " +
             "section. Modify @MakeStep or CHKSUM (then keep length)  to re-generate.").append(NL).append(SPACES_AND_SLASHES).append(NL).toString();
 	static final String HEADER_START_OLD = new StringBuilder(NL).append("    ///////////////////////////////////////////////////////////////////////////////").toString();
-	static final String ANNOT_MAKESTEP_JAVA_PATH = "MakeStep";
-	static final String ANNOT_PROCESSSTATUS_JAVA_PATH = "ProcessStatus";
+	static final String ANNOT_MAKESTEP_JAVA_PATH = "com.github.catchitcozucan.core.MakeStep";
+	static final String ANNOT_PROCESSSTATUS_JAVA_PATH = "com.github.catchitcozucan.core.ProcessStatus";
 	static final Set<String> NEN_BLACK_PROCESS_MAKESTEP_SUPPORTED_TYPES = new HashSet<>(Arrays.asList(ANNOT_MAKESTEP_JAVA_PATH, ANNOT_PROCESSSTATUS_JAVA_PATH));
 	static final String COMMENT_HEADER_SIGN = "written by Ola Aronsson";
 	static final String COMMENT_HEADER_END = new StringBuilder().append(HEADER_START_OLD).append(NL).append(SPACES_AND_SLASHES).append(NL).append("    // End DaProcessStepProcessor generation").append(NL).append(SPACES_AND_SLASHES).append(NL).toString();

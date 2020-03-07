@@ -2,7 +2,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.github.catchitcozucan</groupId>
     <artifactId>core</artifactId>
-    <version>1.1</version>
+    <version>1.2-SNAPSHOT</version>
     <name>catchitcozucan.core</name>
     <description>nifty portable processing library for stateful subjects</description>
     <url>https://github.com/catchitcozucan/core</url>
@@ -238,7 +238,7 @@
         <connection>scm:git:git@github.com/catchitcozucan/core.git</connection>
         <developerConnection>scm:git:git@github.com:catchitcozucan/core.git</developerConnection>
         <url>https://github.com/catchitcozucan/core.git</url>
-        <tag>core-1.1</tag>
+        <tag>HEAD</tag>
     </scm>
 
     <profiles>

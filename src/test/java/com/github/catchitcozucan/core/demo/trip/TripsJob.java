@@ -22,7 +22,7 @@ public class TripsJob extends JobBase implements Job {
 
 	@Override
 	public ProcessSubject provideSubjectSample() {
-		return new TripSubject("r2332f23f32");
+		return new TripSubject(null);
 	}
 
 	@Override

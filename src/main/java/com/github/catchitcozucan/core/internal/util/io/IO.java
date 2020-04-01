@@ -22,7 +22,7 @@ public class IO {
     /**
      * Default encoding to use
      */
-    public static final String DEF_ENCODING = "UTF-8";
+    public static final String UTF_8 = "UTF-8";
 
     public static File makeOrUseDir(String path) {
         File dir = new File(path);

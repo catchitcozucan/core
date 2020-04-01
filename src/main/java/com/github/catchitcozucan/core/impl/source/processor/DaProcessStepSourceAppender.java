@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import com.github.catchitcozucan.core.exception.ProcessRuntimeException;
@@ -11,6 +12,7 @@ import com.github.catchitcozucan.core.internal.util.domain.BaseDomainObject;
 import com.github.catchitcozucan.core.internal.util.io.IO;
 
 public class DaProcessStepSourceAppender extends BaseDomainObject {
+	public static final String BPM_2_0_SCHEME_XML = "_BPM_2.0_Scheme.xml";
 	private StringBuilder sourceToAppend;
 	private boolean hasAppended;
 	private Set<ElementToWork> elementsToWork;
@@ -23,6 +25,8 @@ public class DaProcessStepSourceAppender extends BaseDomainObject {
 	private String chkSum = DaProcessStepConstants.CHKSUM_ORIG;
 	private Charset sourceEncoding;
 	private File javaScrFileForStatusClass;
+	private List<BpmSchemeElementDescriptor> bpmDescriptors;
+	private File bpmRepoFolder;
 
 	DaProcessStepSourceAppender(File srcFile, String originatingClass, String originatingAppendeSource, String commentHeaderStart) {
 		elementsToWork = new HashSet<>();
@@ -123,6 +127,7 @@ public class DaProcessStepSourceAppender extends BaseDomainObject {
 					String appendedSrc = sourceToAppend.toString();
 					String completeSrc = new StringBuilder(newSource).append(appendedSrc).toString();
 					writeToFile(completeSrc);
+					generateBpmScheme();
 				} else {
 					DaProcessStepConstants.info("    steps have not changed");
 				}
@@ -181,6 +186,23 @@ public class DaProcessStepSourceAppender extends BaseDomainObject {
 
 	public void setJavaScrFileForStatusClass(File fileViaSunClassesReflectionHack) {
 		this.javaScrFileForStatusClass = fileViaSunClassesReflectionHack;
+	}
+
+	public void setBpmDescriptors(List<BpmSchemeElementDescriptor> bpmDescriptors) {
+		this.bpmDescriptors = bpmDescriptors;
+	}
+
+	public void setBpmRepoFolder(File bpmRepoFolder) {
+		this.bpmRepoFolder = bpmRepoFolder;
+	}
+
+	private void generateBpmScheme() {
+		File xmlFile = new File(new StringBuilder(this.bpmRepoFolder.getAbsolutePath()).append(File.separator).append(this.originatingShort.toUpperCase()).append(BPM_2_0_SCHEME_XML).toString());
+		if (xmlFile.exists() && !xmlFile.delete()) {
+			throw new ProcessRuntimeException(String.format("Could not remove old XML-file : %s", xmlFile.getAbsolutePath()));
+		}
+		BpmSchemeGenerator generator = new BpmSchemeGenerator(xmlFile, bpmDescriptors);
+		generator.generateAndWriteScheme();
 	}
 }
 

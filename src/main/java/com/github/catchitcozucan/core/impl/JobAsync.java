@@ -78,7 +78,7 @@ public class JobAsync implements AsyncExecutor, WorkingEntity {
 	}
 
 	@Override
-	public void addProcess(Process toExec) {
+	public void submitProcess(Process toExec) {
 		if (INSTANCE == null) {
 			throw new IllegalStateException(NOPE_CALL_GET_INSTANCE_FIRST);
 		}
@@ -86,7 +86,7 @@ public class JobAsync implements AsyncExecutor, WorkingEntity {
 	}
 
 	@Override
-	public void addJob(Job toExec) {
+	public void submitJob(Job toExec) {
 		if (INSTANCE == null) {
 			throw new IllegalStateException(NOPE_CALL_GET_INSTANCE_FIRST);
 		}

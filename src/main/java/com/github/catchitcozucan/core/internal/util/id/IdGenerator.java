@@ -10,10 +10,10 @@ import com.github.catchitcozucan.core.internal.util.MD5Digest;
 
 public class IdGenerator {
 
+	private static final String ONE = "1";
+	private static final String NINE = "9";
 	private static final String O = "O";
-	private static final String Ä = "Ä"; //NOSONAR
 	private static final String NOLLSTR = "0";
-	private static final String Ö = "Ö"; //NOSONAR
 	private static final String A_Z_0_9_AND_MASVINGE = "([A-Z0-9]{";
 	private static final String MASVINGE_PARENTHESIS = "})";
 	private static final String REST_OF_EXPR = "$1-";
@@ -23,7 +23,7 @@ public class IdGenerator {
 	private Object counterLock = new Object();
 	private final String seed;
 	private static final int MINIMUN_VALUE_LENGTH = 6;
-	private static final int MINIMUN_VALUE_LENGTH_MORE_RANDOM = 8;
+	private static final int MINIMUN_VALUE_LENGTH_MORE_RANDOM = 6;
 	private final SecureRandom secureRandom;
 	private AtomicInteger id;
 
@@ -61,7 +61,7 @@ public class IdGenerator {
 	}
 
 	// likely to be more random and to a _very_ high degree unique yet not guaranteed
-	// look here https://codereview.stackexchange.com/questions/159421/generate-16-digit-unique-code-like-product-serial
+// look here https://codereview.stackexchange.com/questions/159421/generate-16-digit-unique-code-like-product-serial
 	public String getIdMoreRandom(int length, int groupDashing) {
 		if (length < MINIMUN_VALUE_LENGTH_MORE_RANDOM) {
 			throw new IllegalArgumentException(MessageFormat.format("You cannot be serious generating \"IDs\" upon a value-range of {0} characters! Please provide a minimum of {1}", length, MINIMUN_VALUE_LENGTH));
@@ -72,8 +72,12 @@ public class IdGenerator {
 
 		int numberOfDashes = groupDashing;
 		String nonFromatted = secureRandom.ints(0, 36).mapToObj(i -> Integer.toString(i, 36)).map(String::toUpperCase).distinct().limit(length).collect(Collectors.joining()); // as '0' and O are VERY hard to distinguish..
-		String formatted = nonFromatted.substring(0, numberOfDashes % length - 1).replaceAll(A_Z_0_9_AND_MASVINGE + (length / numberOfDashes) + MASVINGE_PARENTHESIS, REST_OF_EXPR) + nonFromatted.replaceAll(A_Z_0_9_AND_MASVINGE + (numberOfDashes % length) + MASVINGE_PARENTHESIS, REST_OF_EXPR).substring(numberOfDashes % length - 1);
-		String cleaned = formatted.replace(O, Ä).replace(NOLLSTR, Ö);
+		if(groupDashing==0){
+			return nonFromatted;
+		}
+		String formatted;
+		formatted = nonFromatted.substring(0, numberOfDashes % length - 1).replaceAll(A_Z_0_9_AND_MASVINGE + (length / numberOfDashes) + MASVINGE_PARENTHESIS, REST_OF_EXPR) + nonFromatted.replaceAll(A_Z_0_9_AND_MASVINGE + (numberOfDashes % length) + MASVINGE_PARENTHESIS, REST_OF_EXPR).substring(numberOfDashes % length - 1);
+		String cleaned = formatted.replace(O, NINE).replace(NOLLSTR, ONE);
 		if (cleaned.endsWith("-")) {
 			return cleaned.substring(0, cleaned.length() - 1);
 		} else {

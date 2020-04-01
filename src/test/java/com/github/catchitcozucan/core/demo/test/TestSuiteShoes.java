@@ -133,7 +133,7 @@ public class TestSuiteShoes {
         callbackCounter.getAndSet(0);
         assertFalse(JobAsync.getInstance().isExecuting());
         JobAsync.getInstance().addJobListener(job -> callbackCounter.getAndIncrement());
-        JobAsync.getInstance().addJob(job);
+        JobAsync.getInstance().submitJob(job);
         IO.sleep(50);
         assertTrue(JobAsync.getInstance().isExecuting());
         IO.sleep(3000);
@@ -254,7 +254,7 @@ public class TestSuiteShoes {
             }
         };
         assertFalse(JobAsync.getInstance().isExecuting());
-        JobAsync.getInstance().addProcess(p);
+        JobAsync.getInstance().submitProcess(p);
         IO.sleep(50);
         assertTrue(JobAsync.getInstance().isExecuting());
         IO.sleep(2500);

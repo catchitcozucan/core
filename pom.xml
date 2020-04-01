@@ -126,7 +126,6 @@
                         <include>**/*.Processor</include>
                     </includes>
                     <excludes>
-                        <exclude>com/github/catchitcozucan/core/demo/**</exclude>
                         <include>**/*.xml</include>
                         <include>**/*.properties</include>
                     </excludes>

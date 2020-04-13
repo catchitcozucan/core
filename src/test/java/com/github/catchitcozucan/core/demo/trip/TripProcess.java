@@ -12,7 +12,7 @@ import org.slf4j.LoggerFactory;
 import com.github.catchitcozucan.core.MakeStep;
 import com.github.catchitcozucan.core.demo.trip.internal.BookingCentral;
 
-@ProcessBpmSchemeRepo(relativePath = "../../../../../../resources/bpmSchemes")
+@ProcessBpmSchemeRepo(relativePath = "../../../../../../resources/bpmSchemes", activitiesPerColumn = "3")
 public class TripProcess extends ProcessBase {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(TripProcess.class);

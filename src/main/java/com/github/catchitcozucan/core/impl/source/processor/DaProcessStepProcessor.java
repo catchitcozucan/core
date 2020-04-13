@@ -34,6 +34,7 @@ import com.github.catchitcozucan.core.ProcessBpmSchemeRepo;
 import com.github.catchitcozucan.core.ProcessStatus;
 import com.github.catchitcozucan.core.exception.ProcessRuntimeException;
 import com.github.catchitcozucan.core.MakeStep;
+import com.github.catchitcozucan.core.impl.source.processor.bpm.BpmSchemeElementDescriptor;
 import com.github.catchitcozucan.core.internal.util.MD5Digest;
 import com.github.catchitcozucan.core.internal.util.io.IO;
 import com.github.catchitcozucan.core.util.ClassAnnotationUtil;
@@ -107,7 +108,7 @@ public class DaProcessStepProcessor extends AbstractProcessor {
 		}
 	}
 
-	private BpmSchemeElementDescriptor testLoadStatusesAndExctractBpmDescriptors(StringBuilder errors, String enumProvider, String statusUponSuccess, String statusUponFailure, DaProcessStepSourceAppender appender, String description) { //NOSONAR
+	private BpmSchemeElementDescriptor testLoadStatusesAndExctractBpmDescriptors(StringBuilder errors, String enumProvider, String statusUponSuccess, String statusUponFailure, DaProcessStepSourceAppender appender, String description, String processName) { //NOSONAR
 		boolean goOnEvaluating = true;
 		BpmSchemeElementDescriptor descriptor = null;
 		if (!statusUponSuccess.contains(".")) {
@@ -207,7 +208,7 @@ public class DaProcessStepProcessor extends AbstractProcessor {
 				}
 				// let's generate the BPM2 scheme element...
 				if (goOnEvaluating) {
-					descriptor = extractDescriptor(statusUponFailure, statusUponSuccess, description, enums);
+					descriptor = extractDescriptor(statusUponFailure, statusUponSuccess, description, enums, processName);
 				}
 			}
 		}
@@ -219,7 +220,7 @@ public class DaProcessStepProcessor extends AbstractProcessor {
 		return descriptor;
 	}
 
-	private BpmSchemeElementDescriptor extractDescriptor(String statusUponFailure, String statusUponSuccess, String description, CustomClassLoader.EnumContainer enums) {
+	private BpmSchemeElementDescriptor extractDescriptor(String statusUponFailure, String statusUponSuccess, String description, CustomClassLoader.EnumContainer enums, String processName) {
 		String statusUponFailureShort = statusUponFailure.substring(statusUponFailure.indexOf(".") + 1);
 		String statusUponSuccessShort = statusUponSuccess.substring(statusUponSuccess.indexOf(".") + 1);
 		AtomicInteger index = new AtomicInteger(-1);
@@ -236,14 +237,14 @@ public class DaProcessStepProcessor extends AbstractProcessor {
 		BpmSchemeElementDescriptor.Type typeBefore;
 		BpmSchemeElementDescriptor.Type typeAfter;
 		if (indexCurrentState == 0) {
-			typeBefore = BpmSchemeElementDescriptor.Type.START_ELEMENT;
-			typeAfter = BpmSchemeElementDescriptor.Type.TASK_ELEMENT;
+			typeBefore = BpmSchemeElementDescriptor.Type.StartEvent;
+			typeAfter = BpmSchemeElementDescriptor.Type.Activity;
 		} else if (indexCurrentState == enums.values().length - 3) {
-			typeBefore = BpmSchemeElementDescriptor.Type.TASK_ELEMENT;
+			typeBefore = BpmSchemeElementDescriptor.Type.Activity;
 			typeAfter = BpmSchemeElementDescriptor.Type.FINISH_STATE;
 		} else {
-			typeBefore = BpmSchemeElementDescriptor.Type.TASK_ELEMENT;
-			typeAfter = BpmSchemeElementDescriptor.Type.TASK_ELEMENT;
+			typeBefore = BpmSchemeElementDescriptor.Type.Activity;
+			typeAfter = BpmSchemeElementDescriptor.Type.Activity;
 		}
 		// @formatter:off
 		return BpmSchemeElementDescriptor.builder()
@@ -253,6 +254,7 @@ public class DaProcessStepProcessor extends AbstractProcessor {
 				.expectedTypeAfter(typeAfter)
 				.expectedTypeBefore(typeBefore)
 				.myStateName(myStateName)
+				.processName(processName)
 				.taskName(description).build();
 		// @formatter:on
 	}
@@ -284,7 +286,7 @@ public class DaProcessStepProcessor extends AbstractProcessor {
 			appendPossibleErrors(errors, processName, PROCESS_NAME);
 			appendPossibleErrors(errors, enumStateProvider, ENUM_PATH);
 
-			BpmSchemeElementDescriptor descriptor = testLoadStatusesAndExctractBpmDescriptors(errors, enumStateProvider, statusUponSuccess, statusUponFailure, sourceAppender, description);
+			BpmSchemeElementDescriptor descriptor = testLoadStatusesAndExctractBpmDescriptors(errors, enumStateProvider, statusUponSuccess, statusUponFailure, sourceAppender, description, processName);
 			if (descriptor != null) {
 				bpmDescriptors.add(descriptor);
 			}
@@ -319,19 +321,19 @@ public class DaProcessStepProcessor extends AbstractProcessor {
 		descriptors.stream().forEach(d -> descriptorErrors.append(d.validateForErrorOutput()));
 
 		// first element ALWAYS preceded with the starter
-		if (!descriptors.get(0).getExpectedTypeBefore().equals(BpmSchemeElementDescriptor.Type.START_ELEMENT) || !descriptors.get(0).getExpectedTypeAfter().equals(BpmSchemeElementDescriptor.Type.TASK_ELEMENT)) {
+		if (!descriptors.get(0).getExpectedTypeBefore().equals(BpmSchemeElementDescriptor.Type.StartEvent) || !descriptors.get(0).getExpectedTypeAfter().equals(BpmSchemeElementDescriptor.Type.Activity)) {
 			descriptorErrors.append(String.format("The first non-failure state in your chain (%s) of taks should _always_ be preceded by a (BPM) StartEvent and be followed by a Task", descriptors.get(0).getMyStateName())).append(MESSAGE_SEPARATOR);
 		}
 
 		// mid-elements all connect to tasks..
 		descriptors.stream().filter(d -> d.getIndex() != null && d.getIndex() > 0 && d.getIndex() < descriptors.size() - 1).forEach(dd -> {
-			if (!dd.getExpectedTypeBefore().equals(BpmSchemeElementDescriptor.Type.TASK_ELEMENT) || !dd.getExpectedTypeAfter().equals(BpmSchemeElementDescriptor.Type.TASK_ELEMENT)) {
+			if (!dd.getExpectedTypeBefore().equals(BpmSchemeElementDescriptor.Type.Activity) || !dd.getExpectedTypeAfter().equals(BpmSchemeElementDescriptor.Type.Activity)) {
 				descriptorErrors.append(String.format("The mid non-failure states (that is everything between start Task and last Task) such as this (%s) of should _always_ link (BPM) Task to Task", dd.getMyStateName())).append(MESSAGE_SEPARATOR);
 			}
 		});
 
 		// last element ALWAYS followed with the finish_state
-		if (!descriptors.get(descriptors.size() - 1).getExpectedTypeBefore().equals(BpmSchemeElementDescriptor.Type.TASK_ELEMENT) || !descriptors.get(descriptors.size() - 1).getExpectedTypeAfter().equals(BpmSchemeElementDescriptor.Type.FINISH_STATE)) {
+		if (!descriptors.get(descriptors.size() - 1).getExpectedTypeBefore().equals(BpmSchemeElementDescriptor.Type.Activity) || !descriptors.get(descriptors.size() - 1).getExpectedTypeAfter().equals(BpmSchemeElementDescriptor.Type.FINISH_STATE)) {
 			descriptorErrors.append(String.format("The last non-failure state before finish state (%s) of should _always_ be preced with a (BPM) Task and be followed by the finish state", descriptors.get(descriptors.size() - 1).getMyStateName())).append(MESSAGE_SEPARATOR);
 		}
 

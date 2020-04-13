@@ -1,4 +1,4 @@
-package com.github.catchitcozucan.core.impl.source.processor;
+package com.github.catchitcozucan.core.impl.source.processor.bpm;
 
 import static com.github.catchitcozucan.core.util.MavenWriter.MESSAGE_SEPARATOR;
 
@@ -22,11 +22,13 @@ public class BpmSchemeElementDescriptor extends BaseDomainObject implements Comp
     private static final String TASKNAME = "taskName";
     private static final String STATUSUPONFAILURE = "statusUponFailure";
     private static final String STATUSUPONSUCCESS = "statusUponSuccess";
+    private static final String PROCESS_NAME = "ProcessName";
     public static final String UNDERSCORE = "_";
     public static final String ACTIVITY = "Activity";
 
-    enum Type {
-        START_ELEMENT, TASK_ELEMENT, FINISH_STATE;
+
+    public enum Type {
+        StartEvent, Activity, FINISH_STATE;
     }
 
     enum TypeInBetween {
@@ -41,8 +43,13 @@ public class BpmSchemeElementDescriptor extends BaseDomainObject implements Comp
     private final String taskName;
     private final String statusUponFailure;
     private final String statusUponSuccess;
+    private final String processName;
 
-    public static String generateIdForInBetween(TypeInBetween typeInBetweens) {
+    public static String generateIdForTypeInBetween(TypeInBetween typeInBetweens) {
+        return new StringBuilder(typeInBetweens.name()).append(getBpmStyleId()).toString();
+    }
+
+    public static String generateIdForType(Type typeInBetweens) {
         return new StringBuilder(typeInBetweens.name()).append(getBpmStyleId()).toString();
     }
 
@@ -53,8 +60,9 @@ public class BpmSchemeElementDescriptor extends BaseDomainObject implements Comp
     // @formatter:off
 	@Override
 	public String doToString() {
-		return new ToStringBuilder(MY_STATE_NAME, myStateName)
-				.append(INDEX, index)
+		return new ToStringBuilder(PROCESS_NAME, processName)
+				.append(MY_STATE_NAME, myStateName)
+                .append(INDEX, index)
 				.append(EXPECTEDTYPEBEFORE, expectedTypeBefore)
 				.append(EXPECTEDTYPEAFTER, expectedTypeAfter)
 				.append(TASKNAME, taskName)
@@ -76,6 +84,13 @@ public class BpmSchemeElementDescriptor extends BaseDomainObject implements Comp
             }
         }
 
+        if (StringUtils.isBlank(processName)) {
+            if (!indexIsUnknown) {
+                formattingErrors.append(String.format("In your status enum, state at index %n lacks a processName", index)).append(MESSAGE_SEPARATOR);
+            } else {
+                enumNameIsUnknown = true;
+            }
+        }
         if (StringUtils.isBlank(myStateName)) {
             if (!indexIsUnknown) {
                 formattingErrors.append(String.format("In your status enum, state at index %n lacks a name", index)).append(MESSAGE_SEPARATOR); // yes, HIGHLY unlikely in an enum :)

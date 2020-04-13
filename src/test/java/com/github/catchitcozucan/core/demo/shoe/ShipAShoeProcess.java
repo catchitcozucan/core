@@ -13,7 +13,7 @@ import com.github.catchitcozucan.core.demo.shoe.internal.LaceProvider;
 import com.github.catchitcozucan.core.demo.shoe.internal.ShoeProvider;
 import com.github.catchitcozucan.core.demo.test.support.io.IO;
 
-@ProcessBpmSchemeRepo(relativePath = "../../../../../../resources/bpmSchemes")
+@ProcessBpmSchemeRepo(relativePath = "../../../../../../resources/bpmSchemes", activitiesPerColumn = "3")
 public class ShipAShoeProcess extends ProcessBase {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ShipAShoeProcess.class);

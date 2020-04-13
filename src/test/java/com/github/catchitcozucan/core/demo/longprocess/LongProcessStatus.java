@@ -1,0 +1,55 @@
+package com.github.catchitcozucan.core.demo.longprocess;
+
+import com.github.catchitcozucan.core.ProcessStatus;
+
+@ProcessStatus
+public class LongProcessStatus {
+
+	// @formatter:off
+	public enum Status {
+		ENTRY_STATE,
+		FAILED_STATE1,
+		STATE1,
+		FAILED_STATE2,
+		STATE2,
+		FAILED_STATE3,
+		STATE3,
+		FAILED_STATE4,
+		STATE4,
+		FAILED_STATE5,
+		STATE5,
+		FAILED_STATE6,
+		STATE6,
+		FAILED_STATE7,
+		STATE7,
+		FAILED_STATE8,
+		STATE8,
+		FAILED_STATE9,
+		STATE9,
+		FAILED_STATE10,
+		STATE10,
+		FAILED_STATE11,
+		STATE11,
+		FAILED_STATE12,
+		STATE12,
+		FAILED_STATE13,
+		STATE13,
+		FAILED_STATE14,
+		STATE14,
+		FAILED_STATE15,
+		STATE15,
+		FAILED_STATE16,
+		STATE16,
+		FAILED_STATE17,
+		STATE17,
+		FAILED_STATE18,
+		STATE18,
+		FAILED_STATE19,
+		STATE19,
+		FAILED_STATE20,
+		STATE20,
+		FAILED_STATE21,
+		STATE21
+	}
+	// @formatter:on
+}

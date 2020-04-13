@@ -9,4 +9,5 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.CLASS)
 public @interface ProcessBpmSchemeRepo {
 	String relativePath() default ".";
+	String activitiesPerColumn() default "3";
 }

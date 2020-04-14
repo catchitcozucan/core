@@ -3,6 +3,7 @@ package com.github.catchitcozucan.core.impl.source.processor;
 import static com.github.catchitcozucan.core.impl.source.processor.DaProcessStepConstants.DOT;
 import static com.github.catchitcozucan.core.impl.source.processor.DaProcessStepConstants.error;
 import static com.github.catchitcozucan.core.impl.source.processor.DaProcessStepConstants.info;
+import static com.github.catchitcozucan.core.impl.source.processor.DaProcessStepConstants.warn;
 import static com.github.catchitcozucan.core.util.MavenWriter.MESSAGE_SEPARATOR;
 
 import java.io.File;
@@ -160,8 +161,7 @@ public class DaProcessStepProcessor extends AbstractProcessor {
 			}
 
 			if (statusClass == null) {
-				errors.append(String.format("specified enumProvider class %s could not be loaded - does it exist?", enumProvider)).append(MESSAGE_SEPARATOR);
-				goOnEvaluating = false;
+				warn(String.format("specified enumProvider class %s could not be loaded - does it exist?", enumProvider));
 			} else {
 				info(String.format("    Class %s is loaded. Inspecting status enum providers..", statusClass.getName()));
 				CustomClassLoader.EnumContainer enums = new CustomClassLoader.EnumContainer(statusClass);
@@ -317,30 +317,34 @@ public class DaProcessStepProcessor extends AbstractProcessor {
 	}
 
 	private void validateDescriptors(List<BpmSchemeElementDescriptor> descriptors) {
-		StringBuilder descriptorErrors = new StringBuilder(MAKE_STEP_ISSUES);
-		descriptors.stream().forEach(d -> descriptorErrors.append(d.validateForErrorOutput()));
+		if (!descriptors.isEmpty()) {
+			StringBuilder descriptorErrors = new StringBuilder(MAKE_STEP_ISSUES);
+			descriptors.stream().forEach(d -> descriptorErrors.append(d.validateForErrorOutput()));
 
-		// first element ALWAYS preceded with the starter
-		if (!descriptors.get(0).getExpectedTypeBefore().equals(BpmSchemeElementDescriptor.Type.StartEvent) || !descriptors.get(0).getExpectedTypeAfter().equals(BpmSchemeElementDescriptor.Type.Activity)) {
-			descriptorErrors.append(String.format("The first non-failure state in your chain (%s) of taks should _always_ be preceded by a (BPM) StartEvent and be followed by a Task", descriptors.get(0).getMyStateName())).append(MESSAGE_SEPARATOR);
-		}
-
-		// mid-elements all connect to tasks..
-		descriptors.stream().filter(d -> d.getIndex() != null && d.getIndex() > 0 && d.getIndex() < descriptors.size() - 1).forEach(dd -> {
-			if (!dd.getExpectedTypeBefore().equals(BpmSchemeElementDescriptor.Type.Activity) || !dd.getExpectedTypeAfter().equals(BpmSchemeElementDescriptor.Type.Activity)) {
-				descriptorErrors.append(String.format("The mid non-failure states (that is everything between start Task and last Task) such as this (%s) of should _always_ link (BPM) Task to Task", dd.getMyStateName())).append(MESSAGE_SEPARATOR);
+			// first element ALWAYS preceded with the starter
+			if (!descriptors.get(0).getExpectedTypeBefore().equals(BpmSchemeElementDescriptor.Type.StartEvent) || !descriptors.get(0).getExpectedTypeAfter().equals(BpmSchemeElementDescriptor.Type.Activity)) {
+				descriptorErrors.append(String.format("The first non-failure state in your chain (%s) of taks should _always_ be preceded by a (BPM) StartEvent and be followed by a Task", descriptors.get(0).getMyStateName())).append(MESSAGE_SEPARATOR);
 			}
-		});
 
-		// last element ALWAYS followed with the finish_state
-		if (!descriptors.get(descriptors.size() - 1).getExpectedTypeBefore().equals(BpmSchemeElementDescriptor.Type.Activity) || !descriptors.get(descriptors.size() - 1).getExpectedTypeAfter().equals(BpmSchemeElementDescriptor.Type.FINISH_STATE)) {
-			descriptorErrors.append(String.format("The last non-failure state before finish state (%s) of should _always_ be preced with a (BPM) Task and be followed by the finish state", descriptors.get(descriptors.size() - 1).getMyStateName())).append(MESSAGE_SEPARATOR);
-		}
+			// mid-elements all connect to tasks..
+			descriptors.stream().filter(d -> d.getIndex() != null && d.getIndex() > 0 && d.getIndex() < descriptors.size() - 1).forEach(dd -> {
+				if (!dd.getExpectedTypeBefore().equals(BpmSchemeElementDescriptor.Type.Activity) || !dd.getExpectedTypeAfter().equals(BpmSchemeElementDescriptor.Type.Activity)) {
+					descriptorErrors.append(String.format("The mid non-failure states (that is everything between start Task and last Task) such as this (%s) of should _always_ link (BPM) Task to Task", dd.getMyStateName())).append(MESSAGE_SEPARATOR);
+				}
+			});
+
+			// last element ALWAYS followed with the finish_state
+			if (!descriptors.get(descriptors.size() - 1).getExpectedTypeBefore().equals(BpmSchemeElementDescriptor.Type.Activity) || !descriptors.get(descriptors.size() - 1).getExpectedTypeAfter().equals(BpmSchemeElementDescriptor.Type.FINISH_STATE)) {
+				descriptorErrors.append(String.format("The last non-failure state before finish state (%s) of should _always_ be preced with a (BPM) Task and be followed by the finish state", descriptors.get(descriptors.size() - 1).getMyStateName())).append(MESSAGE_SEPARATOR);
+			}
 
 
-		if (descriptorErrors.length() > MAKE_STEP_ISSUES.length()) {
-			error(MavenWriter.formattedErrors(descriptorErrors.toString()));
-			throw new ProcessRuntimeException("Could not build due to Status enum conceptual misunderstandings");
+			if (descriptorErrors.length() > MAKE_STEP_ISSUES.length()) {
+				error(MavenWriter.formattedErrors(descriptorErrors.toString()));
+				throw new ProcessRuntimeException("Could not build due to Status enum conceptual misunderstandings");
+			}
+		} else {
+			warn("No BPM descriptors found - I will not generate BPM 2.0 XML schemes. Either the @ProcessBpmSchemeRepo annotation was not used or there where issues loading your status enumaration classes.");
 		}
 	}
 
@@ -374,7 +378,7 @@ public class DaProcessStepProcessor extends AbstractProcessor {
 		File tmpDir = new File(DaProcessStepLookup.TMP_COMP_PATH);
 		boolean tmpDirIsAvail = true;
 		if (!tmpDir.exists() && !tmpDir.mkdirs()) {
-			DaProcessStepConstants.warn("Could not make tmp compile folder..");
+			warn("Could not make tmp compile folder..");
 			tmpDirIsAvail = false;
 		}
 		String className = "unknown"; //NOSONAR it is not pointless, does not compile otherwise...
@@ -405,7 +409,7 @@ public class DaProcessStepProcessor extends AbstractProcessor {
 				file = new File(DaProcessStepLookup.TMP_COMP_PATH + File.separator + file.getName());
 				Files.write(file.toPath(), source.getBytes(IO.UTF_8));  //NOSONAR
 			} catch (IOException e) {
-				DaProcessStepConstants.warn(String.format("Could not prepare file %s for compilation", file.getAbsolutePath()));
+				warn(String.format("Could not prepare file %s for compilation", file.getAbsolutePath()));
 				return null;
 			}
 			try {
@@ -418,9 +422,9 @@ public class DaProcessStepProcessor extends AbstractProcessor {
 				URLClassLoader classLoader = URLClassLoader.newInstance(new URL[] { classUrl });
 				return Class.forName(className, true, classLoader);
 			} catch (IOException ignore) {
-				DaProcessStepConstants.warn(String.format("Could not test compile file for class %s due to IO-issues..", className));
+				warn(String.format("Could not test compile file for class %s due to IO-issues..", className));
 			} catch (ClassNotFoundException e) {
-				DaProcessStepConstants.warn(String.format("Could not load tmp compiled file for class %s..", className));
+				warn(String.format("Could not load tmp compiled file for class %s..", className));
 			}
 		}
 		return null;

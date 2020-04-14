@@ -317,30 +317,34 @@ public class DaProcessStepProcessor extends AbstractProcessor {
 	}
 
 	private void validateDescriptors(List<BpmSchemeElementDescriptor> descriptors) {
-		StringBuilder descriptorErrors = new StringBuilder(MAKE_STEP_ISSUES);
-		descriptors.stream().forEach(d -> descriptorErrors.append(d.validateForErrorOutput()));
+		if (!descriptors.isEmpty()) {
+			StringBuilder descriptorErrors = new StringBuilder(MAKE_STEP_ISSUES);
+			descriptors.stream().forEach(d -> descriptorErrors.append(d.validateForErrorOutput()));
 
-		// first element ALWAYS preceded with the starter
-		if (!descriptors.get(0).getExpectedTypeBefore().equals(BpmSchemeElementDescriptor.Type.StartEvent) || !descriptors.get(0).getExpectedTypeAfter().equals(BpmSchemeElementDescriptor.Type.Activity)) {
-			descriptorErrors.append(String.format("The first non-failure state in your chain (%s) of taks should _always_ be preceded by a (BPM) StartEvent and be followed by a Task", descriptors.get(0).getMyStateName())).append(MESSAGE_SEPARATOR);
-		}
-
-		// mid-elements all connect to tasks..
-		descriptors.stream().filter(d -> d.getIndex() != null && d.getIndex() > 0 && d.getIndex() < descriptors.size() - 1).forEach(dd -> {
-			if (!dd.getExpectedTypeBefore().equals(BpmSchemeElementDescriptor.Type.Activity) || !dd.getExpectedTypeAfter().equals(BpmSchemeElementDescriptor.Type.Activity)) {
-				descriptorErrors.append(String.format("The mid non-failure states (that is everything between start Task and last Task) such as this (%s) of should _always_ link (BPM) Task to Task", dd.getMyStateName())).append(MESSAGE_SEPARATOR);
+			// first element ALWAYS preceded with the starter
+			if (!descriptors.get(0).getExpectedTypeBefore().equals(BpmSchemeElementDescriptor.Type.StartEvent) || !descriptors.get(0).getExpectedTypeAfter().equals(BpmSchemeElementDescriptor.Type.Activity)) {
+				descriptorErrors.append(String.format("The first non-failure state in your chain (%s) of taks should _always_ be preceded by a (BPM) StartEvent and be followed by a Task", descriptors.get(0).getMyStateName())).append(MESSAGE_SEPARATOR);
 			}
-		});
 
-		// last element ALWAYS followed with the finish_state
-		if (!descriptors.get(descriptors.size() - 1).getExpectedTypeBefore().equals(BpmSchemeElementDescriptor.Type.Activity) || !descriptors.get(descriptors.size() - 1).getExpectedTypeAfter().equals(BpmSchemeElementDescriptor.Type.FINISH_STATE)) {
-			descriptorErrors.append(String.format("The last non-failure state before finish state (%s) of should _always_ be preced with a (BPM) Task and be followed by the finish state", descriptors.get(descriptors.size() - 1).getMyStateName())).append(MESSAGE_SEPARATOR);
-		}
+			// mid-elements all connect to tasks..
+			descriptors.stream().filter(d -> d.getIndex() != null && d.getIndex() > 0 && d.getIndex() < descriptors.size() - 1).forEach(dd -> {
+				if (!dd.getExpectedTypeBefore().equals(BpmSchemeElementDescriptor.Type.Activity) || !dd.getExpectedTypeAfter().equals(BpmSchemeElementDescriptor.Type.Activity)) {
+					descriptorErrors.append(String.format("The mid non-failure states (that is everything between start Task and last Task) such as this (%s) of should _always_ link (BPM) Task to Task", dd.getMyStateName())).append(MESSAGE_SEPARATOR);
+				}
+			});
+
+			// last element ALWAYS followed with the finish_state
+			if (!descriptors.get(descriptors.size() - 1).getExpectedTypeBefore().equals(BpmSchemeElementDescriptor.Type.Activity) || !descriptors.get(descriptors.size() - 1).getExpectedTypeAfter().equals(BpmSchemeElementDescriptor.Type.FINISH_STATE)) {
+				descriptorErrors.append(String.format("The last non-failure state before finish state (%s) of should _always_ be preced with a (BPM) Task and be followed by the finish state", descriptors.get(descriptors.size() - 1).getMyStateName())).append(MESSAGE_SEPARATOR);
+			}
 
 
-		if (descriptorErrors.length() > MAKE_STEP_ISSUES.length()) {
-			error(MavenWriter.formattedErrors(descriptorErrors.toString()));
-			throw new ProcessRuntimeException("Could not build due to Status enum conceptual misunderstandings");
+			if (descriptorErrors.length() > MAKE_STEP_ISSUES.length()) {
+				error(MavenWriter.formattedErrors(descriptorErrors.toString()));
+				throw new ProcessRuntimeException("Could not build due to Status enum conceptual misunderstandings");
+			}
+		} else {
+			warn("No BPM descriptors found - I will not generate BPM 2.0 XML schemes. Either the @ProcessBpmSchemeRepo annotation was not used or there where issues loading your status enumaration classes.");
 		}
 	}
 

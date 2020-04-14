@@ -3,6 +3,7 @@ package com.github.catchitcozucan.core.impl.source.processor;
 import static com.github.catchitcozucan.core.impl.source.processor.DaProcessStepConstants.DOT;
 import static com.github.catchitcozucan.core.impl.source.processor.DaProcessStepConstants.error;
 import static com.github.catchitcozucan.core.impl.source.processor.DaProcessStepConstants.info;
+import static com.github.catchitcozucan.core.impl.source.processor.DaProcessStepConstants.warn;
 import static com.github.catchitcozucan.core.util.MavenWriter.MESSAGE_SEPARATOR;
 
 import java.io.File;
@@ -160,8 +161,7 @@ public class DaProcessStepProcessor extends AbstractProcessor {
 			}
 
 			if (statusClass == null) {
-				errors.append(String.format("specified enumProvider class %s could not be loaded - does it exist?", enumProvider)).append(MESSAGE_SEPARATOR);
-				goOnEvaluating = false;
+				warn(String.format("specified enumProvider class %s could not be loaded - does it exist?", enumProvider));
 			} else {
 				info(String.format("    Class %s is loaded. Inspecting status enum providers..", statusClass.getName()));
 				CustomClassLoader.EnumContainer enums = new CustomClassLoader.EnumContainer(statusClass);
@@ -374,7 +374,7 @@ public class DaProcessStepProcessor extends AbstractProcessor {
 		File tmpDir = new File(DaProcessStepLookup.TMP_COMP_PATH);
 		boolean tmpDirIsAvail = true;
 		if (!tmpDir.exists() && !tmpDir.mkdirs()) {
-			DaProcessStepConstants.warn("Could not make tmp compile folder..");
+			warn("Could not make tmp compile folder..");
 			tmpDirIsAvail = false;
 		}
 		String className = "unknown"; //NOSONAR it is not pointless, does not compile otherwise...
@@ -405,7 +405,7 @@ public class DaProcessStepProcessor extends AbstractProcessor {
 				file = new File(DaProcessStepLookup.TMP_COMP_PATH + File.separator + file.getName());
 				Files.write(file.toPath(), source.getBytes(IO.UTF_8));  //NOSONAR
 			} catch (IOException e) {
-				DaProcessStepConstants.warn(String.format("Could not prepare file %s for compilation", file.getAbsolutePath()));
+				warn(String.format("Could not prepare file %s for compilation", file.getAbsolutePath()));
 				return null;
 			}
 			try {
@@ -418,9 +418,9 @@ public class DaProcessStepProcessor extends AbstractProcessor {
 				URLClassLoader classLoader = URLClassLoader.newInstance(new URL[] { classUrl });
 				return Class.forName(className, true, classLoader);
 			} catch (IOException ignore) {
-				DaProcessStepConstants.warn(String.format("Could not test compile file for class %s due to IO-issues..", className));
+				warn(String.format("Could not test compile file for class %s due to IO-issues..", className));
 			} catch (ClassNotFoundException e) {
-				DaProcessStepConstants.warn(String.format("Could not load tmp compiled file for class %s..", className));
+				warn(String.format("Could not load tmp compiled file for class %s..", className));
 			}
 		}
 		return null;

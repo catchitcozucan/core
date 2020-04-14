@@ -4,6 +4,7 @@ import static com.github.catchitcozucan.core.impl.source.processor.DaProcessStep
 import static com.github.catchitcozucan.core.impl.source.processor.DaProcessStepConstants.ANNOT_PROCESSSTATUS_JAVA_PATH;
 import static com.github.catchitcozucan.core.impl.source.processor.DaProcessStepConstants.CLASSFILE;
 import static com.github.catchitcozucan.core.impl.source.processor.DaProcessStepConstants.FILE;
+import static com.github.catchitcozucan.core.impl.source.processor.DaProcessStepConstants.NL;
 import static com.github.catchitcozucan.core.impl.source.processor.DaProcessStepConstants.PROCESSBPMSCHEMEREPO_JAVA_PATH;
 import static com.github.catchitcozucan.core.impl.source.processor.DaProcessStepConstants.TSYM;
 import static com.github.catchitcozucan.core.impl.source.processor.DaProcessStepConstants.TYPE;
@@ -28,6 +29,7 @@ import com.github.catchitcozucan.core.ProcessBpmSchemeRepo;
 import com.github.catchitcozucan.core.ProcessStatus;
 import com.github.catchitcozucan.core.internal.util.io.IO;
 import com.github.catchitcozucan.core.internal.util.reflect.ReflectionUtils;
+import javafx.beans.binding.Bindings;
 
 public class DaProcessStepLookup {
 
@@ -69,7 +71,11 @@ public class DaProcessStepLookup {
                         try {
                             String tmpSource = IO.fileToString(file.getAbsolutePath(), null);
                             if (tmpSource.indexOf(DaProcessStepConstants.INTRO_TEXT) > -1) {
-                                currentSource = tmpSource.substring(tmpSource.indexOf(DaProcessStepConstants.CHKSUMPREFIX), tmpSource.indexOf(DaProcessStepConstants.HEADER_START_OLD) + DaProcessStepConstants.COMMENT_HEADER_END.length());
+                                int endIndex = tmpSource.indexOf(DaProcessStepConstants.HEADER_START_OLD) + DaProcessStepConstants.COMMENT_HEADER_END.length();
+                                if (endIndex > tmpSource.length()) {
+                                    endIndex = tmpSource.lastIndexOf("//") + NL.length();
+                                }
+                                currentSource = tmpSource.substring(tmpSource.indexOf(DaProcessStepConstants.CHKSUMPREFIX), endIndex);
                             }
                             srcAppender = new DaProcessStepSourceAppender(file, originatingClass, currentSource, headerStartToUser);
                             appenders.add(srcAppender);
@@ -132,11 +138,11 @@ public class DaProcessStepLookup {
             Optional<String> matched = statusClassFileMap.keySet().stream().filter(classSymbol -> a.matchStatusClass(classSymbol)).findFirst();  //NOSONAR
             if (matched.isPresent()) {
                 a.setJavaScrFileForStatusClass(statusClassFileMap.get(matched.get()));
-            }
-            File bpmRepoFolder = bpmFolderPerProcessClass.get(a.toString()).pathToFile;
-            if (bpmRepoFolder != null) {
-                a.setBpmRepoFolder(bpmRepoFolder);
-                a.setBpmActivitiesPerColumn(bpmFolderPerProcessClass.get(a.toString()).acivitiesPercolumn);
+                File bpmRepoFolder = bpmFolderPerProcessClass.get(a.toString()).pathToFile;
+                if (bpmRepoFolder != null) {
+                    a.setBpmRepoFolder(bpmRepoFolder);
+                    a.setBpmActivitiesPerColumn(bpmFolderPerProcessClass.get(a.toString()).acivitiesPercolumn);
+                }
             }
         });
         return appenders;

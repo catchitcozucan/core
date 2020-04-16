@@ -29,7 +29,6 @@ import com.github.catchitcozucan.core.ProcessBpmSchemeRepo;
 import com.github.catchitcozucan.core.ProcessStatus;
 import com.github.catchitcozucan.core.internal.util.io.IO;
 import com.github.catchitcozucan.core.internal.util.reflect.ReflectionUtils;
-import javafx.beans.binding.Bindings;
 
 public class DaProcessStepLookup {
 

@@ -31,10 +31,10 @@ import javax.lang.model.element.TypeElement;
 import javax.tools.JavaCompiler;
 import javax.tools.ToolProvider;
 
+import com.github.catchitcozucan.core.MakeStep;
 import com.github.catchitcozucan.core.ProcessBpmSchemeRepo;
 import com.github.catchitcozucan.core.ProcessStatus;
 import com.github.catchitcozucan.core.exception.ProcessRuntimeException;
-import com.github.catchitcozucan.core.MakeStep;
 import com.github.catchitcozucan.core.impl.source.processor.bpm.BpmSchemeElementDescriptor;
 import com.github.catchitcozucan.core.internal.util.MD5Digest;
 import com.github.catchitcozucan.core.internal.util.io.IO;
@@ -268,7 +268,10 @@ public class DaProcessStepProcessor extends AbstractProcessor {
 			String description = elementToWork.getAnnotatedElement().getAnnotation(MakeStep.class).description();
 			String encoding = elementToWork.getAnnotatedElement().getAnnotation(MakeStep.class).sourceEncoding();
 			String processName = sourceAppender.getOriginatingClassShort();
-			String enumStateProvider = ClassAnnotationUtil.getValueOverTypeMirror(() -> elementToWork.getAnnotatedElement().getAnnotation(MakeStep.class).enumStateProvider());
+			ClassAnnotationUtil.ClasspathSourceFile enumStateProvider = ClassAnnotationUtil.getValueOverTypeMirror(() -> elementToWork.getAnnotatedElement().getAnnotation(MakeStep.class).enumStateProvider());
+			if (sourceAppender.getJavaScrFileForStatusClass() == null && enumStateProvider.hasClassFile()) {
+				sourceAppender.setJavaScrFileForStatusClass(enumStateProvider.getFile());
+			}
 
 			if (IO.hasContents(encoding) && !encoding.equals(DaProcessStepConstants.NONE)) {
 				try {
@@ -284,9 +287,9 @@ public class DaProcessStepProcessor extends AbstractProcessor {
 			appendPossibleErrors(errors, statusUponSuccess, STATUS_UPON_SUCCESS);
 			appendPossibleErrors(errors, description, DESCRIPTION);
 			appendPossibleErrors(errors, processName, PROCESS_NAME);
-			appendPossibleErrors(errors, enumStateProvider, ENUM_PATH);
+			appendPossibleErrors(errors, enumStateProvider.getClassPath(), ENUM_PATH);
 
-			BpmSchemeElementDescriptor descriptor = testLoadStatusesAndExctractBpmDescriptors(errors, enumStateProvider, statusUponSuccess, statusUponFailure, sourceAppender, description, processName);
+			BpmSchemeElementDescriptor descriptor = testLoadStatusesAndExctractBpmDescriptors(errors, enumStateProvider.getClassPath(), statusUponSuccess, statusUponFailure, sourceAppender, description, processName);
 			if (descriptor != null) {
 				bpmDescriptors.add(descriptor);
 			}
@@ -296,11 +299,11 @@ public class DaProcessStepProcessor extends AbstractProcessor {
 				error(MavenWriter.formattedErrors(errors.toString()));
 				throw new ProcessRuntimeException("Could not build due to Makestep issues");
 			} else {
-				chkSumIndex.add(new StringBuilder(IO.hasContents(statusUponFailure) ? statusUponFailure : "null").append(IO.hasContents(statusUponSuccess) ? statusUponSuccess : "null").append(IO.hasContents(description) ? description : "null").append(IO.hasContents(enumStateProvider) ? enumStateProvider : "null").toString().hashCode());
+				chkSumIndex.add(new StringBuilder(IO.hasContents(statusUponFailure) ? statusUponFailure : "null").append(IO.hasContents(statusUponSuccess) ? statusUponSuccess : "null").append(IO.hasContents(description) ? description : "null").append(IO.hasContents(enumStateProvider.getClassPath()) ? enumStateProvider.getClassPath() : "null").toString().hashCode());
 
 				// add method
-				info(String.format("    Step evaluated successfully : %s, enumpath  : %s, statusUponSuccess : %s, statusUponFailure : %s, description : \"%s\" ", elementToWork.getMethodName(), enumStateProvider, statusUponSuccess, statusUponFailure, description));
-				addMethod(sourceAppender, elementToWork.getMethodName().replace("()", ""), enumStateProvider, statusUponSuccess, statusUponFailure, description, processName);
+				info(String.format("    Step evaluated successfully : %s, enumpath  : %s, statusUponSuccess : %s, statusUponFailure : %s, description : \"%s\" ", elementToWork.getMethodName(), enumStateProvider.getClassPath(), statusUponSuccess, statusUponFailure, description));
+				addMethod(sourceAppender, elementToWork.getMethodName().replace("()", ""), enumStateProvider.getClassPath(), statusUponSuccess, statusUponFailure, description, processName);
 			}
 		});
 

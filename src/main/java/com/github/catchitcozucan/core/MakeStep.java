@@ -8,7 +8,7 @@ import java.lang.annotation.Target;
 @Target({ ElementType.METHOD })
 @Retention(RetentionPolicy.CLASS)
 public @interface MakeStep {
-	String description();
+	String description() default "METHOD_NAME";
 	String statusUponSuccess();
 	String statusUponFailure();
 	Class<?>[] enumStateProvider() default {};

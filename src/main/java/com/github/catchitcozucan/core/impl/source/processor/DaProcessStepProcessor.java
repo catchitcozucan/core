@@ -1,6 +1,7 @@
 package com.github.catchitcozucan.core.impl.source.processor;
 
 import static com.github.catchitcozucan.core.impl.source.processor.DaProcessStepConstants.DOT;
+import static com.github.catchitcozucan.core.impl.source.processor.DaProcessStepConstants.EMPTY;
 import static com.github.catchitcozucan.core.impl.source.processor.DaProcessStepConstants.error;
 import static com.github.catchitcozucan.core.impl.source.processor.DaProcessStepConstants.info;
 import static com.github.catchitcozucan.core.impl.source.processor.DaProcessStepConstants.warn;
@@ -53,6 +54,8 @@ public class DaProcessStepProcessor extends AbstractProcessor {
 	private static final String PACKAGE = "package";
 	private static final String IMPORT = "import";
 	private static final String SEMI_COLON = ";";
+	private static final String METHOD_NAME = "METHOD_NAME";
+	private static final String PARENTHESIS = "()";
 	private Set<String> hasRecievedCommentHeader;
 
 	public DaProcessStepProcessor() {
@@ -262,10 +265,12 @@ public class DaProcessStepProcessor extends AbstractProcessor {
 	private void workAppenderElements(DaProcessStepSourceAppender sourceAppender, List<Integer> chkSumIndex) { //NOSONAR
 		List<BpmSchemeElementDescriptor> bpmDescriptors = new ArrayList<>();
 		sourceAppender.getElementsToWork().stream().forEachOrdered(elementToWork -> {
-
 			String statusUponFailure = elementToWork.getAnnotatedElement().getAnnotation(MakeStep.class).statusUponFailure();
 			String statusUponSuccess = elementToWork.getAnnotatedElement().getAnnotation(MakeStep.class).statusUponSuccess();
 			String description = elementToWork.getAnnotatedElement().getAnnotation(MakeStep.class).description();
+			if (description.equals(METHOD_NAME)) {
+				description = elementToWork.getMethodName().replace(PARENTHESIS, EMPTY);
+			}
 			String encoding = elementToWork.getAnnotatedElement().getAnnotation(MakeStep.class).sourceEncoding();
 			String processName = sourceAppender.getOriginatingClassShort();
 			ClassAnnotationUtil.ClasspathSourceFile enumStateProvider = ClassAnnotationUtil.getValueOverTypeMirror(() -> elementToWork.getAnnotatedElement().getAnnotation(MakeStep.class).enumStateProvider());
@@ -303,7 +308,7 @@ public class DaProcessStepProcessor extends AbstractProcessor {
 
 				// add method
 				info(String.format("    Step evaluated successfully : %s, enumpath  : %s, statusUponSuccess : %s, statusUponFailure : %s, description : \"%s\" ", elementToWork.getMethodName(), enumStateProvider.getClassPath(), statusUponSuccess, statusUponFailure, description));
-				addMethod(sourceAppender, elementToWork.getMethodName().replace("()", ""), enumStateProvider.getClassPath(), statusUponSuccess, statusUponFailure, description, processName);
+				addMethod(sourceAppender, elementToWork.getMethodName().replace(PARENTHESIS, ""), enumStateProvider.getClassPath(), statusUponSuccess, statusUponFailure, description, processName);
 			}
 		});
 

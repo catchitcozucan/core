@@ -191,6 +191,10 @@ public class HistogramStatus implements Comparable<HistogramStatus> {
 		return json.toString();
 	}
 
+	public void setFailureStatusRegExp(String failureStatusRegExp){
+		this.failureStatusRegExp = failureStatusRegExp;
+	}
+
 	@Override
 	public boolean equals(Object other) {
 		if (other == this) {

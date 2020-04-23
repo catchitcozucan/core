@@ -1,3 +1,20 @@
+/**
+ *    Copyright [2020] [Ola Aronsson, courtesy of nollettnoll AB]
+ *
+ *    Licensed under the Creative Commons Attribution 4.0 International (the "License")
+ *    you may not use this file except in compliance with the License. You may obtain
+ *    a copy of the License at
+ *
+ *                https://creativecommons.org/licenses/by/4.0/
+ *
+ *    The software is provided “as is”, without warranty of any kind, express or
+ *    implied, including but not limited to the warranties of merchantability,
+ *    fitness for a particular purpose and noninfringement. In no event shall the
+ *    authors or copyright holders be liable for any claim, damages or other liability,
+ *    whether in an action of contract, tort or otherwise, arising from, out of or
+ *    in connection with the software or the use or other dealings in the software.
+ */
+
 package com.github.catchitcozucan.core.internal.util.id;
 
 import java.security.SecureRandom;
@@ -60,8 +77,7 @@ public class IdGenerator {
 		}
 	}
 
-	// likely to be more random and to a _very_ high degree unique yet not guaranteed
-// look here https://codereview.stackexchange.com/questions/159421/generate-16-digit-unique-code-like-product-serial
+    // basically from here : https://codereview.stackexchange.com/questions/159421/generate-16-digit-unique-code-like-product-serial
 	public String getIdMoreRandom(int length, int groupDashing) {
 		if (length < MINIMUN_VALUE_LENGTH_MORE_RANDOM) {
 			throw new IllegalArgumentException(MessageFormat.format("You cannot be serious generating \"IDs\" upon a value-range of {0} characters! Please provide a minimum of {1}", length, MINIMUN_VALUE_LENGTH));

@@ -15,12 +15,8 @@
  *    in connection with the software or the use or other dealings in the software.
  */
 
-package com.github.catchitcozucan.core.util;
+package com.github.catchitcozucan.core.impl.source.processor;
 
-public class ThrowableUtils {
-	private ThrowableUtils() {}
-
-	public static String getTopStackInfo(Throwable t) {
-		return new StringBuilder(t.getStackTrace()[0].getClassName()).append(".").append(t.getStackTrace()[0].getMethodName()).append(".").append(t.getStackTrace()[0].getLineNumber()).toString();
-	}
+public interface Nameable {
+	String name();
 }

@@ -1,7 +1,25 @@
+/**
+ *    Copyright [2020] [Ola Aronsson, courtesy of nollettnoll AB]
+ *
+ *    Licensed under the Creative Commons Attribution 4.0 International (the "License")
+ *    you may not use this file except in compliance with the License. You may obtain
+ *    a copy of the License at
+ *
+ *                https://creativecommons.org/licenses/by/4.0/
+ *
+ *    The software is provided “as is”, without warranty of any kind, express or
+ *    implied, including but not limited to the warranties of merchantability,
+ *    fitness for a particular purpose and noninfringement. In no event shall the
+ *    authors or copyright holders be liable for any claim, damages or other liability,
+ *    whether in an action of contract, tort or otherwise, arising from, out of or
+ *    in connection with the software or the use or other dealings in the software.
+ */
+
 package com.github.catchitcozucan.core.impl.source.processor;
 
 import static com.github.catchitcozucan.core.impl.source.processor.DaProcessStepConstants.DOT;
 import static com.github.catchitcozucan.core.impl.source.processor.DaProcessStepConstants.EMPTY;
+import static com.github.catchitcozucan.core.impl.source.processor.DaProcessStepConstants.STEP;
 import static com.github.catchitcozucan.core.impl.source.processor.DaProcessStepConstants.error;
 import static com.github.catchitcozucan.core.impl.source.processor.DaProcessStepConstants.info;
 import static com.github.catchitcozucan.core.impl.source.processor.DaProcessStepConstants.warn;
@@ -112,7 +130,7 @@ public class DaProcessStepProcessor extends AbstractProcessor {
 		}
 	}
 
-	private BpmSchemeElementDescriptor testLoadStatusesAndExctractBpmDescriptors(StringBuilder errors, String enumProvider, String statusUponSuccess, String statusUponFailure, DaProcessStepSourceAppender appender, String description, String processName) { //NOSONAR
+	private BpmSchemeElementDescriptor testLoadStatusesAndExctractBpmDescriptors(StringBuilder errors, String enumProvider, String statusUponSuccess, String statusUponFailure, DaProcessStepSourceAppender appender, String description, String processName, String stepMethodName) { //NOSONAR
 		boolean goOnEvaluating = true;
 		BpmSchemeElementDescriptor descriptor = null;
 		if (!statusUponSuccess.contains(".")) {
@@ -167,7 +185,7 @@ public class DaProcessStepProcessor extends AbstractProcessor {
 				warn(String.format("specified enumProvider class %s could not be loaded - does it exist?", enumProvider));
 			} else {
 				info(String.format("    Class %s is loaded. Inspecting status enum providers..", statusClass.getName()));
-				CustomClassLoader.EnumContainer enums = new CustomClassLoader.EnumContainer(statusClass);
+				EnumContainer enums = new EnumContainer(statusClass, enumProvider);
 
 				if (!enums.isSane()) {
 					errors.append(String.format("specified enumProvider class was not a good subject for process statuses : %s", enums.getProblemDescription())).append(MESSAGE_SEPARATOR);
@@ -184,8 +202,8 @@ public class DaProcessStepProcessor extends AbstractProcessor {
 							goOnEvaluating = false;
 						}
 						if (goOnEvaluating) {
-							Optional<CustomClassLoader.Nameable> sucessField = Arrays.stream(enums.values()).filter(f -> statusUponSuccess.contains(f.name())).findFirst();
-							Optional<CustomClassLoader.Nameable> failureField = Arrays.stream(enums.values()).filter(f -> statusUponFailure.contains(f.name())).findFirst();
+							Optional<Nameable> sucessField = Arrays.stream(enums.values()).filter(f -> statusUponSuccess.contains(f.name())).findFirst();
+							Optional<Nameable> failureField = Arrays.stream(enums.values()).filter(f -> statusUponFailure.contains(f.name())).findFirst();
 							if (!sucessField.isPresent()) {
 								errors.append(String.format("specified enumProvider class %s does not contain field %s defined as statusUponSuccess", enumProvider, statusUponSuccess)).append(MESSAGE_SEPARATOR);
 								goOnEvaluating = false;
@@ -197,8 +215,8 @@ public class DaProcessStepProcessor extends AbstractProcessor {
 							if (goOnEvaluating) {
 								String statusUponSuccessShort = statusUponSuccess.substring(statusUponSuccess.indexOf(DOT) + 1);
 								String statusUponFailureShort = statusUponFailure.substring(statusUponFailure.indexOf(DOT) + 1);
-								Optional<CustomClassLoader.Nameable> locatedFailureEnum = Arrays.stream(enums.values()).filter(o -> o.name().equals(statusUponFailureShort)).findFirst();
-								Optional<CustomClassLoader.Nameable> locatedSuccessEnum = Arrays.stream(enums.values()).filter(o -> o.name().equals(statusUponSuccessShort)).findFirst();
+								Optional<Nameable> locatedFailureEnum = Arrays.stream(enums.values()).filter(o -> o.name().equals(statusUponFailureShort)).findFirst();
+								Optional<Nameable> locatedSuccessEnum = Arrays.stream(enums.values()).filter(o -> o.name().equals(statusUponSuccessShort)).findFirst();
 								if (!locatedFailureEnum.isPresent()) {
 									errors.append(String.format("statusUponFailure %s enum does not exist within %s in class %s", statusUponFailureShort, enums.getClassName(), statusClass.getName())).append(MESSAGE_SEPARATOR);
 								}
@@ -211,7 +229,7 @@ public class DaProcessStepProcessor extends AbstractProcessor {
 				}
 				// let's generate the BPM2 scheme element...
 				if (goOnEvaluating) {
-					descriptor = extractDescriptor(statusUponFailure, statusUponSuccess, description, enums, processName);
+					descriptor = extractDescriptor(statusUponFailure, statusUponSuccess, description, enums, processName, stepMethodName);
 				}
 			}
 		}
@@ -223,9 +241,9 @@ public class DaProcessStepProcessor extends AbstractProcessor {
 		return descriptor;
 	}
 
-	private BpmSchemeElementDescriptor extractDescriptor(String statusUponFailure, String statusUponSuccess, String description, CustomClassLoader.EnumContainer enums, String processName) {
-		String statusUponFailureShort = statusUponFailure.substring(statusUponFailure.indexOf(".") + 1);
-		String statusUponSuccessShort = statusUponSuccess.substring(statusUponSuccess.indexOf(".") + 1);
+	private BpmSchemeElementDescriptor extractDescriptor(String statusUponFailure, String statusUponSuccess, String description, EnumContainer enums, String processName, String stepMethodName) {
+		String statusUponFailureShort = statusUponFailure.substring(statusUponFailure.indexOf(DOT) + 1); //NOSONAR
+		String statusUponSuccessShort = statusUponSuccess.substring(statusUponSuccess.indexOf(DOT) + 1); //NOSONAR
 		AtomicInteger index = new AtomicInteger(-1);
 		AtomicInteger found = new AtomicInteger(-1);
 		Arrays.stream(enums.values()).forEachOrdered(e -> {
@@ -240,17 +258,18 @@ public class DaProcessStepProcessor extends AbstractProcessor {
 		BpmSchemeElementDescriptor.Type typeBefore;
 		BpmSchemeElementDescriptor.Type typeAfter;
 		if (indexCurrentState == 0) {
-			typeBefore = BpmSchemeElementDescriptor.Type.StartEvent;
-			typeAfter = BpmSchemeElementDescriptor.Type.Activity;
+			typeBefore = BpmSchemeElementDescriptor.Type.START_EVENT;
+			typeAfter = BpmSchemeElementDescriptor.Type.ACTIVITY;
 		} else if (indexCurrentState == enums.values().length - 3) {
-			typeBefore = BpmSchemeElementDescriptor.Type.Activity;
+			typeBefore = BpmSchemeElementDescriptor.Type.ACTIVITY;
 			typeAfter = BpmSchemeElementDescriptor.Type.FINISH_STATE;
 		} else {
-			typeBefore = BpmSchemeElementDescriptor.Type.Activity;
-			typeAfter = BpmSchemeElementDescriptor.Type.Activity;
+			typeBefore = BpmSchemeElementDescriptor.Type.ACTIVITY;
+			typeAfter = BpmSchemeElementDescriptor.Type.ACTIVITY;
 		}
 		// @formatter:off
 		return BpmSchemeElementDescriptor.builder()
+				.enumContainer(enums)
 				.statusUponFailure(statusUponFailureShort)
 				.statusUponSuccess(statusUponSuccessShort)
 				.index(indexCurrentState)
@@ -258,6 +277,7 @@ public class DaProcessStepProcessor extends AbstractProcessor {
 				.expectedTypeBefore(typeBefore)
 				.myStateName(myStateName)
 				.processName(processName)
+				.stepMethodName(stepMethodName)
 				.taskName(description).build();
 		// @formatter:on
 	}
@@ -294,7 +314,7 @@ public class DaProcessStepProcessor extends AbstractProcessor {
 			appendPossibleErrors(errors, processName, PROCESS_NAME);
 			appendPossibleErrors(errors, enumStateProvider.getClassPath(), ENUM_PATH);
 
-			BpmSchemeElementDescriptor descriptor = testLoadStatusesAndExctractBpmDescriptors(errors, enumStateProvider.getClassPath(), statusUponSuccess, statusUponFailure, sourceAppender, description, processName);
+			BpmSchemeElementDescriptor descriptor = testLoadStatusesAndExctractBpmDescriptors(errors, enumStateProvider.getClassPath(), statusUponSuccess, statusUponFailure, sourceAppender, description, processName, new StringBuilder(elementToWork.getMethodName().replace(DaProcessStepProcessor.PARENTHESIS, EMPTY)).append(STEP).toString());
 			if (descriptor != null) {
 				bpmDescriptors.add(descriptor);
 			}
@@ -330,19 +350,19 @@ public class DaProcessStepProcessor extends AbstractProcessor {
 			descriptors.stream().forEach(d -> descriptorErrors.append(d.validateForErrorOutput()));
 
 			// first element ALWAYS preceded with the starter
-			if (!descriptors.get(0).getExpectedTypeBefore().equals(BpmSchemeElementDescriptor.Type.StartEvent) || !descriptors.get(0).getExpectedTypeAfter().equals(BpmSchemeElementDescriptor.Type.Activity)) {
+			if (!descriptors.get(0).getExpectedTypeBefore().equals(BpmSchemeElementDescriptor.Type.START_EVENT) || !descriptors.get(0).getExpectedTypeAfter().equals(BpmSchemeElementDescriptor.Type.ACTIVITY)) {
 				descriptorErrors.append(String.format("The first non-failure state in your chain (%s) of taks should _always_ be preceded by a (BPM) StartEvent and be followed by a Task", descriptors.get(0).getMyStateName())).append(MESSAGE_SEPARATOR);
 			}
 
 			// mid-elements all connect to tasks..
 			descriptors.stream().filter(d -> d.getIndex() != null && d.getIndex() > 0 && d.getIndex() < descriptors.size() - 1).forEach(dd -> {
-				if (!dd.getExpectedTypeBefore().equals(BpmSchemeElementDescriptor.Type.Activity) || !dd.getExpectedTypeAfter().equals(BpmSchemeElementDescriptor.Type.Activity)) {
+				if (!dd.getExpectedTypeBefore().equals(BpmSchemeElementDescriptor.Type.ACTIVITY) || !dd.getExpectedTypeAfter().equals(BpmSchemeElementDescriptor.Type.ACTIVITY)) {
 					descriptorErrors.append(String.format("The mid non-failure states (that is everything between start Task and last Task) such as this (%s) of should _always_ link (BPM) Task to Task", dd.getMyStateName())).append(MESSAGE_SEPARATOR);
 				}
 			});
 
 			// last element ALWAYS followed with the finish_state
-			if (!descriptors.get(descriptors.size() - 1).getExpectedTypeBefore().equals(BpmSchemeElementDescriptor.Type.Activity) || !descriptors.get(descriptors.size() - 1).getExpectedTypeAfter().equals(BpmSchemeElementDescriptor.Type.FINISH_STATE)) {
+			if (!descriptors.get(descriptors.size() - 1).getExpectedTypeBefore().equals(BpmSchemeElementDescriptor.Type.ACTIVITY) || !descriptors.get(descriptors.size() - 1).getExpectedTypeAfter().equals(BpmSchemeElementDescriptor.Type.FINISH_STATE)) {
 				descriptorErrors.append(String.format("The last non-failure state before finish state (%s) of should _always_ be preced with a (BPM) Task and be followed by the finish state", descriptors.get(descriptors.size() - 1).getMyStateName())).append(MESSAGE_SEPARATOR);
 			}
 
@@ -357,7 +377,7 @@ public class DaProcessStepProcessor extends AbstractProcessor {
 	}
 
 	private void addMethod(DaProcessStepSourceAppender sourceAppender, String toCall, String enumPath, String statusUponSuccess, String statusUponFailure, String description, String processName) {
-		String instanceName = new StringBuilder(toCall).append(DaProcessStepConstants.STEP).toString();
+		String instanceName = new StringBuilder(toCall).append(STEP).toString();
 		String body = String.format(DaProcessStepConstants.BODY, toCall, processName, description, enumPath, statusUponSuccess, enumPath, statusUponFailure);
 		writeSourceFile(sourceAppender, body, instanceName);
 	}

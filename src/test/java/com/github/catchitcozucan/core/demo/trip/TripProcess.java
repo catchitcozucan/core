@@ -2,7 +2,6 @@ package com.github.catchitcozucan.core.demo.trip;
 
 import com.github.catchitcozucan.core.ProcessBpmSchemeRepo;
 import com.github.catchitcozucan.core.ProcessStep;
-import com.github.catchitcozucan.core.demo.test.support.io.IO;
 import com.github.catchitcozucan.core.exception.ProcessRuntimeException;
 import com.github.catchitcozucan.core.impl.ProcessBase;
 import com.github.catchitcozucan.core.interfaces.PersistenceService;
@@ -12,12 +11,10 @@ import org.slf4j.LoggerFactory;
 import com.github.catchitcozucan.core.MakeStep;
 import com.github.catchitcozucan.core.demo.trip.internal.BookingCentral;
 
-@ProcessBpmSchemeRepo(relativePath = "../../../../../../resources/bpmSchemes", activitiesPerColumn = "3")
+@ProcessBpmSchemeRepo(relativePath = "../../../../../../../resources/bpmSchemes", activitiesPerColumn = "3")
 public class TripProcess extends ProcessBase {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(TripProcess.class);
-
-	public static final TripStatus.Status[] CRITERIA_STATES = { TripStatus.Status.NEW_ORDER, TripStatus.Status.FLIGHT_NOT_CONFIRMED, TripStatus.Status.HOTEL_NOT_CONFIRMED, TripStatus.Status.CAR_NOT_CONFIRMED };
 
 	protected TripProcess(ProcessSubject processSubject, PersistenceService persistenceService) {
 		super(processSubject, persistenceService);
@@ -25,7 +22,7 @@ public class TripProcess extends ProcessBase {
 
 	@Override
 	public String name() {
-		return "Booking a trip";
+		return PROCESS_NAME;
 	}
 
 	@Override
@@ -34,43 +31,26 @@ public class TripProcess extends ProcessBase {
 	}
 	@Override
 	public Enum<?> finishedState() {
-		return TripStatus.Status.CAR_CONFIRMED;
+		return FINISH_STATE;
 	}
 
 	@Override
 	public void process() {
 		TripStatus.Status currentStatus = (TripStatus.Status) getSubject().getCurrentStatus();
-		switch (currentStatus) {
-			case NEW_ORDER:
-			case FLIGHT_NOT_CONFIRMED:
-				executeStep(bookFlightStep);
-				break;
-			case FLIGHT_CONFIRMED:
-			case HOTEL_NOT_CONFIRMED:
-				executeStep(bookHotelStep);
-				break;
-			case HOTEL_CONFIRMED:
-			case CAR_NOT_CONFIRMED:
-				executeStep(bookCarStep);
-				break;
-			default:
-				Throwable t = new ProcessRuntimeException(String.format("Got bad input : order %s which is in state %s [%s]", getSubject().id(), getSubject().getCurrentStatus().name(), currentStatusDescription()));
-				LOGGER.error("err", t);
-				throw (RuntimeException) t;
-		}
+		processInternal(currentStatus);
 	}
 
-	@MakeStep(description = "bookFlight", statusUponSuccess = "Status.FLIGHT_CONFIRMED", statusUponFailure = "Status.FLIGHT_NOT_CONFIRMED", enumStateProvider = com.github.catchitcozucan.core.demo.trip.TripStatus.class, sourceEncoding = IO.DEF_ENCODING)
+	@MakeStep(statusUponSuccess = "Status.FLIGHT_CONFIRMED", statusUponFailure = "Status.FLIGHT_NOT_CONFIRMED", enumStateProvider = com.github.catchitcozucan.core.demo.trip.TripStatus.class)
 	private void bookFlight() {
 		((TripSubject) getSubject()).setFlightConfirmation(BookingCentral.getFlightConfirmation());
 	}
 
-	@MakeStep(description = "bookHotel", statusUponSuccess = "Status.HOTEL_CONFIRMED", statusUponFailure = "Status.HOTEL_NOT_CONFIRMED", enumStateProvider = com.github.catchitcozucan.core.demo.trip.TripStatus.class, sourceEncoding = IO.DEF_ENCODING)
+	@MakeStep(statusUponSuccess = "Status.HOTEL_CONFIRMED", statusUponFailure = "Status.HOTEL_NOT_CONFIRMED", enumStateProvider = com.github.catchitcozucan.core.demo.trip.TripStatus.class)
 	private void bookHotel() {
 		((TripSubject) getSubject()).setHotelConfirmation(BookingCentral.getHotelConfirmation());
 	}
 
-	@MakeStep(description = "bookCar", statusUponSuccess = "Status.CAR_CONFIRMED", statusUponFailure = "Status.CAR_NOT_CONFIRMED", enumStateProvider = com.github.catchitcozucan.core.demo.trip.TripStatus.class, sourceEncoding = IO.DEF_ENCODING)
+	@MakeStep(statusUponSuccess = "Status.CAR_CONFIRMED", statusUponFailure = "Status.CAR_NOT_CONFIRMED", enumStateProvider = com.github.catchitcozucan.core.demo.trip.TripStatus.class)
 	private void bookCar() {
 		((TripSubject) getSubject()).setCarConfirmation(BookingCentral.getCarConfirmation());
 	}
@@ -82,6 +62,8 @@ public class TripProcess extends ProcessBase {
     //
     // DO NOT edit this section. Modify @MakeStep or CHKSUM (then keep length)  to re-generate.
     //
+
+    //@formatter:off DO_NOT_FORMAT
 
     private final ProcessStep bookHotelStep = new ProcessStep(){ 
 
@@ -169,6 +151,43 @@ public class TripProcess extends ProcessBase {
         }
 
     };
+
+
+    public static final String PROCESS_NAME = com.github.catchitcozucan.core.demo.trip.TripProcess.class.getName().toUpperCase();
+
+    public static final Enum<?> FINISH_STATE = com.github.catchitcozucan.core.demo.trip.TripStatus.Status.values()[com.github.catchitcozucan.core.demo.trip.TripStatus.Status.values().length - 1];
+
+    public static final com.github.catchitcozucan.core.demo.trip.TripStatus.Status[] CRITERIA_STATES = {
+        com.github.catchitcozucan.core.demo.trip.TripStatus.Status.NEW_ORDER,
+        com.github.catchitcozucan.core.demo.trip.TripStatus.Status.FLIGHT_NOT_CONFIRMED,
+        com.github.catchitcozucan.core.demo.trip.TripStatus.Status.HOTEL_NOT_CONFIRMED,
+        com.github.catchitcozucan.core.demo.trip.TripStatus.Status.CAR_NOT_CONFIRMED
+    };
+
+    public void processInternal(com.github.catchitcozucan.core.demo.trip.TripStatus.Status currentStatus) {
+        switch (currentStatus) {
+                case NEW_ORDER:
+                case FLIGHT_NOT_CONFIRMED:
+                    executeStep(bookFlightStep);
+                    break;
+                case FLIGHT_CONFIRMED:
+                case HOTEL_NOT_CONFIRMED:
+                    executeStep(bookHotelStep);
+                    break;
+                case HOTEL_CONFIRMED:
+                case CAR_NOT_CONFIRMED:
+                    executeStep(bookCarStep);
+                    break;
+            default:
+                throw new ProcessRuntimeException(String.format("Got bad input : %s %s which is in state %s [%s]",
+                    PROCESS_NAME,
+                    getSubject().id(),
+                    getSubject().getCurrentStatus().name(),
+                    currentStatusDescription()));
+         }
+    }
+
+    //@formatter:on END DO_NOT_FORMAT
 
     ///////////////////////////////////////////////////////////////////////////////
     //

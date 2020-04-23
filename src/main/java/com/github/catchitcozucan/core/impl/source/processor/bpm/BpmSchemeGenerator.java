@@ -1,3 +1,20 @@
+/**
+ *    Copyright [2020] [Ola Aronsson, courtesy of nollettnoll AB]
+ *
+ *    Licensed under the Creative Commons Attribution 4.0 International (the "License")
+ *    you may not use this file except in compliance with the License. You may obtain
+ *    a copy of the License at
+ *
+ *                https://creativecommons.org/licenses/by/4.0/
+ *
+ *    The software is provided “as is”, without warranty of any kind, express or
+ *    implied, including but not limited to the warranties of merchantability,
+ *    fitness for a particular purpose and noninfringement. In no event shall the
+ *    authors or copyright holders be liable for any claim, damages or other liability,
+ *    whether in an action of contract, tort or otherwise, arising from, out of or
+ *    in connection with the software or the use or other dealings in the software.
+ */
+
 package com.github.catchitcozucan.core.impl.source.processor.bpm;
 
 import static com.github.catchitcozucan.core.impl.source.processor.bpm.BpmSchemeElementDescriptor.generateIdForType;
@@ -56,81 +73,79 @@ public class BpmSchemeGenerator extends BaseDomainObject {
             .append(INTENDENT_TWO).append("</bpmn:startEvent>").append(NL).toString();
     // @formatter:on
 
-    // @formatter:off
+    public static final String BPMNDI_BPMNSHAPE = "</bpmndi:BPMNShape>";
     private static final String START_EVENT_SHAPE = new StringBuilder()
             .append(INTENDENT_TWO).append("<bpmndi:BPMNShape id=\"_BPMNShape_StartEvent_2\" bpmnElement=\"%s\">").append(NL)
             .append(INTENDENT_THREE).append("<dc:Bounds x=\"246\" y=\"81\" width=\"36\" height=\"36\" />").append(NL)
             .append(INTENDENT_THREE).append("<bpmndi:BPMNLabel>").append(NL)
             .append(INTENDENT_FOUR).append("<dc:Bounds x=\"187\" y=\"40\" width=\"150\" height=\"28\" />").append(NL)
             .append(INTENDENT_THREE).append("</bpmndi:BPMNLabel>").append(NL)
-            .append(INTENDENT_TWO).append("</bpmndi:BPMNShape>").append(NL)
+            .append(INTENDENT_TWO).append(BPMNDI_BPMNSHAPE).append(NL)
             .toString();
     // @formatter:on
 
-    // @formatter:off
-    private static final String FLOW_START_SHAPE = new StringBuilder()
-            .append(INTENDENT_TWO).append("<bpmndi:BPMNEdge id=\"%s_di\" bpmnElement=\"%s\">").append(NL)
-            .append(INTENDENT_THREE).append("<di:waypoint x=\"264\" y=\"117\" />").append(NL)
-            .append(INTENDENT_THREE).append("<di:waypoint x=\"264\" y=\"190\" />").append(NL)
-            .append(INTENDENT_TWO).append("</bpmndi:BPMNEdge>").append(NL).toString();
-    // @formatter:on
+    public static final String BPMNDI_BPMNEDGE_ID_S_DI_BPMN_ELEMENT_S = "<bpmndi:BPMNEdge id=\"%s_di\" bpmnElement=\"%s\">";
+    public static final String BPMNDI_BPMNEDGE = "</bpmndi:BPMNEdge>";
 
     // ------------------- A WHOLE STEP ------------------- //
 
-    // @formatter:off
+    public static final String BPMN_INCOMING_S_BPMN_INCOMING = "<bpmn:incoming>%s</bpmn:incoming>";
+    public static final String BPMN_OUTGOING_S_BPMN_OUTGOING = "<bpmn:outgoing>%s</bpmn:outgoing>";
+    public static final String BPMN_TASK = "</bpmn:task>";
+    public static final String BPMN_TASK_ID_S_NAME_S = "<bpmn:task id=\"%s\" name=\"%s\">";
     private static final String TASK = new StringBuilder()
-            .append(INTENDENT_TWO).append("<bpmn:task id=\"%s\" name=\"%s\">").append(NL)   // the task : id & name
-            .append(INTENDENT_THREE).append("<bpmn:incoming>%s</bpmn:incoming>").append(NL) // flow going in from start/other activity
-            .append(INTENDENT_THREE).append("<bpmn:incoming>%s</bpmn:incoming>").append(NL) // flow back in from failure
-            .append(INTENDENT_THREE).append("<bpmn:outgoing>%s</bpmn:outgoing>").append(NL) // flow to gw
-            .append(INTENDENT_TWO).append("</bpmn:task>").append(NL).toString();
+            .append(INTENDENT_TWO).append(BPMN_TASK_ID_S_NAME_S).append(NL)   // the task : id & name
+            .append(INTENDENT_THREE).append(BPMN_INCOMING_S_BPMN_INCOMING).append(NL) // flow going in from start/other activity
+            .append(INTENDENT_THREE).append(BPMN_INCOMING_S_BPMN_INCOMING).append(NL) // flow back in from failure
+            .append(INTENDENT_THREE).append(BPMN_OUTGOING_S_BPMN_OUTGOING).append(NL) // flow to gw
+            .append(INTENDENT_TWO).append(BPMN_TASK).append(NL).toString();
     // @formatter:on
 
-    // @formatter:off
+    public static final String BPMN_SEQUENCE_FLOW_ID_S_SOURCE_REF_S_TARGET_REF_S = "<bpmn:sequenceFlow id=\"%s\" sourceRef=\"%s\" targetRef=\"%s\" />";
     private static final String FLOW_FROM_START_TO_TASK = new StringBuilder()
-            .append(INTENDENT_TWO).append("<bpmn:sequenceFlow id=\"%s\" sourceRef=\"%s\" targetRef=\"%s\" />").append(NL).toString();
+            .append(INTENDENT_TWO).append(BPMN_SEQUENCE_FLOW_ID_S_SOURCE_REF_S_TARGET_REF_S).append(NL).toString();
     // @formatter:on
 
     // @formatter:off
     private static final String GW = new StringBuilder()
             .append(INTENDENT_TWO).append("<bpmn:exclusiveGateway id=\"%s\" name=\"execution outcome\">").append(NL) // outcome gw : id & name
-            .append(INTENDENT_THREE).append("<bpmn:incoming>%s</bpmn:incoming>").append(NL) // incoming flow from task
-            .append(INTENDENT_THREE).append("<bpmn:outgoing>%s</bpmn:outgoing>").append(NL) // outgoing flow to fail task
+            .append(INTENDENT_THREE).append(BPMN_INCOMING_S_BPMN_INCOMING).append(NL) // incoming flow from task
+            .append(INTENDENT_THREE).append(BPMN_OUTGOING_S_BPMN_OUTGOING).append(NL) // outgoing flow to fail task
             .append(INTENDENT_THREE).append(FLOW_ON).append(NL)                             // future flow connecting to the next task
             .append(INTENDENT_TWO).append("</bpmn:exclusiveGateway>").append(NL).toString();
     // @formatter:on
 
     // @formatter:off
     private static final String FLOW_FROM_TASK_TO_GW = new StringBuilder()
-            .append(INTENDENT_TWO).append("<bpmn:sequenceFlow id=\"%s\" sourceRef=\"%s\" targetRef=\"%s\" />").append(NL).toString();
+            .append(INTENDENT_TWO).append(BPMN_SEQUENCE_FLOW_ID_S_SOURCE_REF_S_TARGET_REF_S).append(NL).toString();
     // @formatter:on
 
     // @formatter:off
     private static final String FAILURE_TASK = new StringBuilder()
-            .append(INTENDENT_TWO).append("<bpmn:task id=\"%s\" name=\"%s\">").append(NL)   // fail task : id & name
-            .append(INTENDENT_THREE).append("<bpmn:incoming>%s</bpmn:incoming>").append(NL) // flow from gw
-            .append(INTENDENT_THREE).append("<bpmn:outgoing>%s</bpmn:outgoing>").append(NL) // flow back to orinal task
-            .append(INTENDENT_TWO).append("</bpmn:task>").append(NL).toString();
+            .append(INTENDENT_TWO).append(BPMN_TASK_ID_S_NAME_S).append(NL)   // fail task : id & name
+            .append(INTENDENT_THREE).append(BPMN_INCOMING_S_BPMN_INCOMING).append(NL) // flow from gw
+            .append(INTENDENT_THREE).append(BPMN_OUTGOING_S_BPMN_OUTGOING).append(NL) // flow back to orinal task
+            .append(INTENDENT_TWO).append(BPMN_TASK).append(NL).toString();
     // @formatter:on
 
     // @formatter:off
     private static final String FLOW_FROM_GW_TO_TASK = new StringBuilder()
-            .append(INTENDENT_TWO).append("<bpmn:sequenceFlow id=\"%s\" sourceRef=\"%s\" targetRef=\"%s\" />").append(NL).toString();
+            .append(INTENDENT_TWO).append(BPMN_SEQUENCE_FLOW_ID_S_SOURCE_REF_S_TARGET_REF_S).append(NL).toString();
     // @formatter:on
 
     // @formatter:off
     private static final String FLOW_FAIL_BACK_TO_TASK = new StringBuilder()
-            .append(INTENDENT_TWO).append("<bpmn:sequenceFlow id=\"%s\" sourceRef=\"%s\" targetRef=\"%s\" />").append(NL).toString();
+            .append(INTENDENT_TWO).append(BPMN_SEQUENCE_FLOW_ID_S_SOURCE_REF_S_TARGET_REF_S).append(NL).toString();
     // @formatter:on
 
     // @formatter:off
     private static final String FINISH_TASK = new StringBuilder()
-            .append(INTENDENT_TWO).append("<bpmn:task id=\"%s\" name=\"%s\">").append(NL)   // the finish task : id & name
-            .append(INTENDENT_THREE).append("<bpmn:incoming>%s</bpmn:incoming>").append(NL) // flow coming in from the tree above
-            .append(INTENDENT_TWO).append("</bpmn:task>").append(NL).toString();
+            .append(INTENDENT_TWO).append(BPMN_TASK_ID_S_NAME_S).append(NL)   // the finish task : id & name
+            .append(INTENDENT_THREE).append(BPMN_INCOMING_S_BPMN_INCOMING).append(NL) // flow coming in from the tree above
+            .append(INTENDENT_TWO).append(BPMN_TASK).append(NL).toString();
     // @formatter:on
 
-    private static final String FLOW_OUTGOING = "<bpmn:outgoing>%s</bpmn:outgoing>";
+    private static final String FLOW_OUTGOING = BPMN_OUTGOING_S_BPMN_OUTGOING;
 
     // ------------------- END A WHOLE STEP ------------------- //
 
@@ -184,17 +199,19 @@ public class BpmSchemeGenerator extends BaseDomainObject {
 
     // ------------------- DIAGRAM A WHOLE STEP --------------- //
 
-    // @formatter:off
+    public static final String BPMNDI_BPMNSHAPE_ID_S_DI_BPMN_ELEMENT_S = "<bpmndi:BPMNShape id=\"%s_di\" bpmnElement=\"%s\">";
+    public static final String DC_BOUNDS_X_D_Y_D_WIDTH_100_HEIGHT_80 = "<dc:Bounds x=\"%d\" y=\"%d\" width=\"100\" height=\"80\" />";
     private static final String DIAG_COMP_MAIN_ACTIVITY = new StringBuilder()
-          .append(INTENDENT_TWO).append("<bpmndi:BPMNShape id=\"%s_di\" bpmnElement=\"%s\">").append(NL)
-            .append(INTENDENT_THREE).append("<dc:Bounds x=\"%d\" y=\"%d\" width=\"100\" height=\"80\" />").append(NL)
-            .append(INTENDENT_TWO).append("</bpmndi:BPMNShape>").append(NL).toString();
+          .append(INTENDENT_TWO).append(BPMNDI_BPMNSHAPE_ID_S_DI_BPMN_ELEMENT_S).append(NL)
+            .append(INTENDENT_THREE).append(DC_BOUNDS_X_D_Y_D_WIDTH_100_HEIGHT_80).append(NL)
+            .append(INTENDENT_TWO).append(BPMNDI_BPMNSHAPE).append(NL).toString();
 
+    public static final String DI_WAYPOINT_X_D_Y_D = "<di:waypoint x=\"%d\" y=\"%d\" />";
     private static final String DIAG_COMP_FLOW_FROM_TREE = new StringBuilder()
-           .append(INTENDENT_TWO).append("<bpmndi:BPMNEdge id=\"%s_di\" bpmnElement=\"%s\">").append(NL)
-            .append(INTENDENT_THREE).append("<di:waypoint x=\"%d\" y=\"%d\" />").append(NL)
-            .append(INTENDENT_THREE).append("<di:waypoint x=\"%d\" y=\"%d\" />").append(NL)
-            .append(INTENDENT_TWO).append("</bpmndi:BPMNEdge>").append(NL).toString();
+           .append(INTENDENT_TWO).append(BPMNDI_BPMNEDGE_ID_S_DI_BPMN_ELEMENT_S).append(NL)
+            .append(INTENDENT_THREE).append(DI_WAYPOINT_X_D_Y_D).append(NL)
+            .append(INTENDENT_THREE).append(DI_WAYPOINT_X_D_Y_D).append(NL)
+            .append(INTENDENT_TWO).append(BPMNDI_BPMNEDGE).append(NL).toString();
 
     private static final String DIAG_COMP_GW = new StringBuilder()
           .append(INTENDENT_TWO).append("<bpmndi:BPMNShape id=\"%s_di\" bpmnElement=\"%s\" isMarkerVisible=\"true\">").append(NL)
@@ -202,53 +219,53 @@ public class BpmSchemeGenerator extends BaseDomainObject {
             .append(INTENDENT_THREE).append("<bpmndi:BPMNLabel>").append(NL)
             .append(INTENDENT_FOUR).append("<dc:Bounds x=\"%d\" y=\"%d\" width=\"47\" height=\"27\" />").append(NL)
             .append(INTENDENT_THREE).append("</bpmndi:BPMNLabel>").append(NL)
-            .append(INTENDENT_TWO).append("</bpmndi:BPMNShape>").append(NL).toString();
+            .append(INTENDENT_TWO).append(BPMNDI_BPMNSHAPE).append(NL).toString();
 
     private static final String DIAG_COMP_FLOW_TO_GW = new StringBuilder()
-            .append(INTENDENT_TWO).append("<bpmndi:BPMNEdge id=\"%s_di\" bpmnElement=\"%s\">").append(NL)
-            .append(INTENDENT_THREE).append("<di:waypoint x=\"%d\" y=\"%d\" />").append(NL)
-            .append(INTENDENT_THREE).append("<di:waypoint x=\"%d\" y=\"%d\" />").append(NL)
-            .append(INTENDENT_TWO).append("</bpmndi:BPMNEdge>").append(NL).toString();
+            .append(INTENDENT_TWO).append(BPMNDI_BPMNEDGE_ID_S_DI_BPMN_ELEMENT_S).append(NL)
+            .append(INTENDENT_THREE).append(DI_WAYPOINT_X_D_Y_D).append(NL)
+            .append(INTENDENT_THREE).append(DI_WAYPOINT_X_D_Y_D).append(NL)
+            .append(INTENDENT_TWO).append(BPMNDI_BPMNEDGE).append(NL).toString();
 
     private static final String DIAG_COMP_FAIL_STATE = new StringBuilder()
-            .append(INTENDENT_TWO).append("<bpmndi:BPMNShape id=\"%s_di\" bpmnElement=\"%s\">").append(NL)
-            .append(INTENDENT_TWO).append("<dc:Bounds x=\"%d\" y=\"%d\" width=\"100\" height=\"80\" />").append(NL)
-            .append(INTENDENT_TWO).append("</bpmndi:BPMNShape>").append(NL).toString();
+            .append(INTENDENT_TWO).append(BPMNDI_BPMNSHAPE_ID_S_DI_BPMN_ELEMENT_S).append(NL)
+            .append(INTENDENT_TWO).append(DC_BOUNDS_X_D_Y_D_WIDTH_100_HEIGHT_80).append(NL)
+            .append(INTENDENT_TWO).append(BPMNDI_BPMNSHAPE).append(NL).toString();
 
     private static final String DIAG_COMP_FLOW_GW_TO_FAIL = new StringBuilder()
-            .append(INTENDENT_TWO).append("<bpmndi:BPMNEdge id=\"%s_di\" bpmnElement=\"%s\">").append(NL)
-            .append(INTENDENT_TWO).append("<di:waypoint x=\"%d\" y=\"%d\" />").append(NL)
-            .append(INTENDENT_TWO).append("<di:waypoint x=\"%d\" y=\"%d\" />").append(NL)
-            .append(INTENDENT_TWO).append("<di:waypoint x=\"%d\" y=\"%d\" />").append(NL)
-            .append(INTENDENT_TWO).append("</bpmndi:BPMNEdge>").append(NL).toString();
+            .append(INTENDENT_TWO).append(BPMNDI_BPMNEDGE_ID_S_DI_BPMN_ELEMENT_S).append(NL)
+            .append(INTENDENT_TWO).append(DI_WAYPOINT_X_D_Y_D).append(NL)
+            .append(INTENDENT_TWO).append(DI_WAYPOINT_X_D_Y_D).append(NL)
+            .append(INTENDENT_TWO).append(DI_WAYPOINT_X_D_Y_D).append(NL)
+            .append(INTENDENT_TWO).append(BPMNDI_BPMNEDGE).append(NL).toString();
 
     private static final String DIAG_COMP_FLOW_FAIL_TO_TASK = new StringBuilder()
-            .append(INTENDENT_TWO).append("<bpmndi:BPMNEdge id=\"%s_di\" bpmnElement=\"%s\">").append(NL)
-            .append(INTENDENT_TWO).append("<di:waypoint x=\"%d\" y=\"%d\" />").append(NL)
-            .append(INTENDENT_TWO).append("<di:waypoint x=\"%d\" y=\"%d\" />").append(NL)
-            .append(INTENDENT_TWO).append("<di:waypoint x=\"%d\" y=\"%d\" />").append(NL)
-            .append(INTENDENT_TWO).append("</bpmndi:BPMNEdge>").append(NL).toString();
+            .append(INTENDENT_TWO).append(BPMNDI_BPMNEDGE_ID_S_DI_BPMN_ELEMENT_S).append(NL)
+            .append(INTENDENT_TWO).append(DI_WAYPOINT_X_D_Y_D).append(NL)
+            .append(INTENDENT_TWO).append(DI_WAYPOINT_X_D_Y_D).append(NL)
+            .append(INTENDENT_TWO).append(DI_WAYPOINT_X_D_Y_D).append(NL)
+            .append(INTENDENT_TWO).append(BPMNDI_BPMNEDGE).append(NL).toString();
 
     private static final String DIAG_COMP_FINSH_ACTIVITY = new StringBuilder()
-            .append(INTENDENT_TWO).append("<bpmndi:BPMNShape id=\"%s_di\" bpmnElement=\"%s\">").append(NL)
-            .append(INTENDENT_THREE).append("<dc:Bounds x=\"%d\" y=\"%d\" width=\"100\" height=\"80\" />").append(NL)
-            .append(INTENDENT_TWO).append("</bpmndi:BPMNShape>").append(NL).toString();
+            .append(INTENDENT_TWO).append(BPMNDI_BPMNSHAPE_ID_S_DI_BPMN_ELEMENT_S).append(NL)
+            .append(INTENDENT_THREE).append(DC_BOUNDS_X_D_Y_D_WIDTH_100_HEIGHT_80).append(NL)
+            .append(INTENDENT_TWO).append(BPMNDI_BPMNSHAPE).append(NL).toString();
 
     private static final String DIAG_COMP_FLOW_TO_FINISH = new StringBuilder()
-            .append(INTENDENT_TWO).append("<bpmndi:BPMNEdge id=\"%s_di\" bpmnElement=\"%s\">").append(NL)
-            .append(INTENDENT_THREE).append("<di:waypoint x=\"%d\" y=\"%d\" />").append(NL)
-            .append(INTENDENT_THREE).append("<di:waypoint x=\"%d\" y=\"%d\" />").append(NL)
-            .append(INTENDENT_TWO).append("</bpmndi:BPMNEdge>").append(NL).toString();
+            .append(INTENDENT_TWO).append(BPMNDI_BPMNEDGE_ID_S_DI_BPMN_ELEMENT_S).append(NL)
+            .append(INTENDENT_THREE).append(DI_WAYPOINT_X_D_Y_D).append(NL)
+            .append(INTENDENT_THREE).append(DI_WAYPOINT_X_D_Y_D).append(NL)
+            .append(INTENDENT_TWO).append(BPMNDI_BPMNEDGE).append(NL).toString();
 
     private static final String DIAG_COMP_FLOW_TO_NEXT_COLUMN = new StringBuilder()
-            .append(INTENDENT_TWO).append("<bpmndi:BPMNEdge id=\"%s_di\" bpmnElement=\"%s\">").append(NL)
-            .append(INTENDENT_THREE).append("<di:waypoint x=\"%d\" y=\"%d\" />").append(NL)
-            .append(INTENDENT_THREE).append("<di:waypoint x=\"%d\" y=\"%d\" />").append(NL)
-            .append(INTENDENT_THREE).append("<di:waypoint x=\"%d\" y=\"%d\" />").append(NL)
-            .append(INTENDENT_THREE).append("<di:waypoint x=\"%d\" y=\"%d\" />").append(NL)
-            .append(INTENDENT_THREE).append("<di:waypoint x=\"%d\" y=\"%d\" />").append(NL)
-            .append(INTENDENT_THREE).append("<di:waypoint x=\"%d\" y=\"%d\" />").append(NL)
-            .append(INTENDENT_TWO).append("</bpmndi:BPMNEdge>").append(NL).toString();
+            .append(INTENDENT_TWO).append(BPMNDI_BPMNEDGE_ID_S_DI_BPMN_ELEMENT_S).append(NL)
+            .append(INTENDENT_THREE).append(DI_WAYPOINT_X_D_Y_D).append(NL)
+            .append(INTENDENT_THREE).append(DI_WAYPOINT_X_D_Y_D).append(NL)
+            .append(INTENDENT_THREE).append(DI_WAYPOINT_X_D_Y_D).append(NL)
+            .append(INTENDENT_THREE).append(DI_WAYPOINT_X_D_Y_D).append(NL)
+            .append(INTENDENT_THREE).append(DI_WAYPOINT_X_D_Y_D).append(NL)
+            .append(INTENDENT_THREE).append(DI_WAYPOINT_X_D_Y_D).append(NL)
+            .append(INTENDENT_TWO).append(BPMNDI_BPMNEDGE).append(NL).toString();
 
 // @formatter:on
 
@@ -259,8 +276,8 @@ public class BpmSchemeGenerator extends BaseDomainObject {
     }
 
     public void generateAndWriteScheme() {
-        String processId = generateIdForTypeInBetween(BpmSchemeElementDescriptor.TypeInBetween.Process);
-        StringBuilder processSection = new StringBuilder(String.format(HEADER, generateIdForTypeInBetween(BpmSchemeElementDescriptor.TypeInBetween.Definitions), processId));
+        String processId = generateIdForTypeInBetween(BpmSchemeElementDescriptor.TypeInBetween.PROCESS);
+        StringBuilder processSection = new StringBuilder(String.format(HEADER, generateIdForTypeInBetween(BpmSchemeElementDescriptor.TypeInBetween.DEFINITIONS), processId));
         StringBuilder diagramSection = new StringBuilder(String.format(DIAGRAM_START_TAG, processId));
         String flowToNext = null;
         int depth = -1;
@@ -290,12 +307,12 @@ public class BpmSchemeGenerator extends BaseDomainObject {
 
     private String appendActivityGwAndFailActivity(String idSource, BpmSchemeElementDescriptor d, StringBuilder processSection, StringBuilder diagramSection, int colon, int depth, boolean currentRenderingIsAColumnChange) {
         switch (d.getExpectedTypeBefore()) {
-            case StartEvent:
-                String startEventIdHolder = generateIdForType(BpmSchemeElementDescriptor.Type.StartEvent);
+            case START_EVENT:
+                String startEventIdHolder = generateIdForType(BpmSchemeElementDescriptor.Type.START_EVENT);
                 processSection.append(String.format(STARTEVENT, startEventIdHolder, String.format(ENTERING, d.getProcessName())));
                 diagramSection.append(String.format(START_EVENT_SHAPE, startEventIdHolder));
                 return makeStepWholeStep(startEventIdHolder, d, processSection, diagramSection, colon, depth, false);
-            case Activity:
+            case ACTIVITY:
                 String sourceForTheNextTree = null;
                 if (idSource != null) {
                     sourceForTheNextTree = makeStepWholeStep(idSource, d, processSection, diagramSection, colon, depth, currentRenderingIsAColumnChange);
@@ -305,8 +322,8 @@ public class BpmSchemeGenerator extends BaseDomainObject {
                     }
                 }
                 return sourceForTheNextTree;
+            default: throw new ProcessRuntimeException(String.format("Ooops. Got unexpected type-before : %s", d.getExpectedTypeBefore()));
         }
-        return null;
     }
 
     private String makeStepWholeStep(String idSource, BpmSchemeElementDescriptor d, StringBuilder processSection, StringBuilder diagramSection, int colon, int depth, boolean currentRenderingIsAColumnChange) {
@@ -315,16 +332,16 @@ public class BpmSchemeGenerator extends BaseDomainObject {
 
         // a. Generate the new flow, replace the FLOW_ON with this flow in what's already in the
         // process XML
-        String flowTaskIncoming = generateIdForTypeInBetween(BpmSchemeElementDescriptor.TypeInBetween.Flow);
+        String flowTaskIncoming = generateIdForTypeInBetween(BpmSchemeElementDescriptor.TypeInBetween.FLOW);
         processSection.replace(processSection.indexOf(FLOW_ON), processSection.indexOf(FLOW_ON) + FLOW_ON.length(), String.format(FLOW_OUTGOING, flowTaskIncoming));
 
         // b. this is th main task of this descriptor. It has two incoming flows,
         //  - the "above" incoming
         //  - the incoming from connected failure state
         // and one outing flow to the execution GW
-        String taskId = generateIdForType(BpmSchemeElementDescriptor.Type.Activity);
-        String failureBackToTask = generateIdForTypeInBetween(BpmSchemeElementDescriptor.TypeInBetween.Flow);
-        String flowToGw = generateIdForTypeInBetween(BpmSchemeElementDescriptor.TypeInBetween.Flow);
+        String taskId = generateIdForType(BpmSchemeElementDescriptor.Type.ACTIVITY);
+        String failureBackToTask = generateIdForTypeInBetween(BpmSchemeElementDescriptor.TypeInBetween.FLOW);
+        String flowToGw = generateIdForTypeInBetween(BpmSchemeElementDescriptor.TypeInBetween.FLOW);
         processSection.append(String.format(TASK, taskId, d.getTaskName(), flowTaskIncoming, failureBackToTask, flowToGw));
 
         // c. now we connect above elements through a flow : from idSource to this task
@@ -333,8 +350,8 @@ public class BpmSchemeGenerator extends BaseDomainObject {
         // d. next we make the execution GW. It ha one incoming flow, that is
         //  - incoming from the main task
         //  - outgoing flow to the failure state and it will include the outgoing flow to the next loop
-        String gwId = BpmSchemeElementDescriptor.generateIdForTypeInBetween(BpmSchemeElementDescriptor.TypeInBetween.Gateway);
-        String flowFromGwToFailure = generateIdForTypeInBetween(BpmSchemeElementDescriptor.TypeInBetween.Flow);
+        String gwId = BpmSchemeElementDescriptor.generateIdForTypeInBetween(BpmSchemeElementDescriptor.TypeInBetween.GATEWAY);
+        String flowFromGwToFailure = generateIdForTypeInBetween(BpmSchemeElementDescriptor.TypeInBetween.FLOW);
         processSection.append(String.format(GW, gwId, flowToGw, flowFromGwToFailure));
 
         // e. then we connect these elements, task and gw, with a flow
@@ -343,7 +360,7 @@ public class BpmSchemeGenerator extends BaseDomainObject {
         // f. next : construct the failure state/task. It has
         // - incoming flow from the GW
         // - outgoing flow back to our main task above
-        String taskIdFailure = generateIdForType(BpmSchemeElementDescriptor.Type.Activity);
+        String taskIdFailure = generateIdForType(BpmSchemeElementDescriptor.Type.ACTIVITY);
         processSection.append(String.format(FAILURE_TASK, taskIdFailure, d.getStatusUponFailure(), flowFromGwToFailure, failureBackToTask));
 
         // g. now connect the GW with the failure state/task
@@ -390,12 +407,12 @@ public class BpmSchemeGenerator extends BaseDomainObject {
 
         // a. Generate the new flow, replace the FLOW_ON with this flow in what's already in the
         // process XML
-        String flowTaskIncoming = generateIdForTypeInBetween(BpmSchemeElementDescriptor.TypeInBetween.Flow);
+        String flowTaskIncoming = generateIdForTypeInBetween(BpmSchemeElementDescriptor.TypeInBetween.FLOW);
         processSection.replace(processSection.indexOf(FLOW_ON), processSection.indexOf(FLOW_ON) + FLOW_ON.length(), String.format(FLOW_OUTGOING, flowTaskIncoming));
 
         // b. this is simply the finish state. It has only one incoming flow, namely, the flow from the
         // tree that took as here..
-        String taskId = generateIdForType(BpmSchemeElementDescriptor.Type.Activity);
+        String taskId = generateIdForType(BpmSchemeElementDescriptor.Type.ACTIVITY);
         processSection.append(String.format(FINISH_TASK, taskId, new StringBuilder("FINISHED:&#10;").append(d.getStatusUponSuccess()).toString(), flowTaskIncoming));
 
         // c. now we connect above elements through a flow : from idSource to this task

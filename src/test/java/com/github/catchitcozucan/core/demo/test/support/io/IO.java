@@ -17,7 +17,7 @@ public class IO {
 		File, String
 	}
 
-	public static final String DEF_ENCODING = "UTF-8";
+	public static final String UTF_8 = "UTF-8";
 
 	public static final int DEF_READ_SIZE = (8 * 1024);
 

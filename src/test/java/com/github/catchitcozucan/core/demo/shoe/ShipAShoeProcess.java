@@ -13,11 +13,10 @@ import com.github.catchitcozucan.core.demo.shoe.internal.LaceProvider;
 import com.github.catchitcozucan.core.demo.shoe.internal.ShoeProvider;
 import com.github.catchitcozucan.core.demo.test.support.io.IO;
 
-@ProcessBpmSchemeRepo(relativePath = "../../../../../../resources/bpmSchemes", activitiesPerColumn = "3")
+@ProcessBpmSchemeRepo(relativePath = "../../../../../../../resources/bpmSchemes", activitiesPerColumn = "3")
 public class ShipAShoeProcess extends ProcessBase {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ShipAShoeProcess.class);
-	public static final OrderStatus.Status[] CRITERIA_STATES = { OrderStatus.Status.NEW_ORDER, OrderStatus.Status.SHOE_NOT_YET_AVAILABLE, OrderStatus.Status.LACES_NOT_IN_PLACE, OrderStatus.Status.PACKAGING_FAILED, OrderStatus.Status.SHIPPING_FAILED };
 
 	public ShipAShoeProcess(ProcessSubject processSubject, PersistenceService persistenceService) {
 		super(processSubject, persistenceService);
@@ -28,28 +27,7 @@ public class ShipAShoeProcess extends ProcessBase {
 	@Override
 	public void process() {
 		OrderStatus.Status status = (OrderStatus.Status) getSubject().getCurrentStatus();
-		switch (status) {
-			case NEW_ORDER:
-			case SHOE_NOT_YET_AVAILABLE:
-				executeStep(doGetShoeStep);
-				break;
-			case LACES_NOT_IN_PLACE:
-			case SHOE_FETCHED_FROM_WAREHOUSE:
-				executeStep(doGetLacesStep);
-				break;
-			case PACKAGING_FAILED:
-			case LACES_IN_PLACE:
-				executeStep(doGetPackagingStep);
-				break;
-			case SHIPPING_FAILED:
-			case PACKED:
-				executeStep(doSendPackageStep);
-				break;
-			default:
-				Throwable t = new ProcessRuntimeException(String.format("Got bad input : order %s which is in state %s [%s]", getSubject().id(), getSubject().getCurrentStatus().name(), currentStatusDescription()));
-				LOGGER.error("err", t);
-				throw (RuntimeException) t;
-		}
+		processInternal(status);
 	}
 
 	// returning an array of states to dig up for processeing from the database
@@ -61,7 +39,7 @@ public class ShipAShoeProcess extends ProcessBase {
 	// declaring the state upon which we consider the processing to be finished
 	@Override
 	public Enum<?> finishedState() {
-		return OrderStatus.Status.SHIPPED;
+		return FINISH_STATE;
 	}
 
 	@Override
@@ -69,25 +47,25 @@ public class ShipAShoeProcess extends ProcessBase {
 		return "fetch ordered shoe and ship it";
 	}
 
-	@MakeStep(statusUponFailure = "Status.SHOE_NOT_YET_AVAILABLE", statusUponSuccess = "Status.SHOE_FETCHED_FROM_WAREHOUSE", description = "getShoe", enumStateProvider = com.github.catchitcozucan.core.demo.shoe.OrderStatus.class, sourceEncoding = IO.DEF_ENCODING)
+	@MakeStep(statusUponFailure = "Status.SHOE_NOT_YET_AVAILABLE", statusUponSuccess = "Status.SHOE_FETCHED_FROM_WAREHOUSE", description = "getShoe", enumStateProvider = com.github.catchitcozucan.core.demo.shoe.OrderStatus.class, sourceEncoding = IO.UTF_8)
 	private void doGetShoe() {
 		Order order = (Order) getSubject();
 		order.setShoe(ShoeProvider.getInstance().getShoe(order.getRequestedColor(), order.getRequestedSize()));
 	}
 
-	@MakeStep(statusUponFailure = "Status.LACES_NOT_IN_PLACE", statusUponSuccess = "Status.LACES_IN_PLACE", description = "fetchLaces", enumStateProvider = com.github.catchitcozucan.core.demo.shoe.OrderStatus.class, sourceEncoding = IO.DEF_ENCODING)
+	@MakeStep(statusUponFailure = "Status.LACES_NOT_IN_PLACE", statusUponSuccess = "Status.LACES_IN_PLACE", description = "fetchLaces", enumStateProvider = com.github.catchitcozucan.core.demo.shoe.OrderStatus.class, sourceEncoding = IO.UTF_8)
 	private void doGetLaces() {
 		Order order = (Order) getSubject();
 		order.getShoe().setLaces(LaceProvider.getInstance().getFreshLaces());
 	}
 
-	@MakeStep(statusUponFailure = "Status.PACKAGING_FAILED", statusUponSuccess = "Status.PACKED", description = "packaging", enumStateProvider = com.github.catchitcozucan.core.demo.shoe.OrderStatus.class, sourceEncoding = IO.DEF_ENCODING)
+	@MakeStep(statusUponFailure = "Status.PACKAGING_FAILED", statusUponSuccess = "Status.PACKED", description = "packaging", enumStateProvider = com.github.catchitcozucan.core.demo.shoe.OrderStatus.class, sourceEncoding = IO.UTF_8)
 	private void doGetPackaging() {
 		Order order = (Order) getSubject();
 		order.packageOrder();
 	}
 
-	@MakeStep(statusUponFailure = "Status.SHIPPING_FAILED", statusUponSuccess = "Status.SHIPPED", description = "shipping", enumStateProvider = com.github.catchitcozucan.core.demo.shoe.OrderStatus.class, sourceEncoding = IO.DEF_ENCODING)
+	@MakeStep(statusUponFailure = "Status.SHIPPING_FAILED", statusUponSuccess = "Status.SHIPPED", description = "shipping", enumStateProvider = com.github.catchitcozucan.core.demo.shoe.OrderStatus.class, sourceEncoding = IO.UTF_8)
 	private void doSendPackage() {
 		Order order = (Order) getSubject();
 		order.send();
@@ -100,6 +78,8 @@ public class ShipAShoeProcess extends ProcessBase {
     //
     // DO NOT edit this section. Modify @MakeStep or CHKSUM (then keep length)  to re-generate.
     //
+
+    //@formatter:off DO_NOT_FORMAT
 
     private final ProcessStep doGetShoeStep = new ProcessStep(){ 
 
@@ -216,6 +196,48 @@ public class ShipAShoeProcess extends ProcessBase {
         }
 
     };
+
+
+    public static final String PROCESS_NAME = com.github.catchitcozucan.core.demo.shoe.ShipAShoeProcess.class.getName().toUpperCase();
+
+    public static final Enum<?> FINISH_STATE = com.github.catchitcozucan.core.demo.shoe.OrderStatus.Status.values()[com.github.catchitcozucan.core.demo.shoe.OrderStatus.Status.values().length - 1];
+
+    public static final com.github.catchitcozucan.core.demo.shoe.OrderStatus.Status[] CRITERIA_STATES = {
+        com.github.catchitcozucan.core.demo.shoe.OrderStatus.Status.NEW_ORDER,
+        com.github.catchitcozucan.core.demo.shoe.OrderStatus.Status.SHOE_NOT_YET_AVAILABLE,
+        com.github.catchitcozucan.core.demo.shoe.OrderStatus.Status.LACES_NOT_IN_PLACE,
+        com.github.catchitcozucan.core.demo.shoe.OrderStatus.Status.PACKAGING_FAILED,
+        com.github.catchitcozucan.core.demo.shoe.OrderStatus.Status.SHIPPING_FAILED
+    };
+
+    public void processInternal(com.github.catchitcozucan.core.demo.shoe.OrderStatus.Status currentStatus) {
+        switch (currentStatus) {
+                case NEW_ORDER:
+                case SHOE_NOT_YET_AVAILABLE:
+                    executeStep(doGetShoeStep);
+                    break;
+                case SHOE_FETCHED_FROM_WAREHOUSE:
+                case LACES_NOT_IN_PLACE:
+                    executeStep(doGetLacesStep);
+                    break;
+                case LACES_IN_PLACE:
+                case PACKAGING_FAILED:
+                    executeStep(doGetPackagingStep);
+                    break;
+                case PACKED:
+                case SHIPPING_FAILED:
+                    executeStep(doSendPackageStep);
+                    break;
+            default:
+                throw new ProcessRuntimeException(String.format("Got bad input : %s %s which is in state %s [%s]",
+                    PROCESS_NAME,
+                    getSubject().id(),
+                    getSubject().getCurrentStatus().name(),
+                    currentStatusDescription()));
+         }
+    }
+
+    //@formatter:on END DO_NOT_FORMAT
 
     ///////////////////////////////////////////////////////////////////////////////
     //

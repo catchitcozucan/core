@@ -1,3 +1,20 @@
+/**
+ *    Copyright [2020] [Ola Aronsson, courtesy of nollettnoll AB]
+ *
+ *    Licensed under the Creative Commons Attribution 4.0 International (the "License")
+ *    you may not use this file except in compliance with the License. You may obtain
+ *    a copy of the License at
+ *
+ *                https://creativecommons.org/licenses/by/4.0/
+ *
+ *    The software is provided “as is”, without warranty of any kind, express or
+ *    implied, including but not limited to the warranties of merchantability,
+ *    fitness for a particular purpose and noninfringement. In no event shall the
+ *    authors or copyright holders be liable for any claim, damages or other liability,
+ *    whether in an action of contract, tort or otherwise, arising from, out of or
+ *    in connection with the software or the use or other dealings in the software.
+ */
+
 package com.github.catchitcozucan.core.impl.source.processor;
 
 import java.nio.charset.Charset;
@@ -12,6 +29,7 @@ import com.github.catchitcozucan.core.MakeStep;
 import com.github.catchitcozucan.core.util.MavenWriter;
 
 public class DaProcessStepConstants {
+	public static final String UNDERSCORE = "_";
 	public static final String NL = System.getProperty("line.separator");
 	public static final Charset UTF8_CHARSET = StandardCharsets.UTF_8;
 	public static final String TYPES = "types";
@@ -26,7 +44,7 @@ public class DaProcessStepConstants {
 	static final int CHKSUM_LEN = 40;
 	static final String SPACES_AND_SLASHES = "    //";
 	static final String COMMENT_HEADER = new StringBuilder().append(CHKSUMPREFIX).append("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX////////////////////////").append(NL).append(SPACES_AND_SLASHES).append(NL).append(INTRO_TEXT).append(NL).append("    // written by Ola Aronsson in 2020, courtesy of nollettnoll AB").append(NL).append(SPACES_AND_SLASHES).append(NL).append("    // DO NOT edit this " +
-            "section. Modify @MakeStep or CHKSUM (then keep length)  to re-generate.").append(NL).append(SPACES_AND_SLASHES).append(NL).toString();
+			"section. Modify @MakeStep or CHKSUM (then keep length)  to re-generate.").append(NL).append(SPACES_AND_SLASHES).append(NL).toString();
 	static final String HEADER_START_OLD = new StringBuilder("    ///////////////////////////////////////////////////////////////////////////////").toString();
 	static final String ANNOT_MAKESTEP_JAVA_PATH = "com.github.catchitcozucan.core.MakeStep";
 	static final String ANNOT_PROCESSSTATUS_JAVA_PATH = "com.github.catchitcozucan.core.ProcessStatus";
@@ -42,12 +60,14 @@ public class DaProcessStepConstants {
 	static final String STEP = "Step";
 	static final String DOT = ".";
 	static final String SLASH = "/";
+	static final String CURLY_RIGHT = "}";
 	static final String CHKSUM = "CHKSUM";
 	static final String CHKSUM_AND_COLON = "CHKSUM:";
 	static final String EMPTY = "";
 	static String CHKSUM_ORIG = "NOCHANGESXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"; // NOSONAR
 	static final String OWNER = "owner";
 	static final String TYPE = "type";
+	static final String SPACE = " ";
 	private static final String SPACEDDASH = " - ";
 	private static final String MAKE_STEPS_SHORT_CLASS_NAME = MakeStep.class.getSimpleName();
 	private static final String MAVEN_LOG_PREFIX = new StringBuilder(MAKE_STEPS_SHORT_CLASS_NAME).append(SPACEDDASH).toString();
@@ -103,6 +123,32 @@ public class DaProcessStepConstants {
             .append("    };")
             .append(NL).toString();
     //@formatter:on
+
+	static final String NAME = "    public static final String PROCESS_NAME = %s.class.getName().toUpperCase();"; // just the proceess class name
+
+	//@formatter:off (Full status class name x3)
+	static final String FINISH_STATE = new StringBuilder("    public static final Enum<?> FINISH_STATE = %s.values()[%s.values().length - 1];").append(NL).toString();
+	//@formatter:on
+
+	//@formatter:off (Full status class name x3)
+	static final String CRITERIA_STATES = new StringBuilder("    public static final %s[] CRITERIA_STATES = {")
+			.append("NEW_AND_FAIL_STATES")
+			.append(NL).append("    };").append(NL).toString();
+    //@formatter:on
+
+	//@formatter:off
+	static final String PROCESS_INTERNAL = new StringBuilder("    public void processInternal(%s currentStatus) {").append(NL)
+		.append("        switch (currentStatus) {").append(NL)
+		.append("STATUSES_AND_STEPS")
+		.append("            default:").append(NL)
+		.append("                throw new ProcessRuntimeException(String.format(\"Got bad input : FORMATTER FORMATTER which is in state FORMATTER [FORMATTER]\",").append(NL)
+		.append("                    PROCESS_NAME,").append(NL)
+		.append("                    getSubject().id(),").append(NL)
+		.append("                    getSubject().getCurrentStatus().name(),").append(NL)
+		.append("                    currentStatusDescription()));").append(NL)
+		.append("         }").append(NL)
+		.append("    }").append(NL).toString();
+	//@formatter:on
 
 	private DaProcessStepConstants() {}
 

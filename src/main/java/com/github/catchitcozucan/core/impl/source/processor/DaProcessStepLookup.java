@@ -151,7 +151,7 @@ public class DaProcessStepLookup {
 
         appenders.stream().forEach(a -> {
             Optional<String> matched = statusClassFileMap.keySet().stream().filter(classSymbol -> a.matchStatusClass(classSymbol)).findFirst();  //NOSONAR
-            if (matched.isPresent()) {
+            if (matched.isPresent() && !bpmFolderPerProcessClass.isEmpty()) {
                 a.setJavaScrFileForStatusClass(statusClassFileMap.get(matched.get()));
                 File bpmRepoFolder = bpmFolderPerProcessClass.get(a.toString()).pathToFile;
                 if (bpmRepoFolder != null) {

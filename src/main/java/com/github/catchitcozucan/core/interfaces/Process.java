@@ -1,5 +1,6 @@
 /**
- *    Copyright [2020] [Ola Aronsson, courtesy of nollettnoll AB]
+ *    Original work by Ola Aronsson 2020
+ *    Courtesy of nollettnoll AB &copy; 2012 - 2020
  *
  *    Licensed under the Creative Commons Attribution 4.0 International (the "License")
  *    you may not use this file except in compliance with the License. You may obtain
@@ -14,7 +15,6 @@
  *    whether in an action of contract, tort or otherwise, arising from, out of or
  *    in connection with the software or the use or other dealings in the software.
  */
-
 package com.github.catchitcozucan.core.interfaces;
 
 public interface Process {

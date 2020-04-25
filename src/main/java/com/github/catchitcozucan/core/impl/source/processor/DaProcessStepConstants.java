@@ -56,7 +56,7 @@ public class DaProcessStepConstants {
 	static final String THEEND = COMMENT_HEADER_END + NL + "}";
 	static final String OVERRIDE = "        @Override";
 	static final String SPACES_AND_CURLY = "        }";
-	static final String SIGN_PART = "    private final ProcessStep ";
+	static final String SIGN_PART = "    private final com.github.catchitcozucan.core.ProcessStep ";
 	static final String STEP = "Step";
 	static final String DOT = ".";
 	static final String SLASH = "/";
@@ -72,7 +72,7 @@ public class DaProcessStepConstants {
 	private static final String MAKE_STEPS_SHORT_CLASS_NAME = MakeStep.class.getSimpleName();
 	private static final String MAVEN_LOG_PREFIX = new StringBuilder(MAKE_STEPS_SHORT_CLASS_NAME).append(SPACEDDASH).toString();
 	//@formatter:off
-    static final String BODY = new StringBuilder("new ProcessStep(){ ")
+    static final String BODY = new StringBuilder("new com.github.catchitcozucan.core.ProcessStep(){ ")
             .append(NL)
             .append(NL)
             .append(OVERRIDE)

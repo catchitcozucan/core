@@ -166,10 +166,10 @@ public class DaProcessStepSourceAppender extends BaseDomainObject {
 					DaProcessStepConstants.info("  - steps have changed : RE-WRITING");
 					sourceToAppend.replace(DaProcessStepConstants.CHKSUM_POS - 2, DaProcessStepConstants.CHKSUM_POS + DaProcessStepConstants.CHKSUM_LEN + 1, chkSum);
 					String appendedSrc;
-					if (!sourceToAppend.toString().contains(FORMATTER_ON)) {
+					if (!bpmDescriptors.isEmpty() && !sourceToAppend.toString().contains(FORMATTER_ON)) {
 						appendedSrc = sourceToAppend.toString().replace(HEADER_START_OLD, appendCriteriaStatesAndFinalStateAndToggleFormatting());
 					} else {
-						appendedSrc = sourceToAppend.toString();
+						appendedSrc = sourceToAppend.toString().replace(HEADER_START_OLD, new StringBuilder(FORMATTER_ON).append(HEADER_START_OLD).toString());
 					}
 					String completeSrc = new StringBuilder(newSource).append(appendedSrc).toString();
 					writeToFile(completeSrc);

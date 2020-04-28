@@ -22,6 +22,7 @@ import static com.github.catchitcozucan.core.impl.source.processor.DaProcessStep
 import static com.github.catchitcozucan.core.impl.source.processor.DaProcessStepConstants.CLASSFILE;
 import static com.github.catchitcozucan.core.impl.source.processor.DaProcessStepConstants.FILE;
 import static com.github.catchitcozucan.core.impl.source.processor.DaProcessStepConstants.NL;
+import static com.github.catchitcozucan.core.impl.source.processor.DaProcessStepConstants.NONE;
 import static com.github.catchitcozucan.core.impl.source.processor.DaProcessStepConstants.PROCESSBPMSCHEMEREPO_JAVA_PATH;
 import static com.github.catchitcozucan.core.impl.source.processor.DaProcessStepConstants.TSYM;
 import static com.github.catchitcozucan.core.impl.source.processor.DaProcessStepConstants.TYPE;
@@ -126,6 +127,12 @@ public class DaProcessStepLookup {
 		}).forEach(ee -> {
 			File classSymbol = (File) ReflectionUtils.getFieldValueSilent(ReflectionUtils.getFieldValueSilent(ee, CLASSFILE), FILE);
 			String completePath = classSymbol.getParent() + File.separator + ee.getAnnotation(ProcessBpmSchemeRepo.class).relativePath();
+			String mavenModulePath = ee.getAnnotation(ProcessBpmSchemeRepo.class).mavenModulePath();
+			if(mavenModulePath.equals(NONE)){
+				mavenModulePath = null;
+			}
+			boolean criteriaStateOnlyFailure = IO.looksLikeTrue(ee.getAnnotation(ProcessBpmSchemeRepo.class).criteriaStateOnlyFailure());
+			boolean acceptFailures = IO.looksLikeTrue(ee.getAnnotation(ProcessBpmSchemeRepo.class).acceptFailures());
 			String activitesPerColumnStr = ee.getAnnotation(ProcessBpmSchemeRepo.class).activitiesPerColumn();
 			Integer activitiesPerColumn = ACTIVITIES_PER_COLUMN_DEFAULT;
 			try {
@@ -142,7 +149,7 @@ public class DaProcessStepLookup {
 			info(String.format("Trying to use or create BPM repo folder : %s", completePath));
 			try {
 				IO.makeOrUseDir(completePath);
-				bpmFolderPerProcessClass.put(ee.toString(), new ClassPathActivitesPerColumn(activitiesPerColumn, new File(completePath)));
+				bpmFolderPerProcessClass.put(ee.toString(), new ClassPathActivitesPerColumn(activitiesPerColumn, new File(completePath), mavenModulePath, criteriaStateOnlyFailure, acceptFailures));
 			} catch (RuntimeException e) {
 				DaProcessStepConstants.error(ee, "Relativepath for @%s defined as %s in %s could not be created/used", ProcessBpmSchemeRepo.class.getSimpleName(), ee.toString(), completePath);
 				return;
@@ -160,11 +167,14 @@ public class DaProcessStepLookup {
 	}
 
 	private static void setBpmparams(Map<String, ClassPathActivitesPerColumn> bpmFolderPerProcessClass, DaProcessStepSourceAppender a) {
-		if(!bpmFolderPerProcessClass.isEmpty()) {
+		if (!bpmFolderPerProcessClass.isEmpty() && bpmFolderPerProcessClass.get(a.toString()) != null) {
 			File bpmRepoFolder = bpmFolderPerProcessClass.get(a.toString()).pathToFile;
 			if (bpmRepoFolder != null) {
 				a.setBpmRepoFolder(bpmRepoFolder);
 				a.setBpmActivitiesPerColumn(bpmFolderPerProcessClass.get(a.toString()).acivitiesPercolumn);
+				a.setMavenModulePath(bpmFolderPerProcessClass.get(a.toString()).mavenModulePath);
+				a.setCriteriaStateOnlyFailure(bpmFolderPerProcessClass.get(a.toString()).criteriaStateOnlyFailure);
+				a.setAcceptEnumFailures(bpmFolderPerProcessClass.get(a.toString()).acceptFailures);
 			}
 		}
 	}
@@ -228,10 +238,15 @@ public class DaProcessStepLookup {
 	static final class ClassPathActivitesPerColumn {
 		final Integer acivitiesPercolumn;
 		final File pathToFile;
-
-		public ClassPathActivitesPerColumn(Integer acivitiesPercolumn, File pathToFile) {
+		final String mavenModulePath;
+		final boolean criteriaStateOnlyFailure;
+		final boolean acceptFailures;
+		public ClassPathActivitesPerColumn(Integer acivitiesPercolumn, File pathToFile, String mavenModulePath, boolean criteriaStateOnlyFailure, boolean acceptFailures) {
 			this.acivitiesPercolumn = acivitiesPercolumn;
 			this.pathToFile = pathToFile;
+			this.mavenModulePath = mavenModulePath;
+			this.criteriaStateOnlyFailure = criteriaStateOnlyFailure;
+			this.acceptFailures = acceptFailures;
 		}
 
 	}

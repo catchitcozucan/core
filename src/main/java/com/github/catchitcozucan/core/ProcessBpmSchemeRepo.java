@@ -27,4 +27,7 @@ import java.lang.annotation.Target;
 public @interface ProcessBpmSchemeRepo {
 	String relativePath() default ".";
 	String activitiesPerColumn() default "3";
+	String mavenModulePath() default "NONE";
+	String criteriaStateOnlyFailure() default "false";
+	String acceptFailures() default "false";
 }

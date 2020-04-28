@@ -19,6 +19,7 @@ package com.github.catchitcozucan.core.impl.source.processor;
 
 import static com.github.catchitcozucan.core.impl.source.processor.DaProcessStepConstants.CRITERIA_STATES;
 import static com.github.catchitcozucan.core.impl.source.processor.DaProcessStepConstants.CURLY_RIGHT;
+import static com.github.catchitcozucan.core.impl.source.processor.DaProcessStepConstants.DOT;
 import static com.github.catchitcozucan.core.impl.source.processor.DaProcessStepConstants.EMPTY;
 import static com.github.catchitcozucan.core.impl.source.processor.DaProcessStepConstants.FINISH_STATE;
 import static com.github.catchitcozucan.core.impl.source.processor.DaProcessStepConstants.HEADER_START_OLD;
@@ -46,6 +47,17 @@ public class DaProcessStepSourceAppender extends BaseDomainObject {
 	public static final String X = "X";
 	public static final String NEW_CHKSUM_IS = "    new chksum is : ";
 	public static final String OOOOPS_CHKSUM_OVERFLOW = "    Oooops - chksum overflow....";
+	private static final String NEW_AND_FAIL_STATES = "NEW_AND_FAIL_STATES";
+	private static final String FORMATTER = "FORMATTER";
+	private static final String STATUSES_AND_STEPS = "STATUSES_AND_STEPS";
+	private static final String CASE = "                case ";
+	private static final String EXECUTE_STEP = "                    executeStep(";
+	private static final String BREAK = "                    break;";
+	private static final String COLON = ":";
+	private static final String PARENTHESIS_END_SEMI_COLON = ");";
+	private static final String STRING_FORMAT = "%s";
+	private static final String COMMA = ",";
+	private static final String SPACE = "        ";
 	private StringBuilder sourceToAppend;
 	private boolean hasAppended;
 	private Set<ElementToWork> elementsToWork;
@@ -64,6 +76,9 @@ public class DaProcessStepSourceAppender extends BaseDomainObject {
 	private static final String FORMATTER_OFF = new StringBuilder(NL).append("    //@formatter:off DO_NOT_FORMAT").append(NL).toString();
     private static final String FORMATTER_ON = new StringBuilder("    //@formatter:on END DO_NOT_FORMAT").append(NL).append(NL).toString();
 	private boolean formatterNotAppended;
+	private String mavenModulePath;
+	private boolean criteriaStateOnlyFailure;
+	private boolean acceptEnumFailures;
 
 	DaProcessStepSourceAppender(File srcFile, String originatingClass, String originatingAppendeSource, String commentHeaderStart) {
 		elementsToWork = new HashSet<>();
@@ -124,7 +139,7 @@ public class DaProcessStepSourceAppender extends BaseDomainObject {
 	}
 
 	private String removeSpaceAndNewlines(String in) {
-		return in.replace(CURLY_RIGHT + NL, EMPTY).replace(NL, EMPTY).replace(SPACE, EMPTY).replace(CURLY_RIGHT, EMPTY);
+		return in.replace(CURLY_RIGHT + NL, EMPTY).replace(NL, EMPTY).replace(DaProcessStepConstants.SPACE, EMPTY).replace(CURLY_RIGHT, EMPTY);
 	}
 
 	void appendElementToWork(ElementToWork annotatedElement) {
@@ -195,21 +210,23 @@ public class DaProcessStepSourceAppender extends BaseDomainObject {
 
 			String criteriaStates = String.format(CRITERIA_STATES, originatingClassPlusEnumFieldName);
 			List<String> statesShort = new ArrayList<>();
-			statesShort.add(bpmDescriptors.get(0).getMyStateName());
+			if(!criteriaStateOnlyFailure) {
+				statesShort.add(bpmDescriptors.get(0).getMyStateName());
+			}
 			bpmDescriptors.stream().forEachOrdered(e -> statesShort.add(e.getStatusUponFailure()));
-			criteriaStates = criteriaStates.replace("NEW_AND_FAIL_STATES", makeStateDescritions(originatingClassPlusEnumFieldName, statesShort));
+			criteriaStates = criteriaStates.replace(NEW_AND_FAIL_STATES, makeStateDescritions(originatingClassPlusEnumFieldName, statesShort));
 			addtionals.append(criteriaStates).append(NL);
 
 			String processInternal = String.format(PROCESS_INTERNAL, originatingClassPlusEnumFieldName);
-			processInternal = processInternal.replace("FORMATTER", "%s");
+			processInternal = processInternal.replace(FORMATTER, STRING_FORMAT);
 			StringBuilder stepsAndStatuses = new StringBuilder();
 			bpmDescriptors.stream().forEach(s -> { //NOSONAR
-				stepsAndStatuses.append("                case ").append(s.getMyStateName()).append(":").append(NL)
-						.append("                case ").append(s.getStatusUponFailure()).append(":").append(NL)
-						.append("                    executeStep(").append(s.getStepMethodName()).append(");").append(NL)
-						.append("                    break;").append(NL);
+				stepsAndStatuses.append(CASE).append(s.getMyStateName()).append(COLON).append(NL)
+						.append(CASE).append(s.getStatusUponFailure()).append(COLON).append(NL)
+						.append(EXECUTE_STEP).append(s.getStepMethodName()).append(PARENTHESIS_END_SEMI_COLON).append(NL)
+						.append(BREAK).append(NL);
 			});
-			processInternal = processInternal.replace("STATUSES_AND_STEPS", stepsAndStatuses.toString());
+			processInternal = processInternal.replace(STATUSES_AND_STEPS, stepsAndStatuses.toString());
 			addtionals.append(processInternal).append(NL);
 			addtionals.append(FORMATTER_ON).append(HEADER_START_OLD);
 		}
@@ -218,7 +235,7 @@ public class DaProcessStepSourceAppender extends BaseDomainObject {
 
 	private CharSequence makeStateDescritions(String originatingClassPlusEnumFieldName, List<String> statesShort) {
 		StringBuilder b = new StringBuilder();
-		statesShort.stream().forEachOrdered(s -> b.append(new StringBuilder(NL).append("        ").append(originatingClassPlusEnumFieldName).append(".").append(s).append(",")));
+		statesShort.stream().forEachOrdered(s -> b.append(new StringBuilder(NL).append(SPACE).append(originatingClassPlusEnumFieldName).append(DOT).append(s).append(COMMA)));
 		b.delete(b.length()-1, b.length());
 		return b.toString();
 	}
@@ -281,7 +298,7 @@ public class DaProcessStepSourceAppender extends BaseDomainObject {
 	}
 
 	private void generateBpmScheme() {
-		if (bpmRepoFolder != null) {
+		if (bpmRepoFolder != null && !acceptEnumFailures) {
 			File xmlFile = new File(new StringBuilder(bpmRepoFolder.getAbsolutePath()).append(File.separator).append(this.originatingShort.toUpperCase()).append(BPM_2_0_SCHEME_XML).toString());
 			if (xmlFile.exists() && !xmlFile.delete()) { //NOSONAR
 				throw new ProcessRuntimeException(String.format("Could not remove old XML-file : %s", xmlFile.getAbsolutePath()));
@@ -293,6 +310,26 @@ public class DaProcessStepSourceAppender extends BaseDomainObject {
 
 	public void setBpmActivitiesPerColumn(Integer activitiesPercolumn) {
 		this.bpmActivitiesPercolumn = activitiesPercolumn;
+	}
+
+	public void setMavenModulePath(String mavenModulePath) {
+		this.mavenModulePath = mavenModulePath;
+	}
+
+	public String getMavenModulePath() {
+		return mavenModulePath;
+	}
+
+	public void setCriteriaStateOnlyFailure(boolean criteriaStateOnlyFailure) {
+		this.criteriaStateOnlyFailure = criteriaStateOnlyFailure;
+	}
+
+	public void setAcceptEnumFailures(boolean acceptFailures) {
+		this.acceptEnumFailures = acceptFailures;
+	}
+
+	public boolean getAcceptEnumFilures() {
+		return acceptEnumFailures;
 	}
 }
 

@@ -284,6 +284,7 @@ public class BpmSchemeGenerator extends BaseDomainObject {
         int colon = 0;
         boolean currentRenderingIsAColumnChange;
         boolean columnChangeIsActive = bpmActivitiesPercolumn > 1;
+        boolean oneTaskFlow = descriptors.size() == 1;
         for (BpmSchemeElementDescriptor d : descriptors) {
             depth += 1;
             currentRenderingIsAColumnChange = false;
@@ -292,7 +293,7 @@ public class BpmSchemeGenerator extends BaseDomainObject {
                 depth = 0;
                 currentRenderingIsAColumnChange = true;
             }
-            flowToNext = appendActivityGwAndFailActivity(flowToNext, d, processSection, diagramSection, colon, depth, currentRenderingIsAColumnChange);
+            flowToNext = appendActivityGwAndFailActivity(flowToNext, d, processSection, diagramSection, colon, depth, currentRenderingIsAColumnChange, oneTaskFlow);
         }
         processSection.append(PROCESS_END);
         diagramSection.append(DIAGRAM_END);
@@ -305,13 +306,19 @@ public class BpmSchemeGenerator extends BaseDomainObject {
     }
 
 
-    private String appendActivityGwAndFailActivity(String idSource, BpmSchemeElementDescriptor d, StringBuilder processSection, StringBuilder diagramSection, int colon, int depth, boolean currentRenderingIsAColumnChange) {
+    private String appendActivityGwAndFailActivity(String idSource, BpmSchemeElementDescriptor d, StringBuilder processSection, StringBuilder diagramSection, int colon, int depth, boolean currentRenderingIsAColumnChange, boolean oneTaskFlow) {
         switch (d.getExpectedTypeBefore()) {
             case START_EVENT:
                 String startEventIdHolder = generateIdForType(BpmSchemeElementDescriptor.Type.START_EVENT);
                 processSection.append(String.format(STARTEVENT, startEventIdHolder, String.format(ENTERING, d.getProcessName())));
                 diagramSection.append(String.format(START_EVENT_SHAPE, startEventIdHolder));
-                return makeStepWholeStep(startEventIdHolder, d, processSection, diagramSection, colon, depth, false);
+                if (!oneTaskFlow) {
+                    return makeStepWholeStep(startEventIdHolder, d, processSection, diagramSection, colon, depth, false);
+                } else {
+                    String sourceForTheNextTree = makeStepWholeStep(startEventIdHolder, d, processSection, diagramSection, colon, depth, false);
+                    makeFinish(sourceForTheNextTree, d, processSection, diagramSection, colon, depth);
+                    return null;
+                }
             case ACTIVITY:
                 String sourceForTheNextTree = null;
                 if (idSource != null) {
@@ -322,7 +329,8 @@ public class BpmSchemeGenerator extends BaseDomainObject {
                     }
                 }
                 return sourceForTheNextTree;
-            default: throw new ProcessRuntimeException(String.format("Ooops. Got unexpected type-before : %s", d.getExpectedTypeBefore()));
+            default:
+                throw new ProcessRuntimeException(String.format("Ooops. Got unexpected type-before : %s", d.getExpectedTypeBefore()));
         }
     }
 

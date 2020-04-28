@@ -151,16 +151,21 @@ public class IO {
         }
     }
 
+    public static boolean looksLikeTrue(String input) {
+        if (!hasContents(input)) {
+            return false;
+        } else {
+            return "true".equalsIgnoreCase(input.trim());
+        }
+    }
+
     public static boolean hasContents(String input) {
         return input != null && input.trim().length() > 0;
     }
 
-    public static class FileExistsButIsNotADirectoryException extends RuntimeException {
-    }
+    public static class FileExistsButIsNotADirectoryException extends RuntimeException {}
 
-    public static class DirExistsButCannotBeWritteToException extends RuntimeException {
-    }
+    public static class DirExistsButCannotBeWritteToException extends RuntimeException {}
 
-    public static class CouldNotCreateDirException extends RuntimeException {
-    }
+    public static class CouldNotCreateDirException extends RuntimeException {}
 }

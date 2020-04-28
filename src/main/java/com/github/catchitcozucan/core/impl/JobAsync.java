@@ -20,8 +20,10 @@ package com.github.catchitcozucan.core.impl;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
+import com.github.catchitcozucan.core.internal.util.io.IO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.github.catchitcozucan.core.interfaces.AsyncExecutor;
@@ -37,16 +39,20 @@ public class JobAsync implements AsyncExecutor, WorkingEntity {
 
 	private static final int ID_LENGTH = 9;
 	private static final int ID_DASHED_GROUPS = 3;
-	public static final String PROCESS_S_WAS_LEAKING_EXCEPTION_THIS_IS_NOT_HOW_THINGS_SHOULD_BE = "process %s was leaking exception - this is not how things should be..";
-	public static final String JOB_S_WAS_LEAKING_EXCEPTION_THIS_IS_NOT_HOW_THINGS_SHOULD_BE = "job %s was leaking exception - this is not how things should be..";
-	public static final String NOPE_CALL_GET_INSTANCE_FIRST = "Nope - call getInstance() first!";
-	public static final String AWAIT_TERMINATION_WAS_INTERRUPTED_BEFORE_CARRIED_OUT_NO_BIGGIE = "await termination was interrupted before carried out, no biggie :)";
+	private static final String SPACE = " ";
+	private static final String UNDERSCORE = "_";
+	private static final String EMPTY = "";
+	private static final String UNKNOWN = "UNKNOWN";
+	private static final String JOB_S_WAS_LEAKING_EXCEPTION_THIS_IS_NOT_HOW_THINGS_SHOULD_BE = "job %s was leaking exception - this is not how things should be..";
+	private static final String NOPE_CALL_GET_INSTANCE_FIRST = "Nope - call getInstance() first!";
+	private static final String AWAIT_TERMINATION_WAS_INTERRUPTED_BEFORE_CARRIED_OUT_NO_BIGGIE = "await termination was interrupted before carried out, no biggie :)";
+	private static final String PROCESS_S_WAS_LEAKING_EXCEPTION_THIS_IS_NOT_HOW_THINGS_SHOULD_BE = "process %s was leaking exception - this is not how things should be..";
 	private static JobAsync INSTANCE; // NOSONAR
 	private final SimpleOneThreadedCacheableThreadPool pool;
 	private final List<AsyncJobListener> listenersJobs;
 	private final List<AsyncProcessListener> listenersProcesses;
-	private HashSet<String> jobIds;
 	private static Logger LOGGER = null; // NOSONAR
+	private HashSet<String> jobIds;
 
 	static {
 		ProcessLogging.initLogging();
@@ -73,6 +79,11 @@ public class JobAsync implements AsyncExecutor, WorkingEntity {
 			return false;
 		}
 		return !jobIds.isEmpty();
+	}
+
+	@Override
+	public boolean isJobWithNameAlreadyRunning(String jobName) {
+		return jobIsMatchedInJobList(jobName);
 	}
 
 	@Override
@@ -172,5 +183,21 @@ public class JobAsync implements AsyncExecutor, WorkingEntity {
 			}
 			listenersProcesses.stream().forEach(l -> l.processExiting(process));
 		}
+	}
+
+	private boolean jobIsMatchedInJobList(String jobName) {
+		if (jobIds.isEmpty()) {
+			return false;
+		} else {
+			Optional<String> jobMatched = jobIds.stream().filter(jId -> jId.startsWith(jobNameToJobIdPrefix(jobName))).findFirst();
+			return jobMatched.isPresent();
+		}
+	}
+
+	private String jobNameToJobIdPrefix(String jobName) {
+		if (!IO.hasContents(jobName)) {
+			return new StringBuilder(UNKNOWN).append(UNDERSCORE).toString();
+		}
+		return new StringBuilder(jobName.toUpperCase().replace(UNDERSCORE, EMPTY).replace(SPACE, EMPTY)).append(UNDERSCORE).toString();
 	}
 }

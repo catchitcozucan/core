@@ -127,6 +127,11 @@ public class JobThreadSafe implements Job, HistogramProvider, WorkingEntity {
 		return isExecuting;
 	}
 
+	@Override
+	public boolean isJobWithNameAlreadyRunning(String jobName) {
+		throw new ProcessRuntimeException("Use isExecuting() instead");
+	}
+
 	interface ThreadSafeJob extends HistogramProvider {
 		String nameThreadSafe();
 

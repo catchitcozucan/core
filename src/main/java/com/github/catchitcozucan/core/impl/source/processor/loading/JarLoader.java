@@ -39,12 +39,6 @@ public class JarLoader {
         return INSTANCE;
     }
 
-    /**
-     * Loads all (though version filtering will occur in the sense that in between .jar
-     * files with sort of matched names, the most recent .jar will be selected and loaded.
-     *
-     * @param folder absolute path to the library folder
-     */
     public void addAllFilesInOlderToClassPath(String folder) {
         if (!pathsLoaded.contains(folder)) {
             doLoadTheseUrls(getJarFilesInDir(doChecks(folder), null));
@@ -52,14 +46,6 @@ public class JarLoader {
         }
     }
 
-    /**
-     * Loads a filtered set of .jar files matching sent in toMatch (though version
-     * filtering will also occur in the sense that in between .jar files with sort of
-     * matched names, the most recent .jar will be selected and loaded
-     *
-     * @param folder absolute path to the library folder
-     * @toMatch file name attribute to match
-     */
     public void addAllFilesInOlderMatchedByStringToClassPath(String folder, String toMatch) {
         if (!pathsLoaded.contains(folder)) {
             doLoadTheseUrls(getJarFilesInDir(doChecks(folder), toMatch));

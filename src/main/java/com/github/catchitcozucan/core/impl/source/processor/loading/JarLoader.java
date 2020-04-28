@@ -46,12 +46,6 @@ public class JarLoader {
         }
     }
 
-    public void addAllFilesInOlderMatchedByStringToClassPath(String folder, String toMatch) {
-        if (!pathsLoaded.contains(folder)) {
-            doLoadTheseUrls(getJarFilesInDir(doChecks(folder), toMatch));
-        }
-    }
-
     public Object tryLoadClassAndGetInstance(String namedClassFullPath) {
         Object resp = tryLoadClass(namedClassFullPath, true);
         if (resp instanceof Boolean) {

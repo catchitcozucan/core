@@ -1,19 +1,19 @@
 /**
- *    Original work by Ola Aronsson 2020
- *    Courtesy of nollettnoll AB &copy; 2012 - 2020
- *
- *    Licensed under the Creative Commons Attribution 4.0 International (the "License")
- *    you may not use this file except in compliance with the License. You may obtain
- *    a copy of the License at
- *
- *                https://creativecommons.org/licenses/by/4.0/
- *
- *    The software is provided “as is”, without warranty of any kind, express or
- *    implied, including but not limited to the warranties of merchantability,
- *    fitness for a particular purpose and noninfringement. In no event shall the
- *    authors or copyright holders be liable for any claim, damages or other liability,
- *    whether in an action of contract, tort or otherwise, arising from, out of or
- *    in connection with the software or the use or other dealings in the software.
+ * Original work by Ola Aronsson 2020
+ * Courtesy of nollettnoll AB &copy; 2012 - 2020
+ * <p>
+ * Licensed under the Creative Commons Attribution 4.0 International (the "License")
+ * you may not use this file except in compliance with the License. You may obtain
+ * a copy of the License at
+ * <p>
+ * https://creativecommons.org/licenses/by/4.0/
+ * <p>
+ * The software is provided “as is”, without warranty of any kind, express or
+ * implied, including but not limited to the warranties of merchantability,
+ * fitness for a particular purpose and noninfringement. In no event shall the
+ * authors or copyright holders be liable for any claim, damages or other liability,
+ * whether in an action of contract, tort or otherwise, arising from, out of or
+ * in connection with the software or the use or other dealings in the software.
  */
 package com.github.catchitcozucan.core.impl;
 
@@ -21,11 +21,9 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
-import com.github.catchitcozucan.core.internal.util.io.IO;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import com.github.catchitcozucan.core.interfaces.AsyncExecutor;
 import com.github.catchitcozucan.core.interfaces.AsyncJobListener;
 import com.github.catchitcozucan.core.interfaces.AsyncProcessListener;
@@ -33,7 +31,10 @@ import com.github.catchitcozucan.core.interfaces.Job;
 import com.github.catchitcozucan.core.interfaces.Process;
 import com.github.catchitcozucan.core.interfaces.WorkingEntity;
 import com.github.catchitcozucan.core.internal.util.id.IdGenerator;
+import com.github.catchitcozucan.core.internal.util.io.IO;
 import com.github.catchitcozucan.core.internal.util.thread.SimpleOneThreadedCacheableThreadPool;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class JobAsync implements AsyncExecutor, WorkingEntity {
 
@@ -52,7 +53,8 @@ public class JobAsync implements AsyncExecutor, WorkingEntity {
 	private final List<AsyncJobListener> listenersJobs;
 	private final List<AsyncProcessListener> listenersProcesses;
 	private static Logger LOGGER = null; // NOSONAR
-	private HashSet<String> jobIds;
+	private HashSet<String> jobIdsInQueue;
+	private HashSet<String> jobIdsRunning;
 
 	static {
 		ProcessLogging.initLogging();
@@ -63,7 +65,8 @@ public class JobAsync implements AsyncExecutor, WorkingEntity {
 		pool = new SimpleOneThreadedCacheableThreadPool();
 		listenersJobs = new ArrayList<>();
 		listenersProcesses = new ArrayList<>();
-		jobIds = new HashSet<>();
+		jobIdsInQueue = new HashSet<>();
+		jobIdsRunning = new HashSet<>();
 	}
 
 	public static synchronized JobAsync getInstance() {
@@ -75,15 +78,27 @@ public class JobAsync implements AsyncExecutor, WorkingEntity {
 
 	@Override
 	public boolean isExecuting() {
-		if (pool == null || jobIds == null) {
+		if (pool == null || jobIdsInQueue == null || jobIdsRunning == null || (jobIdsInQueue.isEmpty() && jobIdsRunning.isEmpty())) {
 			return false;
 		}
-		return !jobIds.isEmpty();
+		return true;
 	}
 
 	@Override
-	public boolean isJobWithNameAlreadyRunning(String jobName) {
+	public boolean isNamedJobRunningOrInQueue(String jobName) {
 		return jobIsMatchedInJobList(jobName);
+	}
+
+	@Override
+	public Set<RunState> getCurrentState() {
+		if (!isExecuting()) {
+			return new HashSet<>();
+		} else {
+			Set<RunState> runStates = new HashSet<>();
+			jobIdsInQueue.stream().forEach(q -> runStates.add(new RunState(RunState.State.InQueue, q)));
+			jobIdsRunning.stream().forEach(r -> runStates.add(new RunState(RunState.State.InQueue, r)));
+			return runStates;
+		}
 	}
 
 	@Override
@@ -110,7 +125,9 @@ public class JobAsync implements AsyncExecutor, WorkingEntity {
 		if (INSTANCE == null) {
 			throw new IllegalStateException(NOPE_CALL_GET_INSTANCE_FIRST);
 		}
-		pool.submit(new ProcessRunnable(toExec));
+		ProcessRunnable process = new ProcessRunnable(toExec);
+		jobIdsInQueue.add(process.id);
+		pool.submit(process);
 	}
 
 	@Override
@@ -118,7 +135,9 @@ public class JobAsync implements AsyncExecutor, WorkingEntity {
 		if (INSTANCE == null) {
 			throw new IllegalStateException(NOPE_CALL_GET_INSTANCE_FIRST);
 		}
-		pool.submit(new JobRunnable(toExec));
+		JobRunnable job = new JobRunnable(toExec);
+		jobIdsInQueue.add(job.id);
+		pool.submit(job);
 	}
 
 	@Override
@@ -126,7 +145,9 @@ public class JobAsync implements AsyncExecutor, WorkingEntity {
 		if (INSTANCE == null) {
 			throw new IllegalStateException(NOPE_CALL_GET_INSTANCE_FIRST);
 		}
-		pool.submitWithTimeout(new JobRunnable(toExec), timeout, unit);
+		JobRunnable job = new JobRunnable(toExec);
+		jobIdsInQueue.add(job.id);
+		pool.submitWithTimeout(job, timeout, unit);
 	}
 
 	@Override
@@ -145,18 +166,19 @@ public class JobAsync implements AsyncExecutor, WorkingEntity {
 
 		JobRunnable(Job job) {
 			this.job = job;
-			id = IdGenerator.getInstance().getIdMoreRandom(ID_LENGTH, ID_DASHED_GROUPS);
+			id = new StringBuilder(jobNameToJobIdPrefix(job.name())).append(IdGenerator.getInstance().getIdMoreRandom(ID_LENGTH, ID_DASHED_GROUPS)).toString();
 		}
 
 		@Override
 		public void run() {
-			jobIds.add(id);
+			jobIdsInQueue.remove(id);
+			jobIdsRunning.add(id);
 			try {
 				job.doJob();
 			} catch (Exception ignore) {
 				LOGGER.warn(String.format(JOB_S_WAS_LEAKING_EXCEPTION_THIS_IS_NOT_HOW_THINGS_SHOULD_BE, job.name()), ignore);
 			} finally {
-				jobIds.remove(id);
+				jobIdsRunning.remove(id);
 			}
 			listenersJobs.stream().forEach(l -> l.jobExiting(job));
 		}
@@ -173,23 +195,28 @@ public class JobAsync implements AsyncExecutor, WorkingEntity {
 
 		@Override
 		public void run() {
-			jobIds.add(id);
+			jobIdsInQueue.remove(id);
+			jobIdsRunning.add(id);
 			try {
 				process.process();
 			} catch (Exception ignore) {
 				LOGGER.warn(String.format(PROCESS_S_WAS_LEAKING_EXCEPTION_THIS_IS_NOT_HOW_THINGS_SHOULD_BE, process.name()), ignore);
 			} finally {
-				jobIds.remove(id);
+				jobIdsRunning.remove(id);
 			}
 			listenersProcesses.stream().forEach(l -> l.processExiting(process));
 		}
 	}
 
 	private boolean jobIsMatchedInJobList(String jobName) {
-		if (jobIds.isEmpty()) {
+		if (jobIdsRunning.isEmpty() && jobIdsInQueue.isEmpty()) {
 			return false;
 		} else {
-			Optional<String> jobMatched = jobIds.stream().filter(jId -> jId.startsWith(jobNameToJobIdPrefix(jobName))).findFirst();
+			Optional<String> jobMatched = jobIdsRunning.stream().filter(jId -> jId.startsWith(jobNameToJobIdPrefix(jobName))).findFirst();
+			if (jobMatched.isPresent()) {
+				return true;
+			}
+			jobMatched = jobIdsInQueue.stream().filter(jId -> jId.startsWith(jobNameToJobIdPrefix(jobName))).findFirst();
 			return jobMatched.isPresent();
 		}
 	}

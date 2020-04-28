@@ -157,6 +157,7 @@ public class TestSuiteShoes {
         //..then ALL are shipped
         assertEquals(100, OrderRepository.getInstance().load().stream().filter(o -> o.getCurrentStatus().equals(OrderStatus.Status.SHIPPED)).count());
         assertEquals(1, callbackCounter.get());
+        JobAsync.getInstance().getCurrentState().stream().forEach(r -> System.out.println(new StringBuilder("E{").append("state :").append(r.getState().name()).append(", ").append(r.getId()).append("}").toString()));
         assertFalse(JobAsync.getInstance().isExecuting());
     }
 
@@ -215,6 +216,7 @@ public class TestSuiteShoes {
         JobAsync.getInstance().killAwaitTerminationNonBlocking(2, TimeUnit.SECONDS);
         System.out.println("non-blocking IS beautiful!!");
         IO.sleep(2500);
+        JobAsync.getInstance().getCurrentState().stream().forEach(r -> System.out.println(new StringBuilder("F{").append("state :").append(r.getState().name()).append(", ").append(r.getId()).append("}").toString()));
         assertFalse(JobAsync.getInstance().isExecuting());
     }
 
@@ -271,6 +273,7 @@ public class TestSuiteShoes {
                 return TripStatus.Status.values()[3];
             }
         };
+        JobAsync.getInstance().getCurrentState().stream().forEach(r -> System.out.println(new StringBuilder("H{").append("state :").append(r.getState().name()).append(", ").append(r.getId()).append("}").toString()));
         assertFalse(JobAsync.getInstance().isExecuting());
         JobAsync.getInstance().submitProcess(p);
         IO.sleep(50);

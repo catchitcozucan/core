@@ -1,6 +1,5 @@
-/**
- *    Original work by Ola Aronsson 2020
- *    Courtesy of nollettnoll AB &copy; 2012 - 2020
+/*
+ *    Copyright [2020] [Ola Aronsson, courtesy of nollettnoll AB]
  *
  *    Licensed under the Creative Commons Attribution 4.0 International (the "License")
  *    you may not use this file except in compliance with the License. You may obtain
@@ -15,14 +14,34 @@
  *    whether in an action of contract, tort or otherwise, arising from, out of or
  *    in connection with the software or the use or other dealings in the software.
  */
-package com.github.catchitcozucan.core.interfaces;
+package com.github.catchitcozucan.core.impl;
 
-import java.util.Set;
+import com.github.catchitcozucan.core.internal.util.domain.BaseDomainObject;
 
-import com.github.catchitcozucan.core.impl.RunState;
+public class RunState extends BaseDomainObject {
 
-public interface WorkingEntity {
-	boolean isExecuting();
-	boolean isNamedJobRunningOrInQueue(String jobName);
-	Set<RunState> getCurrentState();
+	public enum State {
+		InQueue, InProcess;
+	}
+
+	private final State state;
+	private final String id;
+
+	public RunState(State state, String id) {
+		this.state = state;
+		this.id = id;
+	}
+
+	public State getState() {
+		return state;
+	}
+
+	public String getId() {
+		return id;
+	}
+
+	@Override
+	public String doToString() {
+		return id;
+	}
 }

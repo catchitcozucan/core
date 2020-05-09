@@ -17,8 +17,6 @@
  */
 package com.github.catchitcozucan.core.interfaces;
 
-public interface Job extends TypedRelativeWithName {
-	void doJob();
-	ProcessSubject provideSubjectSample();
-	boolean isExecuting();
+public interface AsyncTaskListener {
+	void taskExiting(Task task);
 }

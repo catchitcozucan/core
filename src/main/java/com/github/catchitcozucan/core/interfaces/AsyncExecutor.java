@@ -22,10 +22,12 @@ import java.util.concurrent.TimeUnit;
 public interface AsyncExecutor {
 	void submitProcess(Process toExec);
 	void submitJob(Job toExec);
-	void addJobWithTimeout(Job toExec, long timeout, TimeUnit unit);
+	void submitTask(Task toExec);
+	void submitJobWithTimeout(Job toExec, long timeout, TimeUnit unit);
 	void addJobListener(AsyncJobListener listener);
 	void addProcessListener(AsyncProcessListener listener);
 	void kill();
+	void killSilent();
 	void killAwaitTerminationBlocking(long timeout, TimeUnit unit);
 	void killAwaitTerminationNonBlocking(long timeout, TimeUnit unit);
 }

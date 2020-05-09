@@ -33,8 +33,7 @@ public class IO {
 	public static void sleep(long millisec) {
 		try {
 			Thread.sleep(millisec); // NOSONAR, used in tests..
-		} catch (InterruptedException ignore) {
-		}
+		} catch (InterruptedException ignore) {}
 	}
 
 	public static void setFieldValue(Object instanceToSetItTo, String namedField, Object value) {

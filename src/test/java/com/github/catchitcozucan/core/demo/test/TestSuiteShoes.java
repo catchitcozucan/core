@@ -20,6 +20,7 @@ package com.github.catchitcozucan.core.demo.test;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
@@ -33,15 +34,26 @@ import java.util.concurrent.atomic.AtomicInteger;
 import com.github.catchitcozucan.core.demo.shoe.OrderStatus;
 import com.github.catchitcozucan.core.demo.shoe.ShippingShoesJob;
 import com.github.catchitcozucan.core.demo.shoe.internal.OrderRepository;
+import com.github.catchitcozucan.core.demo.test.support.io.IO;
 import com.github.catchitcozucan.core.demo.trip.TripStatus;
+import com.github.catchitcozucan.core.exception.ProcessRuntimeException;
 import com.github.catchitcozucan.core.histogram.HistogramStatus;
-import com.github.catchitcozucan.core.impl.JobAsync;
+import com.github.catchitcozucan.core.impl.Async;
 import com.github.catchitcozucan.core.impl.JobBase;
-import com.github.catchitcozucan.core.impl.JobThreadSafe;
 import com.github.catchitcozucan.core.impl.ProcessingFlags;
+import com.github.catchitcozucan.core.impl.startup.BasicControl;
+import com.github.catchitcozucan.core.impl.startup.NumberOfTimeUnits;
+import com.github.catchitcozucan.core.interfaces.AsyncJobListener;
+import com.github.catchitcozucan.core.interfaces.CatchItConfig;
+import com.github.catchitcozucan.core.interfaces.IsolationLevel;
 import com.github.catchitcozucan.core.interfaces.Job;
+import com.github.catchitcozucan.core.interfaces.LogConfig;
+import com.github.catchitcozucan.core.interfaces.PoolConfig;
 import com.github.catchitcozucan.core.interfaces.Process;
 import com.github.catchitcozucan.core.interfaces.ProcessSubject;
+import com.github.catchitcozucan.core.interfaces.Task;
+import com.github.catchitcozucan.core.interfaces.TypedRelativeWithName;
+import com.github.catchitcozucan.core.internal.util.id.IdGenerator;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -52,7 +64,6 @@ import org.junit.rules.TestRule;
 import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;
 import org.junit.runners.MethodSorters;
-import com.github.catchitcozucan.core.demo.test.support.io.IO;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestSuiteShoes {
@@ -81,6 +92,7 @@ public class TestSuiteShoes {
     @After
     public void clearTmp() {
         OrderRepository.getInstance().physicallyWipe();
+        Async.getInstance().killSilent();
     }
 
     private void reInitRepo() {
@@ -107,8 +119,9 @@ public class TestSuiteShoes {
     public void c_testStatistics() {
         // so json should look like this
         HistogramStatus status = job.getHistogram(OrderRepository.getInstance().load().stream());
-        assertNotEquals(status.toString(), "{ \"entityNames\": \"Process-Histogram\", \"bucketNames\": [\"NEW_ORDER\", \"SHOE_NOT_YET_AVAILABLE\", \"SHOE_FETCHED_FROM_WAREHOUSE\", \"LACES_NOT_IN_PLACE\", \"LACES_IN_PLACE\", \"PACKAGING_FAILED\", \"PACKED\", \"SHIPPING_FAILED\", \"SHIPPED\"], \"histogramz\": [{\"nameOfHistogram\": \"Shipping ordered shoes\", \"sum\": 100, \"actuallyFinished\": " +
-                "100, " + "\"actualStepProgress\": 100, \"data\": [0, 0, 0, 0, 0, 0, 0, 0, 100]}]}");
+        assertNotEquals(status.toString(),
+                "{ \"entityNames\": \"Process-Histogram\", \"bucketNames\": [\"NEW_ORDER\", \"SHOE_NOT_YET_AVAILABLE\", \"SHOE_FETCHED_FROM_WAREHOUSE\", \"LACES_NOT_IN_PLACE\", \"LACES_IN_PLACE\", \"PACKAGING_FAILED\", \"PACKED\", \"SHIPPING_FAILED\", \"SHIPPED\"], \"histogramz\": [{\"nameOfHistogram\": \"Shipping ordered shoes\", \"sum\": 100, \"actuallyFinished\": " + "100, " +
+                        "\"actualStepProgress\": 100, \"data\": [0, 0, 0, 0, 0, 0, 0, 0, 100]}]}");
 
         job.doJob();
 
@@ -148,17 +161,24 @@ public class TestSuiteShoes {
         assertFalse(OrderRepository.getInstance().load().stream().filter(o -> o.getCurrentStatus().equals(OrderStatus.Status.SHIPPED)).findFirst().isPresent());
         AtomicInteger callbackCounter = new AtomicInteger();
         callbackCounter.getAndSet(0);
-        assertFalse(JobAsync.getInstance().isExecuting());
-        JobAsync.getInstance().addJobListener(job -> callbackCounter.getAndIncrement());
-        JobAsync.getInstance().submitJob(job);
+        assertFalse(Async.getInstance().isExecuting());
+        AsyncJobListener listener = new AsyncJobListener() {
+
+            @Override
+            public void jobExiting(Job job) {
+                callbackCounter.getAndIncrement();
+            }
+        };
+        Async.getInstance().addJobListener(listener);
+        Async.getInstance().submitJob(job);
         IO.sleep(50);
-        assertTrue(JobAsync.getInstance().isExecuting());
+        assertTrue(Async.getInstance().isExecuting());
         IO.sleep(3000);
         //..then ALL are shipped
         assertEquals(100, OrderRepository.getInstance().load().stream().filter(o -> o.getCurrentStatus().equals(OrderStatus.Status.SHIPPED)).count());
         assertEquals(1, callbackCounter.get());
-        JobAsync.getInstance().getCurrentState().stream().forEach(r -> System.out.println(new StringBuilder("E{").append("state :").append(r.getState().name()).append(", ").append(r.getId()).append("}").toString()));
-        assertFalse(JobAsync.getInstance().isExecuting());
+        Async.getInstance().getCurrentState().stream().forEach(r -> System.out.println(new StringBuilder("E{").append("state :").append(r.getState().name()).append(", ").append(r.getId()).append("}").toString()));
+        assertFalse(Async.getInstance().isExecuting());
     }
 
     @Test
@@ -211,51 +231,36 @@ public class TestSuiteShoes {
             }
         };
 
-        JobAsync.getInstance().addJobWithTimeout(newJob, 1, TimeUnit.MILLISECONDS);
+        Async.getInstance().submitJobWithTimeout(newJob, 1, TimeUnit.MILLISECONDS);
         IO.sleep(300);
-        JobAsync.getInstance().killAwaitTerminationNonBlocking(2, TimeUnit.SECONDS);
-        System.out.println("non-blocking IS beautiful!!");
+        Async.getInstance().killAwaitTerminationNonBlocking(2, TimeUnit.SECONDS);
         IO.sleep(2500);
-        JobAsync.getInstance().getCurrentState().stream().forEach(r -> System.out.println(new StringBuilder("F{").append("state :").append(r.getState().name()).append(", ").append(r.getId()).append("}").toString()));
-        assertFalse(JobAsync.getInstance().isExecuting());
+        Async.getInstance().getCurrentState().stream().forEach(r -> System.out.println(new StringBuilder("F{").append("state :").append(r.getState().name()).append(", ").append(r.getId()).append("}").toString()));
+        assertFalse(Async.getInstance().isExecuting());
     }
 
     @Test
-    public void g_testThreadSfeSynchcronusJob() {
-        // at first none is shipped!
-        assertFalse(OrderRepository.getInstance().load().stream().filter(o -> o.getCurrentStatus().equals(OrderStatus.Status.SHIPPED)).findFirst().isPresent());
-        JobThreadSafe.init(job); // initialize (just for the next test to make sense
-        assertFalse(JobThreadSafe.getInstance(ShippingShoesJob.class).isExecuting());
-        Thread t = new Thread() {
-            @Override
-            public void run() {
-                if (!JobThreadSafe.getInstance(ShippingShoesJob.class).isExecuting()) {
-                    System.out.println("Waiting for job to start");
-                }
-                System.out.println("Yup... das was das..");
-            }
-        };
-        t.setName("JobStatusTester");
-        t.start();
-        JobThreadSafe.getInstance(ShippingShoesJob.class).doJob();
-        assertFalse(JobThreadSafe.getInstance(ShippingShoesJob.class).isExecuting());
-        if (t != null) {
-            assertTrue(!t.isAlive());
-            try {
-                t.interrupt();
-            } catch (Exception ignore) {}
-        }
-        //..then ALL are shipped
-        assertEquals(100l, OrderRepository.getInstance().load().stream().filter(o -> o.getCurrentStatus().equals(OrderStatus.Status.SHIPPED)).count());
-    }
-
-    @Test
-    public void h_testProcessAsync() {
+    public void g_testProcessAsync() {
         Process p = new Process() {
+
+            @Override
+            public IsolationLevel.Level provideIsolationLevel() {
+                return IsolationLevel.Level.INCLUSIVE;
+            }
 
             @Override
             public String name() {
                 return "testing stuff";
+            }
+
+            @Override
+            public Type provideType() {
+                return Type.PROCESS;
+            }
+
+            @Override
+            public RejectionAction provideRejectionAction() {
+                return RejectionAction.IGNORE;
             }
 
             @Override
@@ -273,14 +278,110 @@ public class TestSuiteShoes {
                 return TripStatus.Status.values()[3];
             }
         };
-        JobAsync.getInstance().getCurrentState().stream().forEach(r -> System.out.println(new StringBuilder("H{").append("state :").append(r.getState().name()).append(", ").append(r.getId()).append("}").toString()));
-        assertFalse(JobAsync.getInstance().isExecuting());
-        JobAsync.getInstance().submitProcess(p);
+        Async.getInstance().getCurrentState().stream().forEach(r -> System.out.println(new StringBuilder("H{").append("state :").append(r.getState().name()).append(", ").append(r.getId()).append("}").toString()));
+        assertFalse(Async.getInstance().isExecuting());
+        Async.getInstance().submitProcess(p);
         IO.sleep(50);
-        assertTrue(JobAsync.getInstance().isExecuting());
+        assertTrue(Async.getInstance().isExecuting());
         IO.sleep(2500);
-        assertFalse(JobAsync.getInstance().isExecuting());
+        assertFalse(Async.getInstance().isExecuting());
     }
+
+    @Test(expected = ProcessRuntimeException.class)
+    public void h_testRejectionAsyncRejectedByAnotherThingRunning() {
+        Task t1 = makeTask(IsolationLevel.Level.INCLUSIVE, TypedRelativeWithName.RejectionAction.IGNORE, false, true);
+        Async.getInstance().submitTask(t1);
+        Task t2 = makeTask(IsolationLevel.Level.EXCLUSIVE, TypedRelativeWithName.RejectionAction.REJECT, false, false);
+        Async.getInstance().submitTask(t2);
+    }
+
+    @Test(expected = ProcessRuntimeException.class)
+    public void i_testRejectionAsyncRejectedByType() {
+        Task t1 = makeTask(IsolationLevel.Level.INCLUSIVE, TypedRelativeWithName.RejectionAction.IGNORE, false, true);
+        Async.getInstance().submitTask(t1);
+        Task t2 = makeTask(IsolationLevel.Level.TYPE_EXCLUSIVE, TypedRelativeWithName.RejectionAction.REJECT, false, false);
+        Async.getInstance().submitTask(t2);
+    }
+
+    @Test
+    public void j_testRejectionAsyncRejectedByKindButKindDiffers() {
+        Task t1 = makeTask(IsolationLevel.Level.INCLUSIVE, TypedRelativeWithName.RejectionAction.IGNORE, true, true);
+        Async.getInstance().submitTask(t1);
+        Task t2 = makeTask(IsolationLevel.Level.KIND_EXCLUSIVE, TypedRelativeWithName.RejectionAction.REJECT, false, false);
+        Async.getInstance().submitTask(t2);
+    }
+
+    @Test(expected = ProcessRuntimeException.class)
+    public void k_testRejectionAsyncRejectedByKind() {
+        Task t1 = makeTask(IsolationLevel.Level.INCLUSIVE, TypedRelativeWithName.RejectionAction.IGNORE, false, true);
+        Async.getInstance().submitTask(t1);
+        Task t2 = makeTask(IsolationLevel.Level.KIND_EXCLUSIVE, TypedRelativeWithName.RejectionAction.REJECT, false, false);
+        Async.getInstance().submitTask(t2);
+    }
+
+    @Test
+    public void l_testRejectionAsyncAlreadyInQueDoNotCareForNewComers() {
+        Task t1 = makeTask(IsolationLevel.Level.INCLUSIVE, TypedRelativeWithName.RejectionAction.REJECT, false, true);
+        Async.getInstance().submitTask(t1);
+        Task t2 = makeTask(IsolationLevel.Level.KIND_EXCLUSIVE, TypedRelativeWithName.RejectionAction.IGNORE, false, false);
+        Async.getInstance().submitTask(t2);
+    }
+
+    @Test
+    public void m_UtilizingStart() {
+        CatchItConfig config = new CatchItConfig() {
+            @Override
+            public PoolConfig getPoolConfig() {
+                return new PoolConfig() {
+                    @Override
+                    public NumberOfTimeUnits maxExecTimePerRunnable() {
+                        return new NumberOfTimeUnits(2, TimeUnit.SECONDS);
+                    }
+
+                    @Override
+                    public int maxQueueSize() {
+                        return 5;
+                    }
+
+                    @Override
+                    public int maxNumberOfThreads() {
+                        return 5;
+                    }
+                };
+            }
+
+            @Override
+            public LogConfig getLogConfig() {
+                return new LogConfig() {
+                    @Override
+                    public String getLoggingApp() {
+                        return "strutz";
+                    }
+
+                    @Override
+                    public String getSytemLogParentDir() {
+                        return System.getProperty("user.home");
+                    }
+
+                    @Override
+                    public boolean getLogSeparately() {
+                        return true;
+                    }
+                };
+            }
+        };
+        BasicControl.stop();
+        BasicControl.init(config);
+        Task t1 = makeTask(IsolationLevel.Level.INCLUSIVE, TypedRelativeWithName.RejectionAction.REJECT, false, true);
+        Async.getInstance().submitTask(t1);
+        Task t2 = makeTask(IsolationLevel.Level.KIND_EXCLUSIVE, TypedRelativeWithName.RejectionAction.IGNORE, false, false);
+        Async.getInstance().submitTask(t2);
+        assertNotNull(Async.getInstance().getCurrentState());
+        assertTrue(Async.getInstance().isExecuting());
+        BasicControl.stop();
+        assertFalse(Async.getInstance().isExecuting());
+    }
+
 
     private static Map<String, Integer> makeUpData(Integer[] data) {
         List<String> labels = new ArrayList<>();
@@ -294,5 +395,42 @@ public class TestSuiteShoes {
         return datan;
     }
 
-    public static abstract class BasicJob extends JobBase {}
+    private Task makeTask(IsolationLevel.Level isolationLevel, TypedRelativeWithName.RejectionAction rejectionAction, boolean uniqueName, boolean takesTime) {
+        String name = "MYTASK";
+        if (uniqueName) {
+            name = IdGenerator.getInstance().getIdMoreRandom(9, 2);
+        }
+        final String myName = name;
+        return new Task() {
+            @Override
+            public void run() {
+                if (takesTime) {
+                    IO.sleep(600);
+                }
+            }
+
+            @Override
+            public IsolationLevel.Level provideIsolationLevel() {
+                return isolationLevel;
+            }
+
+            @Override
+            public String name() {
+                return myName;
+            }
+
+            @Override
+            public Type provideType() {
+                return Type.TASK;
+            }
+
+            @Override
+            public RejectionAction provideRejectionAction() {
+                return rejectionAction;
+            }
+        };
+    }
+
+    public static abstract class BasicJob extends JobBase {
+    }
 }

@@ -134,7 +134,7 @@ public class Slf4JSetup implements LoggingService {
 		initInternal(pathToFolder, applicationName, runDebug, logFilePrefix);
 	}
 
-	private static synchronized void initInternal(String pathToFolder, String applicationName, boolean runDebug, String logFilePrefix) {
+	private static void initInternal(String pathToFolder, String applicationName, boolean runDebug, String logFilePrefix) {
 		if (instance == null) {
 			File logFolder = new File(new StringBuilder(pathToFolder).append(File.separator).append(applicationName).append(File.separator).append(LOGS).toString());
 			if (!logFolder.exists()) {

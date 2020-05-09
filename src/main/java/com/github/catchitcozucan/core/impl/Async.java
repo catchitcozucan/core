@@ -364,10 +364,7 @@ public class Async {
     }
 
     private boolean isNamedTypeAndNameQuueedOrRunning(String type, String name) {
-        return getAllKnownElements().stream().filter(id -> id.startsWith(type)).filter(id2 -> {
-            String nameToCompare = id2.split(ID_SEPARATOR)[1];
-            return (nameToCompare.equalsIgnoreCase(name));
-        }).findFirst().isPresent();
+        return getAllKnownElements().stream().filter(id -> id.startsWith(type)).filter(id2 -> id2.split(ID_SEPARATOR)[1].equalsIgnoreCase(name)).findFirst().isPresent();
     }
 
     private boolean isTypeQueuedOrRunning(String type) {

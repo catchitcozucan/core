@@ -119,10 +119,6 @@ public class ProcessThreadPool implements Exitable {
         if (executor != null) {
             executor.shutdownNow();
         }
-        try {
-            Thread.sleep(200);
-        } catch (InterruptedException ignore) {
-        }
 
         if ((executor != null && !executor.isTerminated()) || (executorForTimeout != null && !executorForTimeout.isTerminated())) {
             try {

@@ -18,10 +18,12 @@
 package com.github.catchitcozucan.core.impl;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
@@ -87,6 +89,9 @@ public class Async {
         runInThreadSafeSource = new ConcurrentHashMap<>();
         queuedIds = queueInThreadSafeSource.newKeySet();
         runningIds = runInThreadSafeSource.newKeySet();
+        waitingTasks = new LinkedList<>();
+        waitingProcesses = new LinkedList<>();
+        waitingJobs = new LinkedList<>();
     }
 
     static synchronized Async getInstance(PoolConfig poolConfig) {
@@ -123,6 +128,9 @@ public class Async {
             Set<RunState> runStates = new HashSet<>();
             queuedIds.stream().forEach(q -> runStates.add(new RunState(RunState.State.InQueue, q)));
             runningIds.stream().forEach(r -> runStates.add(new RunState(RunState.State.InQueue, r)));
+            waitingTasks.stream().forEach(t -> runStates.add(new RunState(RunState.State.InWait, t.name())));
+            waitingProcesses.stream().forEach(t -> runStates.add(new RunState(RunState.State.InWait, t.name())));
+            waitingJobs.stream().forEach(t -> runStates.add(new RunState(RunState.State.InWait, t.name())));
             return runStates;
         }
     }
@@ -162,6 +170,9 @@ public class Async {
             runInThreadSafeSource = new ConcurrentHashMap<>();
             queuedIds = queueInThreadSafeSource.newKeySet();
             runningIds = runInThreadSafeSource.newKeySet();
+            waitingTasks = new LinkedList<>();
+            waitingProcesses = new LinkedList<>();
+            waitingJobs = new LinkedList<>();
         }
     }
 
@@ -243,7 +254,6 @@ public class Async {
             } finally {
                 listenersJobs.stream().forEach(l -> l.jobExiting(job));
                 synchronized (queuedIds) {
-                    queuedIds.remove(id);
                     runningIds.remove(id);
                 }
                 submitAwaitingTaskIfSafe();
@@ -273,7 +283,6 @@ public class Async {
             } finally {
                 listenersTasks.stream().forEach(l -> l.taskExiting(task));
                 synchronized (queuedIds) {
-                    queuedIds.remove(id);
                     runningIds.remove(id);
                 }
                 submitAwaitingTaskIfSafe();
@@ -315,7 +324,6 @@ public class Async {
             } finally {
                 listenersProcesses.stream().forEach(l -> l.processExiting(process));
                 synchronized (queuedIds) {
-                    queuedIds.remove(id);
                     runningIds.remove(id);
                 }
                 submitAwaitingTaskIfSafe();
@@ -390,14 +398,23 @@ public class Async {
 
     private void handleRejection(TypedRelativeWithName toExec) {
         if (toExec.provideRejectionAction().equals(TypedRelativeWithName.RejectionAction.PUT_ON_WAITING_LIST)) {
-            if (toExec.getClass().isAssignableFrom(Job.class)) {
-                waitingJobs.addLast((Job) toExec);
-            } else if (toExec.getClass().isAssignableFrom(Process.class)) {
-                waitingProcesses.addLast((Process) toExec);
-            } else if (toExec.getClass().isAssignableFrom(Task.class)) {
-                waitingTasks.addLast((Task) toExec);
+            Class<?>[] interfaces = toExec.getClass().getInterfaces();
+            if (interfaces == null) {
+                throw new ProcessRuntimeException(String.format("Yikes - what's this thing : %s is not of a supported type. It should implement SOMETHIND, a Task, Process or Job.", toExec.getClass().getName()));
             } else {
-                throw new ProcessRuntimeException(String.format("Yikes - what's this thing : %s is not of a supported type!", toExec.getClass().getName()));
+                Optional<Class<?>> matchedClaszz = Arrays.stream(interfaces).filter(c -> c.equals(Task.class) || c.equals(Process.class) || c.equals(Job.class)).findFirst();
+                if (matchedClaszz.isPresent()) {
+                    Class<?> clazz = matchedClaszz.get();
+                    if (clazz.equals(Job.class)) {
+                        waitingJobs.addLast((Job) toExec);
+                    } else if (clazz.equals(Process.class)) {
+                        waitingProcesses.addLast((Process) toExec);
+                    } else if (clazz.equals(Task.class)) {
+                        waitingTasks.addLast((Task) toExec);
+                    }
+                } else {
+                    throw new ProcessRuntimeException(String.format("Yikes - what's this thing : %s is not of a supported type. It should implement a Task, Process or Job.", toExec.getClass().getName()));
+                }
             }
         } else if (toExec.provideRejectionAction().equals(TypedRelativeWithName.RejectionAction.REJECT)) {
             String message = String.format("Isolation level %s for %s of type %s is not met and as RejectionAction.REJECT is applied, we throw", toExec.provideIsolationLevel().name(), toExec.name(), toExec.provideType().name());

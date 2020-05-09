@@ -28,6 +28,7 @@ import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -41,6 +42,7 @@ import com.github.catchitcozucan.core.histogram.HistogramStatus;
 import com.github.catchitcozucan.core.impl.CatchIt;
 import com.github.catchitcozucan.core.impl.JobBase;
 import com.github.catchitcozucan.core.impl.ProcessingFlags;
+import com.github.catchitcozucan.core.impl.RunState;
 import com.github.catchitcozucan.core.impl.startup.NumberOfTimeUnits;
 import com.github.catchitcozucan.core.interfaces.AsyncJobListener;
 import com.github.catchitcozucan.core.interfaces.CatchItConfig;
@@ -69,6 +71,47 @@ public class TestSuiteShoes {
 
     public static final String MYTASK = "MYTASK";
     private ShippingShoesJob job = new ShippingShoesJob();
+    private static final CatchItConfig CONFIG_TWO_THREADS = new CatchItConfig() {
+        @Override
+        public PoolConfig getPoolConfig() {
+            return new PoolConfig() {
+                @Override
+                public NumberOfTimeUnits maxExecTimePerRunnable() {
+                    return new NumberOfTimeUnits(5, TimeUnit.SECONDS);
+                }
+
+                @Override
+                public int maxQueueSize() {
+                    return 300;
+                }
+
+                @Override
+                public int maxNumberOfThreads() {
+                    return 2;
+                }
+            };
+        }
+
+        @Override
+        public LogConfig getLogConfig() {
+            return new LogConfig() {
+                @Override
+                public String getLoggingApp() {
+                    return "stuff";
+                }
+
+                @Override
+                public String getSytemLogParentDir() {
+                    return System.getProperty("user.home");
+                }
+
+                @Override
+                public boolean getLogSeparately() {
+                    return true;
+                }
+            };
+        }
+    };
 
     @Rule
     public TestRule watcher = new TestWatcher() {
@@ -334,7 +377,21 @@ public class TestSuiteShoes {
     }
 
     @Test
-    public void m_UtilizeBasicControl() {
+    public void m_testRejectionAsyncRejectedByKindAppendWaitinglist() {
+        CatchIt.stop();
+        CatchIt.init(CONFIG_TWO_THREADS);
+        Task t1 = makeTask(IsolationLevel.Level.INCLUSIVE, TypedRelativeWithName.RejectionAction.IGNORE, true, true);
+        CatchIt.getInstance().submitTask(t1);
+        assertEquals(1l, CatchIt.getInstance().getCurrentState().stream().filter(s -> s.getState().equals(RunState.State.InQueue)).count());
+        Task t2 = makeTask(IsolationLevel.Level.TYPE_EXCLUSIVE, TypedRelativeWithName.RejectionAction.PUT_ON_WAITING_LIST, false, false);
+        CatchIt.getInstance().submitTask(t2);
+        assertEquals(1l, CatchIt.getInstance().getCurrentState().stream().filter(s -> s.getState().equals(RunState.State.InWait)).count());
+        IO.sleep(1000);
+        assertFalse(CatchIt.getInstance().isExecuting());
+    }
+
+    @Test
+    public void n_UtilizeBasicControl() {
         CatchItConfig config = new CatchItConfig() {
             @Override
             public PoolConfig getPoolConfig() {
@@ -415,7 +472,7 @@ public class TestSuiteShoes {
             @Override
             public void run() {
                 if (takesTime) {
-                    IO.sleep(600);
+                    IO.sleep(1000);
                 }
             }
 

@@ -92,7 +92,7 @@ public class CatchIt implements AsyncExecutor, WorkingEntity {
     }
 
     @Override
-    public void submitTask(Task toExec) {
+    public  void submitTask(Task toExec) {
         Async.getInstance().submitTask(toExec);
     }
 

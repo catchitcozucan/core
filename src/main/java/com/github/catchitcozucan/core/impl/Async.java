@@ -165,7 +165,7 @@ public class Async {
         }
     }
 
-    synchronized void submitProcess(Process toExec) {
+    void submitProcess(Process toExec) {
         if (INSTANCE == null) {
             throw new IllegalStateException(NOPE_CALL_GET_INSTANCE_FIRST);
         }
@@ -178,7 +178,7 @@ public class Async {
         }
     }
 
-    synchronized void submitJob(Job toExec) {
+    void submitJob(Job toExec) {
         if (INSTANCE == null) {
             throw new IllegalStateException(NOPE_CALL_GET_INSTANCE_FIRST);
         }
@@ -191,7 +191,7 @@ public class Async {
         }
     }
 
-    synchronized void submitTask(Task toExec) {
+    void submitTask(Task toExec) {
         if (INSTANCE == null) {
             throw new IllegalStateException(NOPE_CALL_GET_INSTANCE_FIRST);
         }
@@ -232,16 +232,20 @@ public class Async {
 
         @Override
         public void run() {
-            queuedIds.remove(id);
-            runningIds.add(id);
+            synchronized (queuedIds) {
+                queuedIds.remove(id);
+                runningIds.add(id);
+            }
             try {
                 job.doJob();
             } catch (Exception ignore) {
                 LOGGER.warn(String.format(LEAKING_EXCEPTION_THIS_IS_NOT_HOW_THINGS_SHOULD_BE, job.provideType().name(), job.name()), ignore);
             } finally {
                 listenersJobs.stream().forEach(l -> l.jobExiting(job));
-                queuedIds.remove(id);
-                runningIds.remove(id);
+                synchronized (queuedIds) {
+                    queuedIds.remove(id);
+                    runningIds.remove(id);
+                }
                 submitAwaitingTaskIfSafe();
             }
         }
@@ -258,16 +262,20 @@ public class Async {
 
         @Override
         public void run() {
-            queuedIds.remove(id);
-            runningIds.add(id);
+            synchronized (queuedIds) {
+                queuedIds.remove(id);
+                runningIds.add(id);
+            }
             try {
                 task.run();
             } catch (Exception ignore) {
                 LOGGER.warn(String.format(LEAKING_EXCEPTION_THIS_IS_NOT_HOW_THINGS_SHOULD_BE, task.provideType().name(), task.name()), ignore);
             } finally {
                 listenersTasks.stream().forEach(l -> l.taskExiting(task));
-                queuedIds.remove(id);
-                runningIds.remove(id);
+                synchronized (queuedIds) {
+                    queuedIds.remove(id);
+                    runningIds.remove(id);
+                }
                 submitAwaitingTaskIfSafe();
             }
         }
@@ -296,16 +304,20 @@ public class Async {
 
         @Override
         public void run() {
-            queuedIds.remove(id);
-            runningIds.add(id);
+            synchronized (queuedIds) {
+                queuedIds.remove(id);
+                runningIds.add(id);
+            }
             try {
                 process.process();
             } catch (Exception ignore) {
                 LOGGER.warn(String.format(LEAKING_EXCEPTION_THIS_IS_NOT_HOW_THINGS_SHOULD_BE, process.provideType().name(), process.name()), ignore);
             } finally {
                 listenersProcesses.stream().forEach(l -> l.processExiting(process));
-                queuedIds.remove(id);
-                runningIds.remove(id);
+                synchronized (queuedIds) {
+                    queuedIds.remove(id);
+                    runningIds.remove(id);
+                }
                 submitAwaitingTaskIfSafe();
             }
         }
@@ -315,7 +327,7 @@ public class Async {
         if (runningIds.isEmpty() && queuedIds.isEmpty() && waitingJobs.isEmpty()) {
             return false;
         } else {
-            return isNamedTypeAndNameQuueedOrRunning(TypedRelativeWithName.Type.JOB.name(), jobName);
+            return isKindQueuedOrRunning(TypedRelativeWithName.Type.JOB.name(), jobName);
         }
     }
 
@@ -350,25 +362,30 @@ public class Async {
         } else if (toExec.provideIsolationLevel().equals(IsolationLevel.Level.TYPE_EXCLUSIVE)) {
             return !isTypeQueuedOrRunning(toExec.provideType().name());
         } else if (toExec.provideIsolationLevel().equals(IsolationLevel.Level.KIND_EXCLUSIVE)) {
-            return !isNamedTypeAndNameQuueedOrRunning(toExec.provideType().name(), toExec.name());
+            return !isKindQueuedOrRunning(toExec.provideType().name(), toExec.name());
         } else {
             throw new ProcessRuntimeException(String.format("Yikes - sent in isolation type %s is NOT supported!", toExec.provideIsolationLevel().name()));
         }
     }
 
     private List<String> getAllKnownElements() {
-        List<String> allIds = new ArrayList<>(runningIds);
-        allIds.addAll(queuedIds);
-        Collections.sort(allIds);
-        return allIds;
+        synchronized (queuedIds) {
+            List<String> allIds = new ArrayList<>(runningIds);
+            allIds.addAll(queuedIds);
+            Collections.sort(allIds);
+            return allIds;
+        }
     }
 
-    private boolean isNamedTypeAndNameQuueedOrRunning(String type, String name) {
+    private boolean isKindQueuedOrRunning(String type, String name) {
         return getAllKnownElements().stream().filter(id -> id.startsWith(type)).filter(id2 -> id2.split(ID_SEPARATOR)[1].equalsIgnoreCase(name)).findFirst().isPresent();
     }
 
     private boolean isTypeQueuedOrRunning(String type) {
-        return getAllKnownElements().stream().filter(id -> id.startsWith(type)).findFirst().isPresent();
+        return getAllKnownElements().stream().filter(id -> {
+            String typeFound = id.split(ID_SEPARATOR)[0];
+            return typeFound.equalsIgnoreCase(type);
+        }).findFirst().isPresent();
     }
 
     private void handleRejection(TypedRelativeWithName toExec) {

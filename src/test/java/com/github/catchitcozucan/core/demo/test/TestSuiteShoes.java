@@ -67,6 +67,7 @@ import org.junit.runners.MethodSorters;
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestSuiteShoes {
 
+    public static final String MYTASK = "MYTASK";
     private ShippingShoesJob job = new ShippingShoesJob();
 
     @Rule
@@ -304,7 +305,7 @@ public class TestSuiteShoes {
     public void i_testRejectionAsyncRejectedByType() {
         Task t1 = makeTask(IsolationLevel.Level.INCLUSIVE, TypedRelativeWithName.RejectionAction.IGNORE, false, true);
         CatchIt.getInstance().submitTask(t1);
-        Task t2 = makeTask(IsolationLevel.Level.TYPE_EXCLUSIVE, TypedRelativeWithName.RejectionAction.REJECT, true, false);
+        Task t2 = makeTask(IsolationLevel.Level.TYPE_EXCLUSIVE, TypedRelativeWithName.RejectionAction.REJECT, false, false);
         CatchIt.getInstance().submitTask(t2);
     }
 
@@ -400,7 +401,7 @@ public class TestSuiteShoes {
     }
 
     private Task makeTask(IsolationLevel.Level isolationLevel, TypedRelativeWithName.RejectionAction rejectionAction, boolean uniqueName, boolean takesTime) {
-        String name = "MYTASK";
+        String name = MYTASK;
         if (uniqueName) {
             name = IdGenerator.getInstance().getIdMoreRandom(9, 2);
         }

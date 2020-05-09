@@ -1,6 +1,6 @@
 package com.github.catchitcozucan.core.interfaces;
 
-public interface TypedRelativeWithName extends InteruptSignalable {
+public interface TypedRelativeWithName extends InterruptSignalable {
     enum Type {
         TASK, PROCESS, JOB
     }

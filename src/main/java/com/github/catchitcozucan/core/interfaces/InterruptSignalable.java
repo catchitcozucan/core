@@ -1,6 +1,6 @@
 package com.github.catchitcozucan.core.interfaces;
 
-public interface InteruptSignalable {
+public interface InterruptSignalable {
     void interruptExecution();
 }
 

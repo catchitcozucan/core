@@ -26,7 +26,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-import com.github.catchitcozucan.core.interfaces.InteruptSignalable;
+import com.github.catchitcozucan.core.interfaces.InterruptSignalable;
 import com.github.catchitcozucan.core.interfaces.PoolConfig;
 import com.github.catchitcozucan.core.interfaces.TypedRelativeWithName;
 import com.github.catchitcozucan.core.internal.util.SizeUtils;
@@ -111,7 +111,7 @@ public class ProcessThreadPool implements Exitable {
 
     public synchronized void stopServer() {
 
-        tasks.stream().forEach(t -> t.signalInterupt());
+        tasks.stream().forEach(t -> t.signalInterrupt());
 
         if (executorForTimeout != null) {
             executorForTimeout.shutdownNow();
@@ -215,7 +215,7 @@ public class ProcessThreadPool implements Exitable {
         }
     }
 
-    private static class Task extends BaseDomainObject implements Callable<Long>, Interuptable {
+    private static class Task extends BaseDomainObject implements Callable<Long>, Interruptable {
 
         private Logger LOG = LoggerFactory.getLogger(Task.class); // NOSONAR BULL.
         private final Runnable myRunnable;
@@ -242,9 +242,9 @@ public class ProcessThreadPool implements Exitable {
             }
         }
 
-        public void signalInterupt() {
-            if (myRunnable.getClass().isAssignableFrom(InteruptSignalable.class)) {
-                ((InteruptSignalable) myRunnable).interruptExecution();
+        public void signalInterrupt() {
+            if (myRunnable.getClass().isAssignableFrom(InterruptSignalable.class)) {
+                ((InterruptSignalable) myRunnable).interruptExecution();
             }
         }
 

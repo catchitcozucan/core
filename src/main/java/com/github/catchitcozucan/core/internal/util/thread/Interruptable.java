@@ -1,5 +1,5 @@
 package com.github.catchitcozucan.core.internal.util.thread;
 
-public interface Interuptable {
-    void signalInterupt();
+public interface Interruptable {
+    void signalInterrupt();
 }

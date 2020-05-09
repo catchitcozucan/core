@@ -38,10 +38,9 @@ import com.github.catchitcozucan.core.demo.test.support.io.IO;
 import com.github.catchitcozucan.core.demo.trip.TripStatus;
 import com.github.catchitcozucan.core.exception.ProcessRuntimeException;
 import com.github.catchitcozucan.core.histogram.HistogramStatus;
-import com.github.catchitcozucan.core.impl.Async;
+import com.github.catchitcozucan.core.impl.CatchIt;
 import com.github.catchitcozucan.core.impl.JobBase;
 import com.github.catchitcozucan.core.impl.ProcessingFlags;
-import com.github.catchitcozucan.core.impl.startup.BasicControl;
 import com.github.catchitcozucan.core.impl.startup.NumberOfTimeUnits;
 import com.github.catchitcozucan.core.interfaces.AsyncJobListener;
 import com.github.catchitcozucan.core.interfaces.CatchItConfig;
@@ -82,6 +81,7 @@ public class TestSuiteShoes {
         System.setProperty(ProcessingFlags.NEN_PROCESSING_LOG_DIR, System.getProperty("user.home") + "/.processing");
         System.setProperty(ProcessingFlags.NEN_PROCESSING_LOGGING_APP, "coolApp");
         System.setProperty(ProcessingFlags.NEN_PROCESSING_LOGGING_SEPARATE_FILE, "true");
+        CatchIt.init();
     }
 
     @Before
@@ -92,7 +92,7 @@ public class TestSuiteShoes {
     @After
     public void clearTmp() {
         OrderRepository.getInstance().physicallyWipe();
-        Async.getInstance().killSilent();
+        CatchIt.killExecutions(false);
     }
 
     private void reInitRepo() {
@@ -161,7 +161,7 @@ public class TestSuiteShoes {
         assertFalse(OrderRepository.getInstance().load().stream().filter(o -> o.getCurrentStatus().equals(OrderStatus.Status.SHIPPED)).findFirst().isPresent());
         AtomicInteger callbackCounter = new AtomicInteger();
         callbackCounter.getAndSet(0);
-        assertFalse(Async.getInstance().isExecuting());
+        assertFalse(CatchIt.getInstance().isExecuting());
         AsyncJobListener listener = new AsyncJobListener() {
 
             @Override
@@ -169,16 +169,16 @@ public class TestSuiteShoes {
                 callbackCounter.getAndIncrement();
             }
         };
-        Async.getInstance().addJobListener(listener);
-        Async.getInstance().submitJob(job);
+        CatchIt.getInstance().addJobListener(listener);
+        CatchIt.getInstance().submitJob(job);
         IO.sleep(50);
-        assertTrue(Async.getInstance().isExecuting());
+        assertTrue(CatchIt.getInstance().isExecuting());
         IO.sleep(3000);
         //..then ALL are shipped
         assertEquals(100, OrderRepository.getInstance().load().stream().filter(o -> o.getCurrentStatus().equals(OrderStatus.Status.SHIPPED)).count());
         assertEquals(1, callbackCounter.get());
-        Async.getInstance().getCurrentState().stream().forEach(r -> System.out.println(new StringBuilder("E{").append("state :").append(r.getState().name()).append(", ").append(r.getId()).append("}").toString()));
-        assertFalse(Async.getInstance().isExecuting());
+        CatchIt.getInstance().getCurrentState().stream().forEach(r -> System.out.println(new StringBuilder("E{").append("state :").append(r.getState().name()).append(", ").append(r.getId()).append("}").toString()));
+        assertFalse(CatchIt.getInstance().isExecuting());
     }
 
     @Test
@@ -231,17 +231,22 @@ public class TestSuiteShoes {
             }
         };
 
-        Async.getInstance().submitJobWithTimeout(newJob, 1, TimeUnit.MILLISECONDS);
+        CatchIt.getInstance().submitJobWithTimeout(newJob, new NumberOfTimeUnits(1, TimeUnit.MILLISECONDS));
         IO.sleep(300);
-        Async.getInstance().killAwaitTerminationNonBlocking(2, TimeUnit.SECONDS);
+        CatchIt.getInstance().killAwaitTerminationNonBlocking(new NumberOfTimeUnits(2, TimeUnit.SECONDS));
         IO.sleep(2500);
-        Async.getInstance().getCurrentState().stream().forEach(r -> System.out.println(new StringBuilder("F{").append("state :").append(r.getState().name()).append(", ").append(r.getId()).append("}").toString()));
-        assertFalse(Async.getInstance().isExecuting());
+        CatchIt.getInstance().getCurrentState().stream().forEach(r -> System.out.println(new StringBuilder("F{").append("state :").append(r.getState().name()).append(", ").append(r.getId()).append("}").toString()));
+        assertFalse(CatchIt.getInstance().isExecuting());
     }
 
     @Test
     public void g_testProcessAsync() {
         Process p = new Process() {
+
+            @Override
+            public void interruptExecution() {
+
+            }
 
             @Override
             public IsolationLevel.Level provideIsolationLevel() {
@@ -278,57 +283,57 @@ public class TestSuiteShoes {
                 return TripStatus.Status.values()[3];
             }
         };
-        Async.getInstance().getCurrentState().stream().forEach(r -> System.out.println(new StringBuilder("H{").append("state :").append(r.getState().name()).append(", ").append(r.getId()).append("}").toString()));
-        assertFalse(Async.getInstance().isExecuting());
-        Async.getInstance().submitProcess(p);
+        CatchIt.getInstance().getCurrentState().stream().forEach(r -> System.out.println(new StringBuilder("H{").append("state :").append(r.getState().name()).append(", ").append(r.getId()).append("}").toString()));
+        assertFalse(CatchIt.getInstance().isExecuting());
+        CatchIt.getInstance().submitProcess(p);
         IO.sleep(50);
-        assertTrue(Async.getInstance().isExecuting());
+        assertTrue(CatchIt.getInstance().isExecuting());
         IO.sleep(2500);
-        assertFalse(Async.getInstance().isExecuting());
+        assertFalse(CatchIt.getInstance().isExecuting());
     }
 
     @Test(expected = ProcessRuntimeException.class)
     public void h_testRejectionAsyncRejectedByAnotherThingRunning() {
         Task t1 = makeTask(IsolationLevel.Level.INCLUSIVE, TypedRelativeWithName.RejectionAction.IGNORE, false, true);
-        Async.getInstance().submitTask(t1);
+        CatchIt.getInstance().submitTask(t1);
         Task t2 = makeTask(IsolationLevel.Level.EXCLUSIVE, TypedRelativeWithName.RejectionAction.REJECT, false, false);
-        Async.getInstance().submitTask(t2);
+        CatchIt.getInstance().submitTask(t2);
     }
 
     @Test(expected = ProcessRuntimeException.class)
     public void i_testRejectionAsyncRejectedByType() {
         Task t1 = makeTask(IsolationLevel.Level.INCLUSIVE, TypedRelativeWithName.RejectionAction.IGNORE, false, true);
-        Async.getInstance().submitTask(t1);
-        Task t2 = makeTask(IsolationLevel.Level.TYPE_EXCLUSIVE, TypedRelativeWithName.RejectionAction.REJECT, false, false);
-        Async.getInstance().submitTask(t2);
+        CatchIt.getInstance().submitTask(t1);
+        Task t2 = makeTask(IsolationLevel.Level.TYPE_EXCLUSIVE, TypedRelativeWithName.RejectionAction.REJECT, true, false);
+        CatchIt.getInstance().submitTask(t2);
     }
 
     @Test
     public void j_testRejectionAsyncRejectedByKindButKindDiffers() {
         Task t1 = makeTask(IsolationLevel.Level.INCLUSIVE, TypedRelativeWithName.RejectionAction.IGNORE, true, true);
-        Async.getInstance().submitTask(t1);
+        CatchIt.getInstance().submitTask(t1);
         Task t2 = makeTask(IsolationLevel.Level.KIND_EXCLUSIVE, TypedRelativeWithName.RejectionAction.REJECT, false, false);
-        Async.getInstance().submitTask(t2);
+        CatchIt.getInstance().submitTask(t2);
     }
 
     @Test(expected = ProcessRuntimeException.class)
     public void k_testRejectionAsyncRejectedByKind() {
         Task t1 = makeTask(IsolationLevel.Level.INCLUSIVE, TypedRelativeWithName.RejectionAction.IGNORE, false, true);
-        Async.getInstance().submitTask(t1);
+        CatchIt.getInstance().submitTask(t1);
         Task t2 = makeTask(IsolationLevel.Level.KIND_EXCLUSIVE, TypedRelativeWithName.RejectionAction.REJECT, false, false);
-        Async.getInstance().submitTask(t2);
+        CatchIt.getInstance().submitTask(t2);
     }
 
     @Test
     public void l_testRejectionAsyncAlreadyInQueDoNotCareForNewComers() {
         Task t1 = makeTask(IsolationLevel.Level.INCLUSIVE, TypedRelativeWithName.RejectionAction.REJECT, false, true);
-        Async.getInstance().submitTask(t1);
+        CatchIt.getInstance().submitTask(t1);
         Task t2 = makeTask(IsolationLevel.Level.KIND_EXCLUSIVE, TypedRelativeWithName.RejectionAction.IGNORE, false, false);
-        Async.getInstance().submitTask(t2);
+        CatchIt.getInstance().submitTask(t2);
     }
 
     @Test
-    public void m_UtilizingStart() {
+    public void m_UtilizeBasicControl() {
         CatchItConfig config = new CatchItConfig() {
             @Override
             public PoolConfig getPoolConfig() {
@@ -370,18 +375,17 @@ public class TestSuiteShoes {
                 };
             }
         };
-        BasicControl.stop();
-        BasicControl.init(config);
+        CatchIt.stop();
+        CatchIt.init(config);
         Task t1 = makeTask(IsolationLevel.Level.INCLUSIVE, TypedRelativeWithName.RejectionAction.REJECT, false, true);
-        Async.getInstance().submitTask(t1);
+        CatchIt.getInstance().submitTask(t1);
         Task t2 = makeTask(IsolationLevel.Level.KIND_EXCLUSIVE, TypedRelativeWithName.RejectionAction.IGNORE, false, false);
-        Async.getInstance().submitTask(t2);
-        assertNotNull(Async.getInstance().getCurrentState());
-        assertTrue(Async.getInstance().isExecuting());
-        BasicControl.stop();
-        assertFalse(Async.getInstance().isExecuting());
+        CatchIt.getInstance().submitTask(t2);
+        assertNotNull(CatchIt.getInstance().getCurrentState());
+        assertTrue(CatchIt.currentlyExecuting());
+        CatchIt.stop();
+        assertFalse(CatchIt.currentlyExecuting());
     }
-
 
     private static Map<String, Integer> makeUpData(Integer[] data) {
         List<String> labels = new ArrayList<>();
@@ -402,6 +406,11 @@ public class TestSuiteShoes {
         }
         final String myName = name;
         return new Task() {
+            @Override
+            public void interruptExecution() {
+
+            }
+
             @Override
             public void run() {
                 if (takesTime) {

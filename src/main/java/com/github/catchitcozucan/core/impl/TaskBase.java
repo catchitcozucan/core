@@ -16,6 +16,9 @@ public abstract class TaskBase implements Task {
     }
 
     @Override
+    public void interruptExecution(){} // it is not necessary, though healthy, to implement this
+
+    @Override
     public final Type provideType() {
         return Type.TASK;
     }

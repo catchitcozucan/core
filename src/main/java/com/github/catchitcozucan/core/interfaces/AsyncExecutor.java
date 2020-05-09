@@ -17,17 +17,17 @@
  */
 package com.github.catchitcozucan.core.interfaces;
 
-import java.util.concurrent.TimeUnit;
+import com.github.catchitcozucan.core.impl.startup.NumberOfTimeUnits;
 
 public interface AsyncExecutor {
 	void submitProcess(Process toExec);
 	void submitJob(Job toExec);
 	void submitTask(Task toExec);
-	void submitJobWithTimeout(Job toExec, long timeout, TimeUnit unit);
+	void submitJobWithTimeout(Job toExec, NumberOfTimeUnits numberOfTimeUnits);
 	void addJobListener(AsyncJobListener listener);
 	void addProcessListener(AsyncProcessListener listener);
 	void kill();
 	void killSilent();
-	void killAwaitTerminationBlocking(long timeout, TimeUnit unit);
-	void killAwaitTerminationNonBlocking(long timeout, TimeUnit unit);
+	void killAwaitTerminationBlocking(NumberOfTimeUnits numberOfTimeUnits);
+	void killAwaitTerminationNonBlocking(NumberOfTimeUnits numberOfTimeUnits);
 }

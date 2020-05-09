@@ -26,9 +26,12 @@ import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-import com.github.catchitcozucan.core.exception.ProcessRuntimeException;
+import com.github.catchitcozucan.core.interfaces.InteruptSignalable;
 import com.github.catchitcozucan.core.interfaces.PoolConfig;
+import com.github.catchitcozucan.core.interfaces.TypedRelativeWithName;
 import com.github.catchitcozucan.core.internal.util.SizeUtils;
+import com.github.catchitcozucan.core.internal.util.domain.BaseDomainObject;
+import com.github.catchitcozucan.core.internal.util.id.IdGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,16 +43,19 @@ public class ProcessThreadPool implements Exitable {
     private static final String TIMEOUT_POOL_REEPER = "timeoutPoolReeper";
     private static final String S_EXITING_AFTER_S = "%s exiting after %s";
     private static final String TIMEOUT_FOR_TIMEOUT_THREAD_AWAITING_TERMINATION_SPECIFIED_AS_D_S_WAS_REACHED_POOL_IS_NOW_KILLED_BY_FORCE = "Timeout for timeout-thread awaiting termination specified as %d %s was reached - pool is now killed 'by force'";
+    public static final String INTERNALTASK = "INTERNALTASK";
+    public static final String UNDERSCORE = "_";
     private Logger LOGGER = LoggerFactory.getLogger(ProcessThreadPool.class); // NOSONAR BULL.
     private ExecutorService executor;
     private ScheduledExecutorService executorForTimeout;
     private final boolean timeOutThreadIsUsed;
     private final PoolConfig poolConfig;
-    Set<Interuptable> interuptables = new HashSet<>();
+    private Set<Task> tasks;
 
     public ProcessThreadPool() {
         poolConfig = null;
         timeOutThreadIsUsed = false;
+        tasks = new HashSet<>();
         init(null, false);
         ExitHook.addExitHook(this);
     }
@@ -57,6 +63,7 @@ public class ProcessThreadPool implements Exitable {
     public ProcessThreadPool(PoolConfig poolConfig) {
         this.poolConfig = poolConfig;
         timeOutThreadIsUsed = true;
+        tasks = new HashSet<>();
         init(poolConfig, true);
         ExitHook.addExitHook(this);
     }
@@ -83,7 +90,6 @@ public class ProcessThreadPool implements Exitable {
         init(poolConfig, timeOutThreadIsUsed);
         if (poolConfig == null) {
             Task t = new Task(r);
-            interuptables.add(t);
             executor.submit(t);
         } else {
             submitWithTimeout(r, poolConfig.maxExecTimePerRunnable().getNumber(), poolConfig.maxExecTimePerRunnable().getUnit());
@@ -93,7 +99,6 @@ public class ProcessThreadPool implements Exitable {
     public void submitWithTimeout(Runnable r, long timeout, TimeUnit unit) {
         init(poolConfig, true);
         Task t = new Task(r);
-        interuptables.add(t);
         final Future handler = executor.submit(t);
         executorForTimeout.schedule(() -> {
             if (handler != null && !handler.isDone()) {
@@ -105,6 +110,9 @@ public class ProcessThreadPool implements Exitable {
 
 
     public synchronized void stopServer() {
+
+        tasks.stream().forEach(t -> t.signalInterupt());
+
         if (executorForTimeout != null) {
             executorForTimeout.shutdownNow();
         }
@@ -125,24 +133,13 @@ public class ProcessThreadPool implements Exitable {
                     executorForTimeout.awaitTermination(1, TimeUnit.SECONDS);
                 }
 
-                interuptables.stream().forEach(i -> i.hardInterupt());
-                interuptables.clear();
-
             } catch (Exception ignore) {
             } finally {
                 if (executor != null && executor.isTerminated()) {
                     executor = null;
-                } else {
-                    if (executor != null) {
-                        throw new ProcessRuntimeException("Internal async-pool's executor would not die!"); // this is bad.
-                    }
                 }
                 if (executorForTimeout != null && executorForTimeout.isTerminated()) {
                     executorForTimeout = null;
-                } else {
-                    if (executorForTimeout != null) {
-                        throw new ProcessRuntimeException("Internal async-pool's executorForTimeout would not die!"); // this is bad.
-                    }
                 }
             }
         }
@@ -218,14 +215,18 @@ public class ProcessThreadPool implements Exitable {
         }
     }
 
-    private static class Task implements Callable<Long>, Interuptable {
+    private static class Task extends BaseDomainObject implements Callable<Long>, Interuptable {
 
         private Logger LOG = LoggerFactory.getLogger(Task.class); // NOSONAR BULL.
         private final Runnable myRunnable;
-        private final Thread handleForHardInterupt;
+        private final String id;
 
         private Task(Runnable r) {
-            handleForHardInterupt = Thread.currentThread();
+            if (r.getClass().isAssignableFrom(TypedRelativeWithName.class)) {
+                id = new StringBuilder(INTERNALTASK).append(UNDERSCORE).append(((TypedRelativeWithName) r).name()).append(UNDERSCORE).append(IdGenerator.getInstance().getNextId()).toString();
+            } else {
+                id = new StringBuilder(INTERNALTASK).append(UNDERSCORE).append(IdGenerator.getInstance().getNextId()).toString();
+            }
             this.myRunnable = r;
         }
 
@@ -241,14 +242,15 @@ public class ProcessThreadPool implements Exitable {
             }
         }
 
-        public void hardInterupt() {
-            if (handleForHardInterupt != null && handleForHardInterupt.isAlive()) {
-                try {
-                    handleForHardInterupt.stop(); // yes, what can we do..
-                } catch (Exception e) {
-                    LOG.warn("I was harshly interupted", e);
-                }
+        public void signalInterupt() {
+            if (myRunnable.getClass().isAssignableFrom(InteruptSignalable.class)) {
+                ((InteruptSignalable) myRunnable).interruptExecution();
             }
+        }
+
+        @Override
+        public String doToString() {
+            return id;
         }
     }
 }

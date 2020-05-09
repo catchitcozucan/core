@@ -23,10 +23,10 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
 import com.github.catchitcozucan.core.exception.ProcessRuntimeException;
-import com.github.catchitcozucan.core.interfaces.AsyncExecutor;
 import com.github.catchitcozucan.core.interfaces.AsyncJobListener;
 import com.github.catchitcozucan.core.interfaces.AsyncProcessListener;
 import com.github.catchitcozucan.core.interfaces.AsyncTaskListener;
@@ -36,13 +36,12 @@ import com.github.catchitcozucan.core.interfaces.PoolConfig;
 import com.github.catchitcozucan.core.interfaces.Process;
 import com.github.catchitcozucan.core.interfaces.Task;
 import com.github.catchitcozucan.core.interfaces.TypedRelativeWithName;
-import com.github.catchitcozucan.core.interfaces.WorkingEntity;
 import com.github.catchitcozucan.core.internal.util.id.IdGenerator;
 import com.github.catchitcozucan.core.internal.util.thread.ProcessThreadPool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class Async implements AsyncExecutor, WorkingEntity {
+public class Async {
 
     private static final int ID_LENGTH = 9;
     private static final int ID_DASHED_GROUPS = 3;
@@ -59,8 +58,10 @@ public class Async implements AsyncExecutor, WorkingEntity {
     private List<AsyncProcessListener> listenersProcesses;
     private List<AsyncTaskListener> listenersTasks;
     private static Logger LOGGER = LoggerFactory.getLogger(JobBase.class);
-    private HashSet<String> queuedIds;
-    private HashSet<String> runningIds;
+    private ConcurrentHashMap queueInThreadSafeSource;
+    private ConcurrentHashMap runInThreadSafeSource;
+    private Set<String> queuedIds;
+    private Set<String> runningIds;
     private final int maxQueueSize;
     LinkedList<Task> waitingTasks;
     LinkedList<Process> waitingProcesses;
@@ -82,11 +83,13 @@ public class Async implements AsyncExecutor, WorkingEntity {
         listenersJobs = new ArrayList<>();
         listenersProcesses = new ArrayList<>();
         listenersTasks = new ArrayList<>();
-        queuedIds = new HashSet<>();
-        runningIds = new HashSet<>();
+        queueInThreadSafeSource = new ConcurrentHashMap<>();
+        runInThreadSafeSource = new ConcurrentHashMap<>();
+        queuedIds = queueInThreadSafeSource.newKeySet();
+        runningIds = runInThreadSafeSource.newKeySet();
     }
 
-    public static synchronized Async getInstance(PoolConfig poolConfig) {
+    static synchronized Async getInstance(PoolConfig poolConfig) {
         if (INSTANCE != null) {
             throw new ProcessRuntimeException("Async is already initiated - you cannot configure a runtime pool!");
         } else {
@@ -95,28 +98,25 @@ public class Async implements AsyncExecutor, WorkingEntity {
         return INSTANCE;
     }
 
-    public static synchronized Async getInstance() {
+    static synchronized Async getInstance() {
         if (INSTANCE == null) {
             INSTANCE = new Async();
         }
         return INSTANCE;
     }
 
-    @Override
-    public boolean isExecuting() {
+    boolean isExecuting() {
         if (pool == null || queuedIds == null || runningIds == null || (queuedIds.isEmpty() && runningIds.isEmpty())) {
             return false;
         }
         return true;
     }
 
-    @Override
-    public boolean isNamedJobRunningOrInQueue(String jobName) {
+    boolean isNamedJobRunningOrInQueue(String jobName) {
         return jobWithNameIsQueuedOrRunning(jobName);
     }
 
-    @Override
-    public Set<RunState> getCurrentState() {
+    Set<RunState> getCurrentState() {
         if (!isExecuting()) {
             return new HashSet<>();
         } else {
@@ -127,8 +127,7 @@ public class Async implements AsyncExecutor, WorkingEntity {
         }
     }
 
-    @Override
-    public synchronized void kill() {
+    synchronized void kill() {
         try {
             pool.stopServer();
         } finally {
@@ -136,18 +135,16 @@ public class Async implements AsyncExecutor, WorkingEntity {
         }
     }
 
-    @Override
-    public synchronized void killSilent() {
+    synchronized void killSilent() {
         try {
             pool.stopServer();
-        }catch (Exception ignore){
+        } catch (Exception ignore) {
         } finally {
             INSTANCE = null;
         }
     }
 
-    @Override
-    public synchronized void killAwaitTerminationBlocking(long timeout, TimeUnit unit) {
+    synchronized void killAwaitTerminationBlocking(long timeout, TimeUnit unit) {
         try {
             pool.awaitTerminationBlocking(timeout, unit);
         } catch (InterruptedException e) { // NOSONAR I AM DOING STUFF
@@ -157,18 +154,18 @@ public class Async implements AsyncExecutor, WorkingEntity {
         }
     }
 
-    @Override
-    public void killAwaitTerminationNonBlocking(long timeout, TimeUnit unit) {
+    void killAwaitTerminationNonBlocking(long timeout, TimeUnit unit) {
         try {
             pool.awaitTerminationNonBlocking(timeout, unit);
         } finally {
-            queuedIds = new HashSet<>();
-            runningIds = new HashSet<>();
+            queueInThreadSafeSource = new ConcurrentHashMap<>();
+            runInThreadSafeSource = new ConcurrentHashMap<>();
+            queuedIds = queueInThreadSafeSource.newKeySet();
+            runningIds = runInThreadSafeSource.newKeySet();
         }
     }
 
-    @Override
-    public synchronized void submitProcess(Process toExec) {
+    synchronized void submitProcess(Process toExec) {
         if (INSTANCE == null) {
             throw new IllegalStateException(NOPE_CALL_GET_INSTANCE_FIRST);
         }
@@ -181,8 +178,7 @@ public class Async implements AsyncExecutor, WorkingEntity {
         }
     }
 
-    @Override
-    public synchronized void submitJob(Job toExec) {
+    synchronized void submitJob(Job toExec) {
         if (INSTANCE == null) {
             throw new IllegalStateException(NOPE_CALL_GET_INSTANCE_FIRST);
         }
@@ -195,8 +191,7 @@ public class Async implements AsyncExecutor, WorkingEntity {
         }
     }
 
-    @Override
-    public synchronized void submitTask(Task toExec) {
+    synchronized void submitTask(Task toExec) {
         if (INSTANCE == null) {
             throw new IllegalStateException(NOPE_CALL_GET_INSTANCE_FIRST);
         }
@@ -209,8 +204,7 @@ public class Async implements AsyncExecutor, WorkingEntity {
         }
     }
 
-    @Override
-    public synchronized void submitJobWithTimeout(Job toExec, long timeout, TimeUnit unit) {
+    synchronized void submitJobWithTimeout(Job toExec, long timeout, TimeUnit unit) {
         if (INSTANCE == null) {
             throw new IllegalStateException(NOPE_CALL_GET_INSTANCE_FIRST);
         }
@@ -219,13 +213,11 @@ public class Async implements AsyncExecutor, WorkingEntity {
         pool.submitWithTimeout(job, timeout, unit);
     }
 
-    @Override
-    public synchronized void addJobListener(AsyncJobListener listener) {
+    synchronized void addJobListener(AsyncJobListener listener) {
         listenersJobs.add(listener);
     }
 
-    @Override
-    public void addProcessListener(AsyncProcessListener listener) {
+    void addProcessListener(AsyncProcessListener listener) {
         listenersProcesses.add(listener);
     }
 
@@ -365,8 +357,8 @@ public class Async implements AsyncExecutor, WorkingEntity {
     }
 
     private List<String> getAllKnownElements() {
-        List<String> allIds = new ArrayList<>((Set<String>) runningIds.clone());
-        allIds.addAll((Set<String>) queuedIds.clone());
+        List<String> allIds = new ArrayList<>(runningIds);
+        allIds.addAll(queuedIds);
         Collections.sort(allIds);
         return allIds;
     }

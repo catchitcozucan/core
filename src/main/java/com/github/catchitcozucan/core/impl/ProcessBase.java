@@ -86,6 +86,9 @@ public abstract class ProcessBase implements Process {
         return Type.PROCESS;
     }
 
+    @Override
+    public void interruptExecution(){} // it is not necessary, though healthy, to implement this
+
     //
     // Crucial information on the Error handling!
     //

@@ -88,6 +88,9 @@ public abstract class JobBase implements Job, HistogramProvider {
         return Type.JOB;
     }
 
+    @Override
+    public void interruptExecution(){} // it is not necessary, though healthy, to implement this
+
     protected void exec(Process proc) {
         if (cycleHistogramCollector == null) {
             cycleHistogramCollector = new LifeCycleHistogramCollector(((ProcessBase) proc).getSubject());

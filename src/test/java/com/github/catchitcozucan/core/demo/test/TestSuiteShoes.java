@@ -28,7 +28,6 @@ import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -136,7 +135,7 @@ public class TestSuiteShoes {
     @After
     public void clearTmp() {
         OrderRepository.getInstance().physicallyWipe();
-        CatchIt.killExecutions(false);
+        CatchIt.killExecutions();
     }
 
     private void reInitRepo() {
@@ -378,7 +377,7 @@ public class TestSuiteShoes {
 
     @Test
     public void m_testRejectionAsyncRejectedByKindAppendWaitinglist() {
-        CatchIt.stop();
+        CatchIt.halt();
         CatchIt.init(CONFIG_TWO_THREADS);
         Task t1 = makeTask(IsolationLevel.Level.INCLUSIVE, TypedRelativeWithName.RejectionAction.IGNORE, true, true);
         CatchIt.getInstance().submitTask(t1);
@@ -433,15 +432,15 @@ public class TestSuiteShoes {
                 };
             }
         };
-        CatchIt.stop();
+        CatchIt.halt();
         CatchIt.init(config);
         Task t1 = makeTask(IsolationLevel.Level.INCLUSIVE, TypedRelativeWithName.RejectionAction.REJECT, false, true);
         CatchIt.getInstance().submitTask(t1);
-        Task t2 = makeTask(IsolationLevel.Level.KIND_EXCLUSIVE, TypedRelativeWithName.RejectionAction.IGNORE, false, false);
+        Task t2 = makeTask(IsolationLevel.Level.KIND_EXCLUSIVE, TypedRelativeWithName.RejectionAction.IGNORE, false, true);
         CatchIt.getInstance().submitTask(t2);
         assertNotNull(CatchIt.getInstance().getCurrentState());
         assertTrue(CatchIt.currentlyExecuting());
-        CatchIt.stop();
+        CatchIt.halt();
         assertFalse(CatchIt.currentlyExecuting());
     }
 
@@ -472,7 +471,7 @@ public class TestSuiteShoes {
             @Override
             public void run() {
                 if (takesTime) {
-                    IO.sleep(1000);
+                    IO.sleep(400);
                 }
             }
 

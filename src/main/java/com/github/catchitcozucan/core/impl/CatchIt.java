@@ -54,7 +54,7 @@ public class CatchIt implements AsyncExecutor, WorkingEntity {
         return INSTANCE;
     }
 
-    public static synchronized void stop() {
+    public static synchronized void halt() {
         killInternal(true);
     }
 
@@ -77,8 +77,8 @@ public class CatchIt implements AsyncExecutor, WorkingEntity {
         }
     }
 
-    public static void killExecutions(boolean killLogging) {
-        killInternal(killLogging);
+    public static void killExecutions() {
+        killInternal(false);
     }
 
     @Override

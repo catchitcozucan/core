@@ -425,7 +425,7 @@ public class Async {
                 Optional<Class<?>> matchedClaszz = Arrays.stream(interfaces).filter(c -> c.equals(Task.class) || c.equals(Process.class) || c.equals(Job.class)).findFirst();
                 if (matchedClaszz.isPresent()) {
 
-                    String message = String.format("Isolation level based on %s for %s of type %s is not met - as instructed we shall place this item on our waiting list", rejectedFromTheOutsideWorld ? YOUR_REJECTED_FROM_THE_OUTSIDE_WORLD_IMPL : toExec.provideIsolationLevel().name(), toExec.name(), toExec.provideType().name());
+                    String message = String.format("Isolation level based on %s for %s of type %s is not met - rejection action is %s", rejectedFromTheOutsideWorld ? YOUR_REJECTED_FROM_THE_OUTSIDE_WORLD_IMPL : toExec.provideIsolationLevel().name(), toExec.name(), toExec.provideType().name(), toExec.provideRejectionAction().name());
                     LOGGER.info(message);
 
                     Class<?> clazz = matchedClaszz.get();
@@ -441,11 +441,11 @@ public class Async {
                 }
             }
         } else if (toExec.provideRejectionAction().equals(RejectableTypedRelativeWithName.RejectionAction.REJECT)) {
-            String message = String.format("Isolation level based on %s for %s of type %s is not met and as RejectionAction.REJECT is applied, we throw", rejectedFromTheOutsideWorld ? YOUR_REJECTED_FROM_THE_OUTSIDE_WORLD_IMPL : toExec.provideIsolationLevel().name(), toExec.name(), toExec.provideType().name());
+            String message = String.format("Isolation level based on %s for %s of type %s is not met - rejection action is %s", rejectedFromTheOutsideWorld ? YOUR_REJECTED_FROM_THE_OUTSIDE_WORLD_IMPL : toExec.provideIsolationLevel().name(), toExec.name(), toExec.provideType().name(), toExec.provideRejectionAction().name());
             LOGGER.warn(message);
             throw new ProcessRuntimeException(message);
         } else if (toExec.provideRejectionAction().equals(RejectableTypedRelativeWithName.RejectionAction.IGNORE)) {
-            String message = String.format("Isolation level based on %s for %s of type %s is not met and we are told to ignore it", rejectedFromTheOutsideWorld ? YOUR_REJECTED_FROM_THE_OUTSIDE_WORLD_IMPL : toExec.provideIsolationLevel().name(), toExec.name(), toExec.provideType().name());
+            String message = String.format("Isolation level based on %s for %s of type %s is not met - rejection action is %s", rejectedFromTheOutsideWorld ? YOUR_REJECTED_FROM_THE_OUTSIDE_WORLD_IMPL : toExec.provideIsolationLevel().name(), toExec.name(), toExec.provideType().name(), toExec.provideRejectionAction().name());
             LOGGER.info(message);
         } else {
             String message = String.format("Isolation level based on %s for %s of type %s is not simply not supported!", rejectedFromTheOutsideWorld ? YOUR_REJECTED_FROM_THE_OUTSIDE_WORLD_IMPL : toExec.provideIsolationLevel().name(), toExec.name(), toExec.provideType().name());

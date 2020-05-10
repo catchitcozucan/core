@@ -110,6 +110,7 @@ public class ProcessLogging {
 
     public static synchronized void halt(){
         Slf4JSetup.getInstance().halt();
+        INSTANCE = null;
     }
 
     public static synchronized void initLogging() {

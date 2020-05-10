@@ -98,4 +98,13 @@ public class IO {
 	public static class CouldNotCreateDirException extends RuntimeException {
 	}
 
+	public static boolean deleteDirRecursively(File directoryToBeDeleted) {
+		File[] allContents = directoryToBeDeleted.listFiles();
+		if (allContents != null) {
+			for (File file : allContents) {
+				deleteDirRecursively(file);
+			}
+		}
+		return directoryToBeDeleted.delete();
+	}
 }

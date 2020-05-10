@@ -47,6 +47,11 @@ public class CatchIt implements AsyncExecutor, WorkingEntity {
         }
     }
 
+    public static synchronized void reInit(CatchItConfig config) {
+        halt();
+        INSTANCE = new CatchIt(config);
+    }
+
     public static synchronized CatchIt getInstance() {
         if (INSTANCE == null) {
             throw new ProcessRuntimeException("Initalize me first!");
@@ -56,6 +61,13 @@ public class CatchIt implements AsyncExecutor, WorkingEntity {
 
     public static synchronized void halt() {
         killInternal(true);
+        INSTANCE = null;
+    }
+
+    public static synchronized void reInitPool(CatchItConfig config) {
+        killInternal(false);
+        INSTANCE = null;
+        init(config);
     }
 
     private static void killInternal(boolean killLogging) {
@@ -66,7 +78,7 @@ public class CatchIt implements AsyncExecutor, WorkingEntity {
                 LOGGER.warn("There were Issues during stop", e);
             }
         }
-        if(killLogging) {
+        if (killLogging) {
             try {
                 ProcessLogging.halt();
             } catch (Exception e) {
@@ -92,7 +104,7 @@ public class CatchIt implements AsyncExecutor, WorkingEntity {
     }
 
     @Override
-    public  void submitTask(Task toExec) {
+    public void submitTask(Task toExec) {
         Async.getInstance().submitTask(toExec);
     }
 

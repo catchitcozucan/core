@@ -46,7 +46,7 @@ public class Slf4JSetup implements LoggingService {
 	private static final int MAX_LOG_FILES = 20;
 	private static final String MAX_LOG_FILE_SIZE = "100MB";
 	private static final String LOG_PATTERN = "%date %level [%thread] %logger{10}.%line %msg%n";
-	private static Slf4JSetup instance;
+	private static Slf4JSetup INSTANCE;
 	private LoggerContext context;
 	private static org.slf4j.Logger LOGGER; //NOSONAR - this _is_ bull.
 	private static final String LOGS = "logs";
@@ -107,8 +107,8 @@ public class Slf4JSetup implements LoggingService {
 	}
 
 	public static synchronized LoggingService getInstance() {
-		if (instance != null) {
-			return instance;
+		if (INSTANCE != null) {
+			return INSTANCE;
 		} else {
 			throw new IllegalStateException("The LoggingService is NOT initialized!");
 		}
@@ -135,7 +135,7 @@ public class Slf4JSetup implements LoggingService {
 	}
 
 	private static void initInternal(String pathToFolder, String applicationName, boolean runDebug, String logFilePrefix) {
-		if (instance == null) {
+		if (INSTANCE == null) {
 			File logFolder = new File(new StringBuilder(pathToFolder).append(File.separator).append(applicationName).append(File.separator).append(LOGS).toString());
 			if (!logFolder.exists()) {
 				try {
@@ -146,7 +146,7 @@ public class Slf4JSetup implements LoggingService {
 			} else if (logFolder.isFile()) {
 				throw new IllegalArgumentException(String.format("Provided log path %s is an existing FILE. It should be a directory!", pathToFolder));
 			}
-			instance = new Slf4JSetup(logFolder, applicationName, runDebug, logFilePrefix);
+			INSTANCE = new Slf4JSetup(logFolder, applicationName, runDebug, logFilePrefix);
 		}
 	}
 
@@ -163,6 +163,7 @@ public class Slf4JSetup implements LoggingService {
 		if (context != null && context.isStarted()) {
 			StatusPrinter.print(context);
 			context.stop();
+			INSTANCE = null;
 		}
 	}
 
@@ -172,7 +173,7 @@ public class Slf4JSetup implements LoggingService {
 			try {
 				return Level.valueOf(levelProperty.trim().toUpperCase());
 			} catch (Exception e) {
-				if (instance != null && LOGGER != null) {
+				if (INSTANCE != null && LOGGER != null) {
 					LOGGER.warn(String.format("Got non-parseable logging level %s - returning INFO!", configuredVal));
 				}
 				return Level.INFO;

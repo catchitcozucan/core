@@ -23,6 +23,7 @@ import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
@@ -51,8 +52,8 @@ import com.github.catchitcozucan.core.interfaces.LogConfig;
 import com.github.catchitcozucan.core.interfaces.PoolConfig;
 import com.github.catchitcozucan.core.interfaces.Process;
 import com.github.catchitcozucan.core.interfaces.ProcessSubject;
-import com.github.catchitcozucan.core.interfaces.Task;
 import com.github.catchitcozucan.core.interfaces.RejectableTypedRelativeWithName;
+import com.github.catchitcozucan.core.interfaces.Task;
 import com.github.catchitcozucan.core.internal.util.id.IdGenerator;
 import org.junit.After;
 import org.junit.Before;
@@ -382,8 +383,8 @@ public class TestSuiteShoes {
 
     @Test
     public void m_testRejectionAsyncRejectedByKindAppendWaitinglist() {
-        CatchIt.halt();
-        CatchIt.init(CONFIG_TWO_THREADS);
+        CatchIt.reInitPool(CONFIG_TWO_THREADS);
+        IO.sleep(500);
         Task t1 = makeTask(IsolationLevel.Level.INCLUSIVE, RejectableTypedRelativeWithName.RejectionAction.IGNORE, true, true);
         CatchIt.getInstance().submitTask(t1);
         assertEquals(1l, CatchIt.getInstance().getCurrentState().stream().filter(s -> s.getState().equals(RunState.State.InQueue)).count());
@@ -447,6 +448,20 @@ public class TestSuiteShoes {
         assertTrue(CatchIt.currentlyExecuting());
         CatchIt.halt();
         assertFalse(CatchIt.currentlyExecuting());
+    }
+
+    @Test
+    public void z_cleanUp() {
+        File logPath1 = new File(new StringBuilder(System.getProperty("user.home")).append(File.separator).append(".processing").toString());
+        File logPath2 = new File(new StringBuilder(System.getProperty("user.home")).append(File.separator).append("strutz").toString());
+        if(logPath1.exists()){
+            IO.deleteDirRecursively(logPath1);
+        }
+        if(logPath2.exists()){
+            IO.deleteDirRecursively(logPath2);
+        }
+        assertFalse(logPath1.exists());
+        assertFalse(logPath2.exists());
     }
 
     private static Map<String, Integer> makeUpData(Integer[] data) {

@@ -36,8 +36,8 @@ import com.github.catchitcozucan.core.interfaces.IsolationLevel;
 import com.github.catchitcozucan.core.interfaces.Job;
 import com.github.catchitcozucan.core.interfaces.PoolConfig;
 import com.github.catchitcozucan.core.interfaces.Process;
-import com.github.catchitcozucan.core.interfaces.Task;
 import com.github.catchitcozucan.core.interfaces.RejectableTypedRelativeWithName;
+import com.github.catchitcozucan.core.interfaces.Task;
 import com.github.catchitcozucan.core.internal.util.id.IdGenerator;
 import com.github.catchitcozucan.core.internal.util.thread.ProcessThreadPool;
 import org.slf4j.Logger;
@@ -424,6 +424,10 @@ public class Async {
             } else {
                 Optional<Class<?>> matchedClaszz = Arrays.stream(interfaces).filter(c -> c.equals(Task.class) || c.equals(Process.class) || c.equals(Job.class)).findFirst();
                 if (matchedClaszz.isPresent()) {
+
+                    String message = String.format("Isolation level based on %s for %s of type %s is not met - as instructed we shall place this item on our waiting list", rejectedFromTheOutsideWorld ? YOUR_REJECTED_FROM_THE_OUTSIDE_WORLD_IMPL : toExec.provideIsolationLevel().name(), toExec.name(), toExec.provideType().name());
+                    LOGGER.info(message);
+
                     Class<?> clazz = matchedClaszz.get();
                     if (clazz.equals(Job.class)) {
                         waitingJobs.addLast((Job) toExec);

@@ -4,7 +4,10 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import java.io.File;
+
 import com.github.catchitcozucan.core.demo.shoe.internal.OrderRepository;
+import com.github.catchitcozucan.core.demo.test.support.io.IO;
 import com.github.catchitcozucan.core.demo.trip.TripStatus;
 import com.github.catchitcozucan.core.histogram.HistogramStatus;
 import com.github.catchitcozucan.core.impl.ProcessingFlags;
@@ -66,5 +69,19 @@ public class TestSuiteTrips {
         assertFalse(TripOrderRepository.getInstance().load().stream().filter(o -> o.getCurrentStatus().equals(TripStatus.Status.CAR_CONFIRMED)).findFirst().isPresent());
         job.doJob();
         assertEquals(100l, TripOrderRepository.getInstance().load().stream().filter(o -> o.getCurrentStatus().equals(TripStatus.Status.CAR_CONFIRMED)).count());
+    }
+
+    @Test
+    public void z_cleanUp() {
+        File logPath1 = new File(new StringBuilder(System.getProperty("user.home")).append(File.separator).append(".processing").toString());
+        File logPath2 = new File(new StringBuilder(System.getProperty("user.home")).append(File.separator).append("strutz").toString());
+        if(logPath1.exists()){
+            IO.deleteDirRecursively(logPath1);
+        }
+        if(logPath2.exists()){
+            IO.deleteDirRecursively(logPath2);
+        }
+        assertFalse(logPath1.exists());
+        assertFalse(logPath2.exists());
     }
 }

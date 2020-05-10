@@ -37,7 +37,7 @@ import com.github.catchitcozucan.core.interfaces.Job;
 import com.github.catchitcozucan.core.interfaces.PoolConfig;
 import com.github.catchitcozucan.core.interfaces.Process;
 import com.github.catchitcozucan.core.interfaces.Task;
-import com.github.catchitcozucan.core.interfaces.TypedRelativeWithName;
+import com.github.catchitcozucan.core.interfaces.RejectableTypedRelativeWithName;
 import com.github.catchitcozucan.core.internal.util.id.IdGenerator;
 import com.github.catchitcozucan.core.internal.util.thread.ProcessThreadPool;
 import org.slf4j.Logger;
@@ -180,6 +180,12 @@ public class Async {
         if (INSTANCE == null) {
             throw new IllegalStateException(NOPE_CALL_GET_INSTANCE_FIRST);
         }
+
+        if (toExec.rejectedFromTheOutSideWorld()) {
+            handleRejection(toExec);
+            return;
+        }
+
         if (isolationLevelIsMet(toExec)) {
             ProcessRunnable process = new ProcessRunnable(toExec);
             addIdToQueue(process.id);
@@ -193,6 +199,12 @@ public class Async {
         if (INSTANCE == null) {
             throw new IllegalStateException(NOPE_CALL_GET_INSTANCE_FIRST);
         }
+
+        if (toExec.rejectedFromTheOutSideWorld()) {
+            handleRejection(toExec);
+            return;
+        }
+
         if (isolationLevelIsMet(toExec)) {
             JobRunnable job = new JobRunnable(toExec);
             addIdToQueue(job.id);
@@ -206,6 +218,12 @@ public class Async {
         if (INSTANCE == null) {
             throw new IllegalStateException(NOPE_CALL_GET_INSTANCE_FIRST);
         }
+
+        if (toExec.rejectedFromTheOutSideWorld()) {
+            handleRejection(toExec);
+            return;
+        }
+
         if (isolationLevelIsMet(toExec)) {
             TaskRunnable task = new TaskRunnable(toExec);
             addIdToQueue(task.id);
@@ -213,6 +231,7 @@ public class Async {
         } else {
             handleRejection(toExec);
         }
+
     }
 
     synchronized void submitJobWithTimeout(Job toExec, long timeout, TimeUnit unit) {
@@ -335,7 +354,7 @@ public class Async {
         if (runningIds.isEmpty() && queuedIds.isEmpty() && waitingJobs.isEmpty()) {
             return false;
         } else {
-            return isKindQueuedOrRunning(TypedRelativeWithName.Type.JOB.name(), jobName);
+            return isKindQueuedOrRunning(RejectableTypedRelativeWithName.Type.JOB.name(), jobName);
         }
     }
 
@@ -349,17 +368,17 @@ public class Async {
     }
 
     //@formatter:off
-    private String generateId(TypedRelativeWithName typedRelativeWithName) {
-        return new StringBuilder(typedRelativeWithName.provideType().name())
+    private String generateId(RejectableTypedRelativeWithName rejectableTypedRelativeWithName) {
+        return new StringBuilder(rejectableTypedRelativeWithName.provideType().name())
                 .append(ID_SEPARATOR)
-                .append(typedRelativeWithName.name().replace(SPACE, EMPTY).toUpperCase())
+                .append(rejectableTypedRelativeWithName.name().replace(SPACE, EMPTY).toUpperCase())
                 .append(ID_SEPARATOR)
                 .append(IdGenerator.getInstance().getIdMoreRandom(ID_LENGTH, ID_DASHED_GROUPS))
                 .toString();
     }
     //@formatter:on
 
-    private boolean isolationLevelIsMet(TypedRelativeWithName toExec) {
+    private boolean isolationLevelIsMet(RejectableTypedRelativeWithName toExec) {
         if (runningIds.isEmpty() && queuedIds.isEmpty()) {
             return true;
         }
@@ -396,8 +415,8 @@ public class Async {
         }).findFirst().isPresent();
     }
 
-    private void handleRejection(TypedRelativeWithName toExec) {
-        if (toExec.provideRejectionAction().equals(TypedRelativeWithName.RejectionAction.PUT_ON_WAITING_LIST)) {
+    private void handleRejection(RejectableTypedRelativeWithName toExec) {
+        if (toExec.provideRejectionAction().equals(RejectableTypedRelativeWithName.RejectionAction.PUT_ON_WAITING_LIST)) {
             Class<?>[] interfaces = toExec.getClass().getInterfaces();
             if (interfaces == null) {
                 throw new ProcessRuntimeException(String.format("Yikes - what's this thing : %s is not of a supported type. It should implement SOMETHIND, a Task, Process or Job.", toExec.getClass().getName()));
@@ -416,11 +435,11 @@ public class Async {
                     throw new ProcessRuntimeException(String.format("Yikes - what's this thing : %s is not of a supported type. It should implement a Task, Process or Job.", toExec.getClass().getName()));
                 }
             }
-        } else if (toExec.provideRejectionAction().equals(TypedRelativeWithName.RejectionAction.REJECT)) {
+        } else if (toExec.provideRejectionAction().equals(RejectableTypedRelativeWithName.RejectionAction.REJECT)) {
             String message = String.format("Isolation level %s for %s of type %s is not met and as RejectionAction.REJECT is applied, we throw", toExec.provideIsolationLevel().name(), toExec.name(), toExec.provideType().name());
             LOGGER.warn(message);
             throw new ProcessRuntimeException(message);
-        } else if (toExec.provideRejectionAction().equals(TypedRelativeWithName.RejectionAction.IGNORE)) {
+        } else if (toExec.provideRejectionAction().equals(RejectableTypedRelativeWithName.RejectionAction.IGNORE)) {
             String message = String.format("Isolation level %s for %s of type %s is not met and we are told to ignore it", toExec.provideIsolationLevel().name(), toExec.name(), toExec.provideType().name());
             LOGGER.info(message);
         } else {

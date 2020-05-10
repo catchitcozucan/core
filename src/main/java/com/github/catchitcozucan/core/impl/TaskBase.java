@@ -22,4 +22,9 @@ public abstract class TaskBase implements Task {
     public final Type provideType() {
         return Type.TASK;
     }
+
+    @Override
+    public boolean rejectedFromTheOutSideWorld(){
+        return false;
+    }
 }

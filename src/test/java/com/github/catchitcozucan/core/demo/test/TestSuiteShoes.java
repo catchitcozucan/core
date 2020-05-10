@@ -52,7 +52,7 @@ import com.github.catchitcozucan.core.interfaces.PoolConfig;
 import com.github.catchitcozucan.core.interfaces.Process;
 import com.github.catchitcozucan.core.interfaces.ProcessSubject;
 import com.github.catchitcozucan.core.interfaces.Task;
-import com.github.catchitcozucan.core.interfaces.TypedRelativeWithName;
+import com.github.catchitcozucan.core.interfaces.RejectableTypedRelativeWithName;
 import com.github.catchitcozucan.core.internal.util.id.IdGenerator;
 import org.junit.After;
 import org.junit.Before;
@@ -312,6 +312,11 @@ public class TestSuiteShoes {
             }
 
             @Override
+            public boolean rejectedFromTheOutSideWorld() {
+                return false;
+            }
+
+            @Override
             public void process() {
                 IO.sleep(2000);
             }
@@ -337,41 +342,41 @@ public class TestSuiteShoes {
 
     @Test(expected = ProcessRuntimeException.class)
     public void h_testRejectionAsyncRejectedByAnotherThingRunning() {
-        Task t1 = makeTask(IsolationLevel.Level.INCLUSIVE, TypedRelativeWithName.RejectionAction.IGNORE, false, true);
+        Task t1 = makeTask(IsolationLevel.Level.INCLUSIVE, RejectableTypedRelativeWithName.RejectionAction.IGNORE, false, true);
         CatchIt.getInstance().submitTask(t1);
-        Task t2 = makeTask(IsolationLevel.Level.EXCLUSIVE, TypedRelativeWithName.RejectionAction.REJECT, false, false);
+        Task t2 = makeTask(IsolationLevel.Level.EXCLUSIVE, RejectableTypedRelativeWithName.RejectionAction.REJECT, false, false);
         CatchIt.getInstance().submitTask(t2);
     }
 
     @Test(expected = ProcessRuntimeException.class)
     public void i_testRejectionAsyncRejectedByType() {
-        Task t1 = makeTask(IsolationLevel.Level.INCLUSIVE, TypedRelativeWithName.RejectionAction.IGNORE, false, true);
+        Task t1 = makeTask(IsolationLevel.Level.INCLUSIVE, RejectableTypedRelativeWithName.RejectionAction.IGNORE, false, true);
         CatchIt.getInstance().submitTask(t1);
-        Task t2 = makeTask(IsolationLevel.Level.TYPE_EXCLUSIVE, TypedRelativeWithName.RejectionAction.REJECT, false, false);
+        Task t2 = makeTask(IsolationLevel.Level.TYPE_EXCLUSIVE, RejectableTypedRelativeWithName.RejectionAction.REJECT, false, false);
         CatchIt.getInstance().submitTask(t2);
     }
 
     @Test
     public void j_testRejectionAsyncRejectedByKindButKindDiffers() {
-        Task t1 = makeTask(IsolationLevel.Level.INCLUSIVE, TypedRelativeWithName.RejectionAction.IGNORE, true, true);
+        Task t1 = makeTask(IsolationLevel.Level.INCLUSIVE, RejectableTypedRelativeWithName.RejectionAction.IGNORE, true, true);
         CatchIt.getInstance().submitTask(t1);
-        Task t2 = makeTask(IsolationLevel.Level.KIND_EXCLUSIVE, TypedRelativeWithName.RejectionAction.REJECT, false, false);
+        Task t2 = makeTask(IsolationLevel.Level.KIND_EXCLUSIVE, RejectableTypedRelativeWithName.RejectionAction.REJECT, false, false);
         CatchIt.getInstance().submitTask(t2);
     }
 
     @Test(expected = ProcessRuntimeException.class)
     public void k_testRejectionAsyncRejectedByKind() {
-        Task t1 = makeTask(IsolationLevel.Level.INCLUSIVE, TypedRelativeWithName.RejectionAction.IGNORE, false, true);
+        Task t1 = makeTask(IsolationLevel.Level.INCLUSIVE, RejectableTypedRelativeWithName.RejectionAction.IGNORE, false, true);
         CatchIt.getInstance().submitTask(t1);
-        Task t2 = makeTask(IsolationLevel.Level.KIND_EXCLUSIVE, TypedRelativeWithName.RejectionAction.REJECT, false, false);
+        Task t2 = makeTask(IsolationLevel.Level.KIND_EXCLUSIVE, RejectableTypedRelativeWithName.RejectionAction.REJECT, false, false);
         CatchIt.getInstance().submitTask(t2);
     }
 
     @Test
     public void l_testRejectionAsyncAlreadyInQueDoNotCareForNewComers() {
-        Task t1 = makeTask(IsolationLevel.Level.INCLUSIVE, TypedRelativeWithName.RejectionAction.REJECT, false, true);
+        Task t1 = makeTask(IsolationLevel.Level.INCLUSIVE, RejectableTypedRelativeWithName.RejectionAction.REJECT, false, true);
         CatchIt.getInstance().submitTask(t1);
-        Task t2 = makeTask(IsolationLevel.Level.KIND_EXCLUSIVE, TypedRelativeWithName.RejectionAction.IGNORE, false, false);
+        Task t2 = makeTask(IsolationLevel.Level.KIND_EXCLUSIVE, RejectableTypedRelativeWithName.RejectionAction.IGNORE, false, false);
         CatchIt.getInstance().submitTask(t2);
     }
 
@@ -379,10 +384,10 @@ public class TestSuiteShoes {
     public void m_testRejectionAsyncRejectedByKindAppendWaitinglist() {
         CatchIt.halt();
         CatchIt.init(CONFIG_TWO_THREADS);
-        Task t1 = makeTask(IsolationLevel.Level.INCLUSIVE, TypedRelativeWithName.RejectionAction.IGNORE, true, true);
+        Task t1 = makeTask(IsolationLevel.Level.INCLUSIVE, RejectableTypedRelativeWithName.RejectionAction.IGNORE, true, true);
         CatchIt.getInstance().submitTask(t1);
         assertEquals(1l, CatchIt.getInstance().getCurrentState().stream().filter(s -> s.getState().equals(RunState.State.InQueue)).count());
-        Task t2 = makeTask(IsolationLevel.Level.TYPE_EXCLUSIVE, TypedRelativeWithName.RejectionAction.PUT_ON_WAITING_LIST, false, false);
+        Task t2 = makeTask(IsolationLevel.Level.TYPE_EXCLUSIVE, RejectableTypedRelativeWithName.RejectionAction.PUT_ON_WAITING_LIST, false, false);
         CatchIt.getInstance().submitTask(t2);
         assertEquals(1l, CatchIt.getInstance().getCurrentState().stream().filter(s -> s.getState().equals(RunState.State.InWait)).count());
         IO.sleep(1000);
@@ -434,9 +439,9 @@ public class TestSuiteShoes {
         };
         CatchIt.halt();
         CatchIt.init(config);
-        Task t1 = makeTask(IsolationLevel.Level.INCLUSIVE, TypedRelativeWithName.RejectionAction.REJECT, false, true);
+        Task t1 = makeTask(IsolationLevel.Level.INCLUSIVE, RejectableTypedRelativeWithName.RejectionAction.REJECT, false, true);
         CatchIt.getInstance().submitTask(t1);
-        Task t2 = makeTask(IsolationLevel.Level.KIND_EXCLUSIVE, TypedRelativeWithName.RejectionAction.IGNORE, false, true);
+        Task t2 = makeTask(IsolationLevel.Level.KIND_EXCLUSIVE, RejectableTypedRelativeWithName.RejectionAction.IGNORE, false, true);
         CatchIt.getInstance().submitTask(t2);
         assertNotNull(CatchIt.getInstance().getCurrentState());
         assertTrue(CatchIt.currentlyExecuting());
@@ -456,7 +461,7 @@ public class TestSuiteShoes {
         return datan;
     }
 
-    private Task makeTask(IsolationLevel.Level isolationLevel, TypedRelativeWithName.RejectionAction rejectionAction, boolean uniqueName, boolean takesTime) {
+    private Task makeTask(IsolationLevel.Level isolationLevel, RejectableTypedRelativeWithName.RejectionAction rejectionAction, boolean uniqueName, boolean takesTime) {
         String name = MYTASK;
         if (uniqueName) {
             name = IdGenerator.getInstance().getIdMoreRandom(9, 2);
@@ -493,6 +498,11 @@ public class TestSuiteShoes {
             @Override
             public RejectionAction provideRejectionAction() {
                 return rejectionAction;
+            }
+
+            @Override
+            public boolean rejectedFromTheOutSideWorld() {
+                return false;
             }
         };
     }

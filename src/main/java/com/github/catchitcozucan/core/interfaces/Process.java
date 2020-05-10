@@ -17,7 +17,7 @@
  */
 package com.github.catchitcozucan.core.interfaces;
 
-public interface Process extends TypedRelativeWithName {
+public interface Process extends RejectableTypedRelativeWithName {
     void process();
     Enum<?>[] criteriaStates(); // NOSONAR we WORK ENUMS!
     Enum<?> finishedState(); // NOSONAR we WORK ENUMS!;

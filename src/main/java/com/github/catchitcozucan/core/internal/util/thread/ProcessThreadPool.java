@@ -28,7 +28,7 @@ import java.util.concurrent.TimeUnit;
 
 import com.github.catchitcozucan.core.interfaces.InterruptSignalable;
 import com.github.catchitcozucan.core.interfaces.PoolConfig;
-import com.github.catchitcozucan.core.interfaces.TypedRelativeWithName;
+import com.github.catchitcozucan.core.interfaces.RejectableTypedRelativeWithName;
 import com.github.catchitcozucan.core.internal.util.SizeUtils;
 import com.github.catchitcozucan.core.internal.util.domain.BaseDomainObject;
 import com.github.catchitcozucan.core.internal.util.id.IdGenerator;
@@ -218,8 +218,8 @@ public class ProcessThreadPool implements Exitable {
         private final String id;
 
         private Task(Runnable r) {
-            if (r.getClass().isAssignableFrom(TypedRelativeWithName.class)) {
-                id = new StringBuilder(INTERNALTASK).append(UNDERSCORE).append(((TypedRelativeWithName) r).name()).append(UNDERSCORE).append(IdGenerator.getInstance().getNextId()).toString();
+            if (r.getClass().isAssignableFrom(RejectableTypedRelativeWithName.class)) {
+                id = new StringBuilder(INTERNALTASK).append(UNDERSCORE).append(((RejectableTypedRelativeWithName) r).name()).append(UNDERSCORE).append(IdGenerator.getInstance().getNextId()).toString();
             } else {
                 id = new StringBuilder(INTERNALTASK).append(UNDERSCORE).append(IdGenerator.getInstance().getNextId()).toString();
             }

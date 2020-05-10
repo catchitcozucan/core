@@ -87,6 +87,11 @@ public abstract class ProcessBase implements Process {
     }
 
     @Override
+    public boolean rejectedFromTheOutSideWorld(){
+        return false;
+    }
+
+    @Override
     public void interruptExecution(){} // it is not necessary, though healthy, to implement this
 
     //

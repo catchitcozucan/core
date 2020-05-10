@@ -89,6 +89,11 @@ public abstract class JobBase implements Job, HistogramProvider {
     }
 
     @Override
+    public boolean rejectedFromTheOutSideWorld(){
+        return false;
+    }
+
+    @Override
     public void interruptExecution(){} // it is not necessary, though healthy, to implement this
 
     protected void exec(Process proc) {

@@ -1,6 +1,6 @@
 package com.github.catchitcozucan.core.interfaces;
 
-public interface TypedRelativeWithName extends InterruptSignalable {
+public interface RejectableTypedRelativeWithName extends InterruptSignalable {
     enum Type {
         TASK, PROCESS, JOB
     }
@@ -11,4 +11,5 @@ public interface TypedRelativeWithName extends InterruptSignalable {
     String name();
     Type provideType();
     RejectionAction provideRejectionAction();
+    boolean rejectedFromTheOutSideWorld();
 }

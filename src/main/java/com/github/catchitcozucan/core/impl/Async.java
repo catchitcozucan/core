@@ -54,6 +54,7 @@ public class Async {
     private static final String NOPE_CALL_GET_INSTANCE_FIRST = "Nope - call getInstance() first!";
     private static final String AWAIT_TERMINATION_WAS_INTERRUPTED_BEFORE_CARRIED_OUT_NO_BIGGIE = "await termination was interrupted before carried out, no biggie :)";
     public static final String ID_SEPARATOR = "¤";
+    public static final String YOUR_REJECTED_FROM_THE_OUTSIDE_WORLD_IMPL = "your rejectedFromTheOutsideWorld() impl";
     private static Async INSTANCE; // NOSONAR
     private final ProcessThreadPool pool;
     private List<AsyncJobListener> listenersJobs;
@@ -182,7 +183,7 @@ public class Async {
         }
 
         if (toExec.rejectedFromTheOutSideWorld()) {
-            handleRejection(toExec);
+            handleRejection(toExec, true);
             return;
         }
 
@@ -191,7 +192,7 @@ public class Async {
             addIdToQueue(process.id);
             pool.submit(process);
         } else {
-            handleRejection(toExec);
+            handleRejection(toExec, false);
         }
     }
 
@@ -201,7 +202,7 @@ public class Async {
         }
 
         if (toExec.rejectedFromTheOutSideWorld()) {
-            handleRejection(toExec);
+            handleRejection(toExec, true);
             return;
         }
 
@@ -210,7 +211,7 @@ public class Async {
             addIdToQueue(job.id);
             pool.submit(job);
         } else {
-            handleRejection(toExec);
+            handleRejection(toExec, false);
         }
     }
 
@@ -220,7 +221,7 @@ public class Async {
         }
 
         if (toExec.rejectedFromTheOutSideWorld()) {
-            handleRejection(toExec);
+            handleRejection(toExec, true);
             return;
         }
 
@@ -229,7 +230,7 @@ public class Async {
             addIdToQueue(task.id);
             pool.submit(task);
         } else {
-            handleRejection(toExec);
+            handleRejection(toExec, false);
         }
 
     }
@@ -415,7 +416,7 @@ public class Async {
         }).findFirst().isPresent();
     }
 
-    private void handleRejection(RejectableTypedRelativeWithName toExec) {
+    private void handleRejection(RejectableTypedRelativeWithName toExec, boolean rejectedFromTheOutsideWorld) {
         if (toExec.provideRejectionAction().equals(RejectableTypedRelativeWithName.RejectionAction.PUT_ON_WAITING_LIST)) {
             Class<?>[] interfaces = toExec.getClass().getInterfaces();
             if (interfaces == null) {
@@ -436,14 +437,14 @@ public class Async {
                 }
             }
         } else if (toExec.provideRejectionAction().equals(RejectableTypedRelativeWithName.RejectionAction.REJECT)) {
-            String message = String.format("Isolation level %s for %s of type %s is not met and as RejectionAction.REJECT is applied, we throw", toExec.provideIsolationLevel().name(), toExec.name(), toExec.provideType().name());
+            String message = String.format("Isolation level based on %s for %s of type %s is not met and as RejectionAction.REJECT is applied, we throw", rejectedFromTheOutsideWorld ? YOUR_REJECTED_FROM_THE_OUTSIDE_WORLD_IMPL : toExec.provideIsolationLevel().name(), toExec.name(), toExec.provideType().name());
             LOGGER.warn(message);
             throw new ProcessRuntimeException(message);
         } else if (toExec.provideRejectionAction().equals(RejectableTypedRelativeWithName.RejectionAction.IGNORE)) {
-            String message = String.format("Isolation level %s for %s of type %s is not met and we are told to ignore it", toExec.provideIsolationLevel().name(), toExec.name(), toExec.provideType().name());
+            String message = String.format("Isolation level based on %s for %s of type %s is not met and we are told to ignore it", rejectedFromTheOutsideWorld ? YOUR_REJECTED_FROM_THE_OUTSIDE_WORLD_IMPL : toExec.provideIsolationLevel().name(), toExec.name(), toExec.provideType().name());
             LOGGER.info(message);
         } else {
-            String message = String.format("Isolation level %s for %s of type %s is not simply not supported!", toExec.provideIsolationLevel().name(), toExec.name(), toExec.provideType().name());
+            String message = String.format("Isolation level based on %s for %s of type %s is not simply not supported!", rejectedFromTheOutsideWorld ? YOUR_REJECTED_FROM_THE_OUTSIDE_WORLD_IMPL : toExec.provideIsolationLevel().name(), toExec.name(), toExec.provideType().name());
             LOGGER.error(message);
             throw new ProcessRuntimeException(message);
         }

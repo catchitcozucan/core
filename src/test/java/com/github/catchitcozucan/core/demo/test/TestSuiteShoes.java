@@ -17,6 +17,9 @@
  */
 package com.github.catchitcozucan.core.demo.test;
 
+import static com.github.catchitcozucan.core.demo.test.TestSuiteTrips.PROCESSING;
+import static com.github.catchitcozucan.core.demo.test.TestSuiteTrips.STRUTZ;
+import static com.github.catchitcozucan.core.demo.test.TestSuiteTrips.USER_HOME;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
@@ -56,9 +59,11 @@ import com.github.catchitcozucan.core.interfaces.RejectableTypedRelativeWithName
 import com.github.catchitcozucan.core.interfaces.Task;
 import com.github.catchitcozucan.core.internal.util.id.IdGenerator;
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.FixMethodOrder;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TestRule;
@@ -450,10 +455,10 @@ public class TestSuiteShoes {
         assertFalse(CatchIt.currentlyExecuting());
     }
 
-    @Test
-    public void z_cleanUp() {
-        File logPath1 = new File(new StringBuilder(System.getProperty("user.home")).append(File.separator).append(".processing").toString());
-        File logPath2 = new File(new StringBuilder(System.getProperty("user.home")).append(File.separator).append("strutz").toString());
+    @AfterClass
+    public static void cleanUp() {
+        File logPath1 = new File(new StringBuilder(System.getProperty(USER_HOME)).append(File.separator).append(PROCESSING).toString());
+        File logPath2 = new File(new StringBuilder(System.getProperty(USER_HOME)).append(File.separator).append(STRUTZ).toString());
         if(logPath1.exists()){
             IO.deleteDirRecursively(logPath1);
         }

@@ -5,6 +5,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
+import java.util.Arrays;
 
 import com.github.catchitcozucan.core.demo.shoe.internal.OrderRepository;
 import com.github.catchitcozucan.core.demo.test.support.io.IO;
@@ -12,9 +13,11 @@ import com.github.catchitcozucan.core.demo.trip.TripStatus;
 import com.github.catchitcozucan.core.histogram.HistogramStatus;
 import com.github.catchitcozucan.core.impl.ProcessingFlags;
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.FixMethodOrder;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TestRule;
@@ -28,6 +31,9 @@ import com.github.catchitcozucan.core.demo.test.support.io.service.Serialization
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestSuiteTrips {
 
+    public static final String USER_HOME = "user.home";
+    public static final String PROCESSING = ".processing";
+    public static final String STRUTZ = "strutz";
     private TripsJob job = new TripsJob();
 
     @Rule
@@ -39,7 +45,7 @@ public class TestSuiteTrips {
 
     @BeforeClass
     public static void setupLoggingEnv() {
-        System.setProperty(ProcessingFlags.NEN_PROCESSING_LOG_DIR, System.getProperty("user.home") + "/.processing");
+        System.setProperty(ProcessingFlags.NEN_PROCESSING_LOG_DIR, System.getProperty(USER_HOME) + "/.processing");
         System.setProperty(ProcessingFlags.NEN_PROCESSING_LOGGING_APP, "coolApp");
         System.setProperty(ProcessingFlags.NEN_PROCESSING_LOGGING_SEPARATE_FILE, "true");
     }
@@ -71,10 +77,10 @@ public class TestSuiteTrips {
         assertEquals(100l, TripOrderRepository.getInstance().load().stream().filter(o -> o.getCurrentStatus().equals(TripStatus.Status.CAR_CONFIRMED)).count());
     }
 
-    @Test
-    public void z_cleanUp() {
-        File logPath1 = new File(new StringBuilder(System.getProperty("user.home")).append(File.separator).append(".processing").toString());
-        File logPath2 = new File(new StringBuilder(System.getProperty("user.home")).append(File.separator).append("strutz").toString());
+    @AfterClass
+    public static void cleanUp() {
+        File logPath1 = new File(new StringBuilder(System.getProperty(USER_HOME)).append(File.separator).append(PROCESSING).toString());
+        File logPath2 = new File(new StringBuilder(System.getProperty(USER_HOME)).append(File.separator).append(STRUTZ).toString());
         if(logPath1.exists()){
             IO.deleteDirRecursively(logPath1);
         }

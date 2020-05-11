@@ -19,7 +19,7 @@ import com.github.catchitcozucan.core.demo.test.support.io.service.Serialization
 
 public class OrderRepository implements PersistenceService {
 
-	private static final String BLACK_PROCESS = "black.process";
+	private static final String CATCHITCOZUCAN_CORE = "catchitcozucan.core";
 	private static final String ORDER_ID = "orderId";
 	private static final String ERR = "ERR_";
 	private static final int ID_LEN = 9;
@@ -50,7 +50,7 @@ public class OrderRepository implements PersistenceService {
 
 	public void physicallyWipe() {
 		SerializationService.getInstance().setSilent(true); // will create store path if it's not there..
-		Arrays.stream(IO.locateFilesRecursively(SerializationService.STOREPATH, BLACK_PROCESS, false)).forEach(f -> f.delete());
+		Arrays.stream(IO.locateFilesRecursively(SerializationService.STOREPATH, CATCHITCOZUCAN_CORE, false)).forEach(f -> f.delete());
 	}
 
 	private void makeOrders(boolean force, boolean invokeErrorSubjects) {

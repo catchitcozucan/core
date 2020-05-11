@@ -34,7 +34,7 @@ public class ProcessLogging {
         if (!logSeparately) {
             Slf4JSetup.init(sytemLogParentDir, loggingApp, false);
         } else {
-            Slf4JSetup.init(sytemLogParentDir, loggingApp, false, DEF_PROCESSING_APP);
+            Slf4JSetup.init(sytemLogParentDir, loggingApp, false, DEF_PROCESSING_APP, logSeparately);
         }
     }
 
@@ -95,9 +95,9 @@ public class ProcessLogging {
 
         if (specfiedLogDir != null) {
             if (!doLogSeparately) {
-                Slf4JSetup.init(specfiedLogDir.getAbsolutePath(), getLoggingApp(), false);
+                Slf4JSetup.init(specfiedLogDir.getAbsolutePath(), getLoggingApp(), doLogSeparately);
             } else {
-                Slf4JSetup.init(specfiedLogDir.getAbsolutePath(), getLoggingApp(), false, DEF_PROCESSING_APP);
+                Slf4JSetup.init(specfiedLogDir.getAbsolutePath(), getLoggingApp(), false, DEF_PROCESSING_APP, doLogSeparately);
             }
         } else {
             Slf4JSetup.initForApp(DEF_PROCESSING_APP, false);

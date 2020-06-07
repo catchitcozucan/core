@@ -17,6 +17,6 @@
  */
 package com.github.catchitcozucan.core.interfaces;
 
-public interface AsyncJobListener {
-	void jobExiting(Job job);
+public interface ListenerTasks {
+	void taskExiting(Task task);
 }

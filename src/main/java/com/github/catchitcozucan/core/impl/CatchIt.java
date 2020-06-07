@@ -5,8 +5,9 @@ import java.util.Set;
 import com.github.catchitcozucan.core.exception.ProcessRuntimeException;
 import com.github.catchitcozucan.core.impl.startup.NumberOfTimeUnits;
 import com.github.catchitcozucan.core.interfaces.AsyncExecutor;
-import com.github.catchitcozucan.core.interfaces.AsyncJobListener;
-import com.github.catchitcozucan.core.interfaces.AsyncProcessListener;
+import com.github.catchitcozucan.core.interfaces.ListenerJobs;
+import com.github.catchitcozucan.core.interfaces.ListenerProcesses;
+import com.github.catchitcozucan.core.interfaces.ListenerTasks;
 import com.github.catchitcozucan.core.interfaces.CatchItConfig;
 import com.github.catchitcozucan.core.interfaces.Job;
 import com.github.catchitcozucan.core.interfaces.Process;
@@ -114,13 +115,18 @@ public class CatchIt implements AsyncExecutor, WorkingEntity {
     }
 
     @Override
-    public void addJobListener(AsyncJobListener listener) {
+    public void addJobListener(ListenerJobs listener) {
         Async.getInstance().addJobListener(listener);
     }
 
     @Override
-    public void addProcessListener(AsyncProcessListener listener) {
+    public void addProcessListener(ListenerProcesses listener) {
         Async.getInstance().addProcessListener(listener);
+    }
+
+    @Override
+    public void addTaskListener(ListenerTasks listener) {
+        Async.getInstance().addTaskListener(listener);
     }
 
     @Override

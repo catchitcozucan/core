@@ -47,7 +47,7 @@ import com.github.catchitcozucan.core.impl.JobBase;
 import com.github.catchitcozucan.core.impl.ProcessingFlags;
 import com.github.catchitcozucan.core.impl.RunState;
 import com.github.catchitcozucan.core.impl.startup.NumberOfTimeUnits;
-import com.github.catchitcozucan.core.interfaces.AsyncJobListener;
+import com.github.catchitcozucan.core.interfaces.ListenerJobs;
 import com.github.catchitcozucan.core.interfaces.CatchItConfig;
 import com.github.catchitcozucan.core.interfaces.IsolationLevel;
 import com.github.catchitcozucan.core.interfaces.Job;
@@ -63,7 +63,6 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.FixMethodOrder;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TestRule;
@@ -211,7 +210,7 @@ public class TestSuiteShoes {
         AtomicInteger callbackCounter = new AtomicInteger();
         callbackCounter.getAndSet(0);
         assertFalse(CatchIt.getInstance().isExecuting());
-        AsyncJobListener listener = new AsyncJobListener() {
+        ListenerJobs listener = new ListenerJobs() {
 
             @Override
             public void jobExiting(Job job) {

@@ -24,8 +24,9 @@ public interface AsyncExecutor {
 	void submitJob(Job toExec);
 	void submitTask(Task toExec);
 	void submitJobWithTimeout(Job toExec, NumberOfTimeUnits numberOfTimeUnits);
-	void addJobListener(AsyncJobListener listener);
-	void addProcessListener(AsyncProcessListener listener);
+	void addJobListener(ListenerJobs listener);
+	void addProcessListener(ListenerProcesses listener);
+	void addTaskListener(ListenerTasks listener);
 	void kill();
 	void killSilent();
 	void killAwaitTerminationBlocking(NumberOfTimeUnits numberOfTimeUnits);

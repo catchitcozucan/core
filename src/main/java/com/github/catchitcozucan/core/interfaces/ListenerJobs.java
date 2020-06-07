@@ -17,6 +17,6 @@
  */
 package com.github.catchitcozucan.core.interfaces;
 
-public interface AsyncProcessListener {
-	void processExiting(Process process);
+public interface ListenerJobs {
+	void jobExiting(Job job);
 }

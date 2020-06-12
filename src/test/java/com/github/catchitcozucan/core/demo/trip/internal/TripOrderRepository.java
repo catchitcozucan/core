@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Stream;
 
 import com.github.catchitcozucan.core.demo.test.support.ArrayRotator;
 import com.github.catchitcozucan.core.demo.test.support.io.IO;
@@ -16,7 +17,7 @@ import com.github.catchitcozucan.core.interfaces.ProcessSubject;
 
 public class TripOrderRepository implements PersistenceService {
 
-	public static final int ERROR_ID = 666;
+	public static final int ERROR_ID = 6666;
 	private static TripOrderRepository INSTANCE;
 	private ArrayRotator<TripStatus.Status> STATUSES = new ArrayRotator<>(TripProcess.CRITERIA_STATES);
 	private AtomicInteger id = new AtomicInteger(0);
@@ -108,5 +109,10 @@ public class TripOrderRepository implements PersistenceService {
 	@Override
 	public void save(ProcessSubject processSubject) {
 		SerializationService.getInstance().perform(SerializationService.OP.SAVE, processSubject);
+	}
+
+	@Override
+	public Stream<ProcessSubject> provideSubjectStream() {
+		return TripOrderRepository.getInstance().load().stream();
 	}
 }

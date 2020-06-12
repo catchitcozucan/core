@@ -2,6 +2,8 @@ package com.github.catchitcozucan.core.demo.shoe;
 
 import com.github.catchitcozucan.core.exception.ProcessRuntimeException;
 import com.github.catchitcozucan.core.impl.ProcessSubjectBase;
+import com.github.catchitcozucan.core.impl.source.processor.EnumContainer;
+import com.github.catchitcozucan.core.impl.source.processor.Nameable;
 import com.github.catchitcozucan.core.internal.util.id.IdGenerator;
 import com.github.catchitcozucan.core.demo.shoe.internal.Shoe;
 import com.github.catchitcozucan.core.demo.trip.internal.TripOrderRepository;
@@ -66,8 +68,8 @@ public class Order extends ProcessSubjectBase {
 	}
 
 	@Override
-	public Enum[] getCycle() {
-		return OrderStatus.Status.values();
+	public Nameable[] getCycle() {
+		return EnumContainer.enumsToNameableArray(OrderStatus.Status.values());
 	}
 
 	@Override

@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Stream;
 
 import com.github.catchitcozucan.core.demo.shoe.Order;
 import com.github.catchitcozucan.core.demo.shoe.OrderStatus;
@@ -120,5 +121,10 @@ public class OrderRepository implements PersistenceService {
 	@Override
 	public void save(ProcessSubject processSubject) {
 		SerializationService.getInstance().perform(SerializationService.OP.SAVE, processSubject);
+	}
+
+	@Override
+	public Stream<ProcessSubject> provideSubjectStream() {
+		return load().stream();
 	}
 }

@@ -22,14 +22,19 @@ import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import com.github.catchitcozucan.core.ErrorCodeCarrier;
 import com.github.catchitcozucan.core.histogram.HistogramProvider;
 import com.github.catchitcozucan.core.histogram.HistogramStatus;
 import com.github.catchitcozucan.core.histogram.LifeCycleHistogramCollector;
+import com.github.catchitcozucan.core.histogram.LifeCycleProvider;
+import com.github.catchitcozucan.core.impl.source.processor.Nameable;
 import com.github.catchitcozucan.core.interfaces.IsolationLevel;
 import com.github.catchitcozucan.core.interfaces.Job;
+import com.github.catchitcozucan.core.interfaces.PersistenceService;
 import com.github.catchitcozucan.core.interfaces.Process;
 import com.github.catchitcozucan.core.interfaces.ProcessSubject;
 import com.github.catchitcozucan.core.internal.util.SizeUtils;
@@ -39,122 +44,168 @@ import org.slf4j.LoggerFactory;
 
 public abstract class JobBase implements Job, HistogramProvider {
 
-    private LifeCycleHistogramCollector cycleHistogramCollector;
-    private long processInstanceExectime;
-    private long totalExectime;
-    private int numberOfProcesses;
-    private static final String TIME_REPORTING = "JOB EXEC TIME : %s PROCESS AVARAGE EXEC TIME : %s";
-    private boolean amIWorking;
-    private static Logger LOGGER = null; // NOSONAR
+	private static final String ZERO_MILLIS = "0 millis";
+	private static final String S_EXITING_JOB_S_AS_FINISHED_B_AFTER_S_EXIT_STATE_IS_S = "%s exiting job '%s' as finished : %b after %s. Exit state is : [%s]";
+	private static final String S_ENTERING_JOB_S_PRE_PROCESS_STATE_S_S = "%s entering job '%s'. Pre-process state : %s [%s]";
+	private static final String S_ON_ITEM_S_FOR_SUBJECT_S = "'%s' on item %s for subject %s";
+	private static final String ITEM_S_FOR_SUBJECT_S = "Item %s for subject %s";
+	private static final String YOU_ARE_REQUIRED_TO_PASS_IN_SOME_DATA_YOU_SENT_NULL_OR_AN_EMPTY_ARRAY = "You are required to pass in some data - you sent null or an empty array";
+	private LifeCycleHistogramCollector cycleHistogramCollector;
+	private long processInstanceExectime;
+	private long totalExectime;
+	private int numberOfProcesses;
+	private static final String TIME_REPORTING = "JOB EXEC TIME : %s PROCESS AVARAGE EXEC TIME : %s";
+	private boolean amIWorking;
+	private static final Logger LOGGER = LoggerFactory.getLogger(JobBase.class);
+	private final PersistenceService persistenceService;
+	private final Enum<?>[] criteriaStates;
+	private Nameable[] nameables;
 
-    static {
-        ProcessLogging.initLogging();
-        LOGGER = LoggerFactory.getLogger(JobBase.class);
-    }
+	public JobBase(PersistenceService persistenceService, Enum<?>[] criteriaStates) {
+		this.persistenceService = persistenceService;
+		this.criteriaStates = criteriaStates;
+		setupNameAbles();
+	}
 
-    @Override
-    public boolean isExecuting() {
-        return amIWorking;
-    }
+	@Override
+	public boolean isExecuting() {
+		return amIWorking;
+	}
 
-    @Override
-    public HistogramStatus getHistogram(Stream<ProcessSubject> subjectStream) {
-        if (cycleHistogramCollector == null) {
-            cycleHistogramCollector = new LifeCycleHistogramCollector(provideSubjectSample());
-        }
-        return new HistogramStatus(name(), subjectStream.collect(cycleHistogramCollector), null);
-    }
+	@Override
+	public HistogramStatus getHistogram() {
+		if (collectorIsAvailable()) {
+			return new HistogramStatus(name(), persistenceService.provideSubjectStream().collect(cycleHistogramCollector), null);
+		} else {
+			return null;
+		}
+	}
 
-    @Override
-    public HistogramStatus makeSampleHistogram(Integer[] data) {
-        if (data == null || data.length == 0) {
-            throw new IllegalArgumentException("You are required to pass in some data - you sent null or an empty array");
-        }
-        return new HistogramStatus(name(), makeUpData(data), null);
-    }
+	@Override
+	public HistogramStatus makeSampleHistogram(Integer[] data) {
+		if (data == null || data.length == 0) {
+			throw new IllegalArgumentException(YOU_ARE_REQUIRED_TO_PASS_IN_SOME_DATA_YOU_SENT_NULL_OR_AN_EMPTY_ARRAY);
+		}
+		return new HistogramStatus(name(), makeUpData(data), null);
+	}
 
-    @Override
-    public IsolationLevel.Level provideIsolationLevel() {
-        return IsolationLevel.Level.KIND_EXCLUSIVE;
-    }
+	@Override
+	public IsolationLevel.Level provideIsolationLevel() {
+		return IsolationLevel.Level.KIND_EXCLUSIVE;
+	}
 
-    @Override
-    public RejectionAction provideRejectionAction() {
-        return RejectionAction.PUT_ON_WAITING_LIST;
-    }
+	@Override
+	public RejectionAction provideRejectionAction() {
+		return RejectionAction.PUT_ON_WAITING_LIST;
+	}
 
-    @Override
-    public final Type provideType() {
-        return Type.JOB;
-    }
+	@Override
+	public final Type provideType() {
+		return Type.JOB;
+	}
 
-    @Override
-    public boolean rejectedFromTheOutSideWorld(){
-        return false;
-    }
+	@Override
+	public boolean rejectedFromTheOutSideWorld() {
+		return false;
+	}
 
-    @Override
-    public void interruptExecution(){} // it is not necessary, though healthy, to implement this
+	@Override
+	public void interruptExecution() {
+	} // it is not necessary, though healthy, to implement this
 
-    protected void exec(Process proc) {
-        if (cycleHistogramCollector == null) {
-            cycleHistogramCollector = new LifeCycleHistogramCollector(((ProcessBase) proc).getSubject());
-            if (!ProcessBase.class.isAssignableFrom(proc.getClass())) {
-                throw new IllegalArgumentException(String.format("Your process HAS TO extend %s!", ProcessBase.class.getName()));
-            }
-        }
-        if (processInstanceExectime == 0) {
-            processInstanceExectime = System.currentTimeMillis();
-        }
-        String prefix = String.format("Item %s for subject %s", ((ProcessBase) proc).getSubject().id(), ((ProcessBase) proc).getSubject().subjectIdentifier());
-        try {
-            LOGGER.info(String.format("%s entering job '%s'. Pre-process state : %s [%s]", prefix, name(), ((ProcessBase) proc).getCurrentStatus(), ((ProcessBase) proc).getStatusDescription()));//NOSONAR
-            amIWorking = true;
-            proc.process();
-        } catch (Exception e) {
-            ProcessBase processBase = ((ProcessBase) proc);
-            String messageSuffix = String.format("'%s' on item %s for subject %s", proc.name(), ((ProcessBase) proc).getSubject().id(), ((ProcessBase) proc).getSubject().subjectIdentifier());
-            Enum<?> currentStatusUponFailure = processBase.getCurrentStatusUponFailure();
-            if (currentStatusUponFailure == null) {
-                currentStatusUponFailure = processBase.getCurrentStatus();
-            }
-            if (e instanceof ErrorCodeCarrier) { // NOSONAR BULL.
-                processBase.bail(messageSuffix, new InternalJobNonRuntimeException(messageSuffix, e), currentStatusUponFailure, processBase.evalutateForErrorCode((ErrorCodeCarrier) e));
-            } else {
-                processBase.bail(messageSuffix, new InternalJobNonRuntimeException(messageSuffix, e), currentStatusUponFailure, null);
-            }
-        } finally {
-            amIWorking = false;
-            if (processInstanceExectime != 0) {
-                totalExectime += System.currentTimeMillis() - processInstanceExectime;
-                processInstanceExectime = 0;
-                numberOfProcesses++;
-            }
-            LOGGER.info(String.format("%s exiting job '%s' as finished : %b after %s. Exit state is : [%s]", prefix, name(), ((ProcessBase) proc).finished(), totalExectime, ((ProcessBase) proc).getStatusDescription()));//NOSONAR
-        }
-    }
+	protected Stream<ProcessSubject> fetchSubjectsInCriteriaState() {
+		return persistenceService.provideSubjectStream().filter(subject -> isOrderInPickupState(subject)).collect(Collectors.toList()).stream();
+	}
 
-    protected String getTotalExectime() {
-        String execTimeFriendly = SizeUtils.getFormattedMillisPrintoutFriendly(totalExectime);
-        String perProcessMillis;
-        if (numberOfProcesses > 0) {
-            perProcessMillis = SizeUtils.getFormattedMillisPrintoutFriendly((totalExectime / numberOfProcesses));
-        } else {
-            perProcessMillis = "0 millis";
-        }
-        totalExectime = 0;
-        return String.format(TIME_REPORTING, execTimeFriendly, perProcessMillis);
-    }
+	protected void exec(Process proc) {
+		if (processInstanceExectime == 0) {
+			processInstanceExectime = System.currentTimeMillis();
+		}
+		String prefix = String.format(ITEM_S_FOR_SUBJECT_S, ((ProcessBase) proc).getSubject().id(), ((ProcessBase) proc).getSubject().subjectIdentifier());
+		try {
+			LOGGER.info(String.format(S_ENTERING_JOB_S_PRE_PROCESS_STATE_S_S, prefix, name(), ((ProcessBase) proc).getCurrentStatus(), ((ProcessBase) proc).getStatusDescription()));//NOSONAR
+			amIWorking = true;
+			proc.process();
+		} catch (Exception e) {
+			ProcessBase processBase = ((ProcessBase) proc);
+			String messageSuffix = String.format(S_ON_ITEM_S_FOR_SUBJECT_S, proc.name(), ((ProcessBase) proc).getSubject().id(), ((ProcessBase) proc).getSubject().subjectIdentifier());
+			Enum<?> currentStatusUponFailure = processBase.getCurrentStatusUponFailure();
+			if (currentStatusUponFailure == null) {
+				currentStatusUponFailure = processBase.getCurrentStatus();
+			}
+			if (e instanceof ErrorCodeCarrier) { // NOSONAR BULL.
+				processBase.bail(messageSuffix, new InternalJobNonRuntimeException(messageSuffix, e), currentStatusUponFailure, processBase.evalutateForErrorCode((ErrorCodeCarrier) e));
+			} else {
+				processBase.bail(messageSuffix, new InternalJobNonRuntimeException(messageSuffix, e), currentStatusUponFailure, null);
+			}
+		} finally {
+			amIWorking = false;
+			if (processInstanceExectime != 0) {
+				totalExectime += System.currentTimeMillis() - processInstanceExectime;
+				processInstanceExectime = 0;
+				numberOfProcesses++;
+			}
+			LOGGER.info(String.format(S_EXITING_JOB_S_AS_FINISHED_B_AFTER_S_EXIT_STATE_IS_S, prefix, name(), ((ProcessBase) proc).finished(), totalExectime, ((ProcessBase) proc).getStatusDescription()));//NOSONAR
+		}
+	}
 
-    private Map<String, Integer> makeUpData(Integer[] data) {
-        List<String> labels = new ArrayList<>();
-        Arrays.stream(provideSubjectSample().getCycle()).forEachOrdered(s -> labels.add(s.name()));
-        String[] labelz = labels.toArray(new String[labels.size()]);
-        Map<String, Integer> datan = new LinkedHashMap<>();
-        for (int i = 0; i < labelz.length; i++) {
-            Integer value = i < data.length ? data[i] : 0;
-            datan.put(labelz[i], value);
-        }
-        return datan;
-    }
+	protected String getTotalExectime() {
+		String execTimeFriendly = SizeUtils.getFormattedMillisPrintoutFriendly(totalExectime);
+		String perProcessMillis;
+		if (numberOfProcesses > 0) {
+			perProcessMillis = SizeUtils.getFormattedMillisPrintoutFriendly((totalExectime / numberOfProcesses));
+		} else {
+			perProcessMillis = ZERO_MILLIS;
+		}
+		totalExectime = 0;
+		return String.format(TIME_REPORTING, execTimeFriendly, perProcessMillis);
+	}
+
+	private Map<String, Integer> makeUpData(Integer[] data) {
+		List<String> labels = new ArrayList<>();
+		Arrays.stream(nameables).forEachOrdered(s -> labels.add(s.name()));
+		String[] labelz = labels.toArray(new String[labels.size()]);
+		Map<String, Integer> datan = new LinkedHashMap<>();
+		for (int i = 0; i < labelz.length; i++) {
+			Integer value = i < data.length ? data[i] : 0;
+			datan.put(labelz[i], value);
+		}
+		return datan;
+	}
+
+	private boolean isOrderInPickupState(ProcessSubject p) {
+		return Arrays.stream(criteriaStates).filter(state -> state.equals(p.getCurrentStatus())).findFirst().isPresent();
+	}
+
+	private boolean collectorIsAvailable() {
+		if (cycleHistogramCollector == null) {
+			Optional<ProcessSubject> processSubjectOptional = persistenceService.provideSubjectStream().filter(s -> s != null).findFirst();
+			if (processSubjectOptional.isPresent()) {
+				ProcessSubject subject = processSubjectOptional.get();
+				LifeCycleProvider lifeCycleProvider = new LifeCycleProvider() {
+					@Override
+					public Nameable[] getCycle() {
+						return nameables;
+					}
+
+					@Override
+					public Enum getCurrentStatus() {
+						return subject.getCurrentStatus();
+					}
+
+					@Override
+					public String getCurrentProcess() {
+						return subject.getCurrentProcess();
+					}
+				};
+				cycleHistogramCollector = new LifeCycleHistogramCollector(lifeCycleProvider);
+			}
+		}
+		return cycleHistogramCollector != null;
+	}
+
+	private void setupNameAbles() {
+		List<Nameable> enumValues = Arrays.stream(criteriaStates[0].getClass().getEnumConstants()).filter(s -> s != null).map(Object::toString).map(s -> (Nameable) () -> s).collect(Collectors.toList());
+		nameables = enumValues.toArray(new Nameable[enumValues.size()]);
+	}
 }

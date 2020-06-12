@@ -17,6 +17,9 @@
  */
 package com.github.catchitcozucan.core.interfaces;
 
+import java.util.stream.Stream;
+
 public interface PersistenceService {
     void save(ProcessSubject processSubject);
+    Stream<ProcessSubject> provideSubjectStream();
 }

@@ -13,6 +13,8 @@ import java.util.function.BinaryOperator;
 import java.util.function.Function;
 import java.util.stream.Collector;
 
+import com.github.catchitcozucan.core.impl.source.processor.Nameable;
+
 public class LifeCycleHistogramCollector implements Collector<LifeCycleProvider, Map<String, Integer>, Map<String, Integer>> {
 
 	private final LifeCycleProvider lifeCycle;
@@ -21,7 +23,7 @@ public class LifeCycleHistogramCollector implements Collector<LifeCycleProvider,
 		this.lifeCycle = lifeCycle;
 	}
 
-	public Enum[] getCycle() {
+	public Nameable[] getCycle() {
 		return lifeCycle.getCycle();
 	}
 

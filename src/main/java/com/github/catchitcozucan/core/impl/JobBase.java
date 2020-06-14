@@ -184,7 +184,12 @@ public abstract class JobBase implements Job, HistogramProvider {
 				ProcessSubject subject = processSubjectOptional.get();
 				LifeCycleProvider lifeCycleProvider = new LifeCycleProvider() {
 					@Override
-					public Nameable[] getCycle() {
+					public Enum[] getCycle() {
+						return null; // will not be utilized here...
+					}
+
+					@Override
+					public Nameable[] getCycleAsNameables() {
 						return nameables;
 					}
 

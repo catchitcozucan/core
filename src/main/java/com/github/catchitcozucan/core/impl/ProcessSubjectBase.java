@@ -19,6 +19,8 @@ package com.github.catchitcozucan.core.impl;
 
 import java.io.Serializable;
 
+import com.github.catchitcozucan.core.impl.source.processor.EnumContainer;
+import com.github.catchitcozucan.core.impl.source.processor.Nameable;
 import com.github.catchitcozucan.core.interfaces.ProcessSubject;
 import com.github.catchitcozucan.core.internal.util.domain.BaseDomainObject;
 import com.github.catchitcozucan.core.internal.util.domain.ToStringBuilder;
@@ -67,6 +69,11 @@ public abstract class ProcessSubjectBase extends BaseDomainObject implements Pro
 
 	void clearError() {
 		this.errorCode = null;
+	}
+
+	@Override
+	public Nameable[] getCycleAsNameables() {
+		return EnumContainer.enumsToNameableArray(getCycle());
 	}
 
 	@Override

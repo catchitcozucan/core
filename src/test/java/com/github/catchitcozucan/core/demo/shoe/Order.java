@@ -1,12 +1,10 @@
 package com.github.catchitcozucan.core.demo.shoe;
 
-import com.github.catchitcozucan.core.exception.ProcessRuntimeException;
-import com.github.catchitcozucan.core.impl.ProcessSubjectBase;
-import com.github.catchitcozucan.core.impl.source.processor.EnumContainer;
-import com.github.catchitcozucan.core.impl.source.processor.Nameable;
-import com.github.catchitcozucan.core.internal.util.id.IdGenerator;
 import com.github.catchitcozucan.core.demo.shoe.internal.Shoe;
 import com.github.catchitcozucan.core.demo.trip.internal.TripOrderRepository;
+import com.github.catchitcozucan.core.exception.ProcessRuntimeException;
+import com.github.catchitcozucan.core.impl.ProcessSubjectBase;
+import com.github.catchitcozucan.core.internal.util.id.IdGenerator;
 
 public class Order extends ProcessSubjectBase {
 
@@ -37,7 +35,7 @@ public class Order extends ProcessSubjectBase {
 		return adressId;
 	}
 
-	public void packageOrder(){
+	public void packageOrder() {
 		isPacked = true;
 		if (orderId.intValue() == TripOrderRepository.ERROR_ID) {
 			throw new ProcessRuntimeException("WTF - simulating 'planned' went wrong");
@@ -68,8 +66,8 @@ public class Order extends ProcessSubjectBase {
 	}
 
 	@Override
-	public Nameable[] getCycle() {
-		return EnumContainer.enumsToNameableArray(OrderStatus.Status.values());
+	public Enum[] getCycle() {
+		return OrderStatus.Status.values();
 	}
 
 	@Override

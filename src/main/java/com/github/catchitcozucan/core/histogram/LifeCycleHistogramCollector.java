@@ -24,13 +24,13 @@ public class LifeCycleHistogramCollector implements Collector<LifeCycleProvider,
 	}
 
 	public Nameable[] getCycle() {
-		return lifeCycle.getCycle();
+		return lifeCycle.getCycleAsNameables();
 	}
 
 	@Override
 	public java.util.function.Supplier<Map<String, Integer>> supplier() {
 		Map<String, Integer> map = new LinkedHashMap<>();
-		Arrays.stream(lifeCycle.getCycle()).forEach(s -> map.put(s.name(), 0));
+		Arrays.stream(lifeCycle.getCycleAsNameables()).forEach(s -> map.put(s.name(), 0));
 		return () -> map;
 	}
 
@@ -43,7 +43,7 @@ public class LifeCycleHistogramCollector implements Collector<LifeCycleProvider,
 	public BinaryOperator<Map<String, Integer>> combiner() {
 		return (Map<String, Integer> result1, Map<String, Integer> result2) -> {
 			Map<String, Integer> map = new LinkedHashMap<>();
-			Arrays.stream(lifeCycle.getCycle()).forEach(s -> map.put(s.name(), (result1.get(s.name()) + result2.get(s.name()))));
+			Arrays.stream(lifeCycle.getCycleAsNameables()).forEach(s -> map.put(s.name(), (result1.get(s.name()) + result2.get(s.name()))));
 			return map;
 		};
 	}

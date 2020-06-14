@@ -280,8 +280,13 @@ public class TestSuiteShoes {
 					}
 
 					@Override
-					public Nameable[] getCycle() {
-						return EnumContainer.enumsToNameableArray(OrderStatus.Status.values());
+					public Enum[] getCycle() {
+						return OrderStatus.Status.values();
+					}
+
+					@Override
+					public Nameable[] getCycleAsNameables() {
+						return EnumContainer.enumsToNameableArray(getCycle());
 					}
 
 					@Override

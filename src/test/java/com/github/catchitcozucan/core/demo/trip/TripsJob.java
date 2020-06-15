@@ -21,11 +21,6 @@ public class TripsJob extends JobBase implements Job {
 	}
 
 	@Override
-	public ProcessSubject provideSubjectSample() {
-		return new TripSubject(null);
-	}
-
-	@Override
 	public void doJob() {
 		fetchSubjectsInCriteriaState().forEachOrdered(o -> exec(new TripProcess(o, TripOrderRepository.getInstance())));
 		LOGGER.info(getTotalExectime());

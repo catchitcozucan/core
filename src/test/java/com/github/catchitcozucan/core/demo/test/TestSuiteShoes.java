@@ -259,47 +259,6 @@ public class TestSuiteShoes {
 			public void doJob() {
 				IO.sleep(3600000);
 			}
-
-			@Override
-			public ProcessSubject provideSubjectSample() {
-				return new ProcessSubject() {
-
-					@Override
-					public Integer id() {
-						return 666;
-					}
-
-					@Override
-					public String subjectIdentifier() {
-						return "apa-bepa";
-					}
-
-					@Override
-					public int getErrorCode() {
-						return 666;
-					}
-
-					@Override
-					public Enum[] getCycle() {
-						return OrderStatus.Status.values();
-					}
-
-					@Override
-					public Nameable[] getCycleAsNameables() {
-						return EnumContainer.enumsToNameableArray(getCycle());
-					}
-
-					@Override
-					public Enum getCurrentStatus() {
-						return OrderStatus.Status.PACKAGING_FAILED;
-					}
-
-					@Override
-					public String getCurrentProcess() {
-						return "ShoeProcess";
-					}
-				};
-			}
 		};
 
 		CatchIt.getInstance().submitJobWithTimeout(newJob, new NumberOfTimeUnits(1, TimeUnit.MILLISECONDS));

@@ -19,6 +19,5 @@ package com.github.catchitcozucan.core.interfaces;
 
 public interface Job extends RejectableTypedRelativeWithName {
 	void doJob();
-	ProcessSubject provideSubjectSample();
 	boolean isExecuting();
 }

@@ -6,16 +6,17 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import com.github.catchitcozucan.core.demo.shoe.Order;
 import com.github.catchitcozucan.core.demo.shoe.OrderStatus;
 import com.github.catchitcozucan.core.demo.shoe.ShipAShoeProcess;
-import com.github.catchitcozucan.core.interfaces.PersistenceService;
-import com.github.catchitcozucan.core.interfaces.ProcessSubject;
 import com.github.catchitcozucan.core.demo.test.support.ArrayRotator;
 import com.github.catchitcozucan.core.demo.test.support.io.IO;
 import com.github.catchitcozucan.core.demo.test.support.io.service.SerializationService;
+import com.github.catchitcozucan.core.interfaces.PersistenceService;
+import com.github.catchitcozucan.core.interfaces.ProcessSubject;
 
 
 public class OrderRepository implements PersistenceService {
@@ -28,6 +29,7 @@ public class OrderRepository implements PersistenceService {
 	private ArrayRotator<OrderStatus.Status> STATUSES = new ArrayRotator<>(ShipAShoeProcess.CRITERIA_STATES);
 	private AtomicInteger id = new AtomicInteger(1);
 	private List<ProcessSubject> orders;
+	private List<Enum> criteriaList = Arrays.stream(ShipAShoeProcess.CRITERIA_STATES).collect(Collectors.toList());
 
 	private OrderRepository() {
 		physicallyWipe();
@@ -126,5 +128,10 @@ public class OrderRepository implements PersistenceService {
 	@Override
 	public Stream<ProcessSubject> provideSubjectStream() {
 		return load().stream();
+	}
+
+	@Override
+	public Stream<ProcessSubject> provideStateFilteredSubjectStream() {
+		return load().stream().filter(s -> criteriaList.contains(s.getCurrentStatus())).collect(Collectors.toList()).stream();
 	}
 }

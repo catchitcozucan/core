@@ -3,7 +3,6 @@ package com.github.catchitcozucan.core.demo.trip;
 import com.github.catchitcozucan.core.demo.trip.internal.TripOrderRepository;
 import com.github.catchitcozucan.core.impl.JobBase;
 import com.github.catchitcozucan.core.interfaces.Job;
-import com.github.catchitcozucan.core.interfaces.ProcessSubject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

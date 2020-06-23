@@ -349,6 +349,7 @@ public class TestSuiteShoes {
 		CatchIt.getInstance().submitTask(t1);
 		Task t2 = makeTask(IsolationLevel.Level.KIND_EXCLUSIVE, RejectableTypedRelativeWithName.RejectionAction.REJECT, false, false);
 		CatchIt.getInstance().submitTask(t2);
+		assertTrue(CatchIt.currentlyExecuting());
 	}
 
 	@Test(expected = ProcessRuntimeException.class)
@@ -357,6 +358,7 @@ public class TestSuiteShoes {
 		CatchIt.getInstance().submitTask(t1);
 		Task t2 = makeTask(IsolationLevel.Level.KIND_EXCLUSIVE, RejectableTypedRelativeWithName.RejectionAction.REJECT, false, false);
 		CatchIt.getInstance().submitTask(t2);
+		assertTrue(CatchIt.currentlyExecuting());
 	}
 
 	@Test
@@ -365,6 +367,7 @@ public class TestSuiteShoes {
 		CatchIt.getInstance().submitTask(t1);
 		Task t2 = makeTask(IsolationLevel.Level.KIND_EXCLUSIVE, RejectableTypedRelativeWithName.RejectionAction.IGNORE, false, false);
 		CatchIt.getInstance().submitTask(t2);
+		assertTrue(CatchIt.currentlyExecuting());
 	}
 
 	@Test

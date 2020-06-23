@@ -252,7 +252,7 @@ public class DaProcessStepProcessor extends AbstractProcessor {
         return descriptor;
     }
 
-    private BpmSchemeElementDescriptor extractDescriptor(String statusUponFailure, String statusUponSuccess, String description, EnumContainer enums, String processName, String stepMethodName, boolean oneStepCase, boolean acceptEnumFailures) {
+    private BpmSchemeElementDescriptor extractDescriptor(String statusUponFailure, String statusUponSuccess, String description, EnumContainer enums, String processName, String stepMethodName, boolean oneStepCase, boolean acceptEnumFailures) { //NOSONAR
         String statusUponFailureShort = statusUponFailure.substring(statusUponFailure.indexOf(DOT) + 1); //NOSONAR
         String statusUponSuccessShort = statusUponSuccess.substring(statusUponSuccess.indexOf(DOT) + 1); //NOSONAR
         AtomicInteger index = new AtomicInteger(-1);
@@ -360,7 +360,7 @@ public class DaProcessStepProcessor extends AbstractProcessor {
         info(String.format("    DaProcessStepProcessor finished with %s", sourceAppender.toString()));
     }
 
-    private void validateDescriptors(List<BpmSchemeElementDescriptor> descriptors) {
+    private void validateDescriptors(List<BpmSchemeElementDescriptor> descriptors) { //NOSONAR
         if (!descriptors.isEmpty()) {
             StringBuilder descriptorErrors = new StringBuilder(MAKE_STEP_ISSUES);
             StringBuilder warningErrors = new StringBuilder(MAKE_STEP_ISSUES);
@@ -369,7 +369,7 @@ public class DaProcessStepProcessor extends AbstractProcessor {
                     String issue = d.validateForErrorOutput();
                     if (IO.hasContents(issue)) {
                         StringBuilder err = new StringBuilder(issue).append(MESSAGE_SEPARATOR);
-                        if (!d.getAcceptEnumFailures()) {
+                        if (!d.getAcceptEnumFailures().booleanValue()) {
                             descriptorErrors.append(err);
                         } else {
                             warningErrors.append(err);
@@ -380,7 +380,7 @@ public class DaProcessStepProcessor extends AbstractProcessor {
                 // first element ALWAYS preceded with the starter
                 if (!descriptors.get(0).getExpectedTypeBefore().equals(BpmSchemeElementDescriptor.Type.START_EVENT) || !descriptors.get(0).getExpectedTypeAfter().equals(BpmSchemeElementDescriptor.Type.ACTIVITY)) {
                     StringBuilder issue = new StringBuilder(String.format("The first non-failure state in your chain (%s) of tasks should _always_ be preceded by a (BPM) StartEvent and be followed by a Task", descriptors.get(0).getMyStateName())).append(MESSAGE_SEPARATOR);
-                    if (!descriptors.get(0).getAcceptEnumFailures()) {
+                    if (!descriptors.get(0).getAcceptEnumFailures().booleanValue()) {
                         descriptorErrors.append(issue);
                     } else {
                         warningErrors.append(issue);
@@ -391,7 +391,7 @@ public class DaProcessStepProcessor extends AbstractProcessor {
                 descriptors.stream().filter(d -> d.getIndex() != null && d.getIndex() > 0 && d.getIndex() < descriptors.size() - 1).forEach(dd -> {
                     if (!dd.getExpectedTypeBefore().equals(BpmSchemeElementDescriptor.Type.ACTIVITY) || !dd.getExpectedTypeAfter().equals(BpmSchemeElementDescriptor.Type.ACTIVITY)) {
                         StringBuilder issue = new StringBuilder(String.format("The mid non-failure states (that is everything between start Task and last Task) such as this (%s) of should _always_ link (BPM) Task to Task", dd.getMyStateName())).append(MESSAGE_SEPARATOR);
-                        if (!dd.getAcceptEnumFailures()) {
+                        if (!dd.getAcceptEnumFailures().booleanValue()) {
                             descriptorErrors.append(issue);
                         } else {
                             warningErrors.append(issue);
@@ -402,7 +402,7 @@ public class DaProcessStepProcessor extends AbstractProcessor {
                 // last element ALWAYS followed with the finish_state
                 if (!descriptors.get(descriptors.size() - 1).getExpectedTypeBefore().equals(BpmSchemeElementDescriptor.Type.ACTIVITY) || !descriptors.get(descriptors.size() - 1).getExpectedTypeAfter().equals(BpmSchemeElementDescriptor.Type.FINISH_STATE)) {
                     StringBuilder issue = new StringBuilder(String.format("The last non-failure state before finish state (%s) of should _always_ be preced with a (BPM) Task and be followed by the finish state", descriptors.get(descriptors.size() - 1).getMyStateName())).append(MESSAGE_SEPARATOR);
-                    if (!descriptors.get(descriptors.size() - 1).getAcceptEnumFailures()) {
+                    if (!descriptors.get(descriptors.size() - 1).getAcceptEnumFailures().booleanValue()) {
                         descriptorErrors.append(issue);
                     } else {
                         warningErrors.append(issue);
@@ -411,7 +411,7 @@ public class DaProcessStepProcessor extends AbstractProcessor {
             } else {
                 if (!descriptors.get(0).getExpectedTypeBefore().equals(BpmSchemeElementDescriptor.Type.START_EVENT)) {
                     StringBuilder issue = new StringBuilder(String.format("There is only one task in this descriptor list. This means that is HAS TO be preceded with a start event (%s)", descriptors.get(0).getMyStateName())).append(MESSAGE_SEPARATOR);
-                    if (!descriptors.get(0).getAcceptEnumFailures()) {
+                    if (!descriptors.get(0).getAcceptEnumFailures().booleanValue()) {
                         descriptorErrors.append(issue);
                     } else {
                         warningErrors.append(issue);
@@ -419,7 +419,7 @@ public class DaProcessStepProcessor extends AbstractProcessor {
                 }
                 if (!descriptors.get(0).getExpectedTypeAfter().equals(BpmSchemeElementDescriptor.Type.FINISH_STATE)) {
                     StringBuilder issue = new StringBuilder(String.format("There is only one task in this descriptor list. This means that is HAS TO be followed with a finish state (%s)", descriptors.get(0).getMyStateName())).append(MESSAGE_SEPARATOR);
-                    if (!descriptors.get(0).getAcceptEnumFailures()) {
+                    if (!descriptors.get(0).getAcceptEnumFailures().booleanValue()) {
                         descriptorErrors.append(issue);
                     } else {
                         warningErrors.append(issue);

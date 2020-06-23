@@ -306,7 +306,7 @@ public class BpmSchemeGenerator extends BaseDomainObject {
     }
 
 
-    private String appendActivityGwAndFailActivity(String idSource, BpmSchemeElementDescriptor d, StringBuilder processSection, StringBuilder diagramSection, int colon, int depth, boolean currentRenderingIsAColumnChange, boolean oneTaskFlow) {
+    private String appendActivityGwAndFailActivity(String idSource, BpmSchemeElementDescriptor d, StringBuilder processSection, StringBuilder diagramSection, int colon, int depth, boolean currentRenderingIsAColumnChange, boolean oneTaskFlow) { //NOSONAR
         switch (d.getExpectedTypeBefore()) {
             case START_EVENT:
                 String startEventIdHolder = generateIdForType(BpmSchemeElementDescriptor.Type.START_EVENT);

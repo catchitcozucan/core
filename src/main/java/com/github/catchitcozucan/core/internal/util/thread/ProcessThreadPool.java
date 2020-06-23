@@ -109,9 +109,9 @@ public class ProcessThreadPool implements Exitable {
     }
 
 
-    public synchronized void stopServer() {
+    public synchronized void stopServer() { //NOSONAR
 
-        tasks.stream().forEach(t -> t.signalInterrupt());
+        tasks.stream().forEach(Task::signalInterrupt);
 
         if (executorForTimeout != null) {
             executorForTimeout.shutdownNow();
@@ -129,8 +129,8 @@ public class ProcessThreadPool implements Exitable {
                     executorForTimeout.awaitTermination(1, TimeUnit.SECONDS);
                 }
 
-            } catch (Exception ignore) {
-            } finally {
+            } catch (Exception ignore) {} //NOSONAR
+            finally {
                 if (executor != null && executor.isTerminated()) {
                     executor = null;
                 }

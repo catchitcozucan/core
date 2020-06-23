@@ -22,6 +22,7 @@ import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -114,7 +115,7 @@ public abstract class JobBase implements Job, HistogramProvider {
 	} // it is not necessary, though healthy, to implement this
 
 	protected Stream<ProcessSubject> fetchSubjectsInCriteriaState() {
-		return persistenceService.provideSubjectStream().filter(subject -> isOrderInPickupState(subject)).collect(Collectors.toList()).stream();
+		return persistenceService.provideSubjectStream().filter(subject -> isOrderInPickupState(subject)).collect(Collectors.toList()).stream(); //NOSONAR
 	}
 
 	protected void exec(Process proc) {
@@ -174,18 +175,18 @@ public abstract class JobBase implements Job, HistogramProvider {
 	}
 
 	private boolean isOrderInPickupState(ProcessSubject p) {
-		return Arrays.stream(criteriaStates).filter(state -> state.equals(p.getCurrentStatus())).findFirst().isPresent();
+		return Arrays.stream(criteriaStates).filter(state -> state.equals(p.getCurrentStatus())).findFirst().isPresent(); //NOSONAR
 	}
 
 	private boolean collectorIsAvailable() {
 		if (cycleHistogramCollector == null) {
-			Optional<ProcessSubject> processSubjectOptional = persistenceService.provideSubjectStream().filter(s -> s != null).findFirst();
+			Optional<ProcessSubject> processSubjectOptional = persistenceService.provideSubjectStream().filter(Objects::nonNull).findFirst();
 			if (processSubjectOptional.isPresent()) {
 				ProcessSubject subject = processSubjectOptional.get();
 				LifeCycleProvider lifeCycleProvider = new LifeCycleProvider() {
 					@Override
 					public Enum[] getCycle() {
-						return null; // will not be utilized here...
+						return null; // will not be utilized here... //NOSONAR
 					}
 
 					@Override
@@ -210,7 +211,7 @@ public abstract class JobBase implements Job, HistogramProvider {
 	}
 
 	private void setupNameAbles() {
-		List<Nameable> enumValues = Arrays.stream(criteriaStates[0].getClass().getEnumConstants()).filter(s -> s != null).map(Object::toString).map(s -> (Nameable) () -> s).collect(Collectors.toList());
+		List<Nameable> enumValues = Arrays.stream(criteriaStates[0].getClass().getEnumConstants()).filter(Objects::nonNull).map(Object::toString).map(s -> (Nameable) () -> s).collect(Collectors.toList());
 		nameables = enumValues.toArray(new Nameable[enumValues.size()]);
 	}
 }

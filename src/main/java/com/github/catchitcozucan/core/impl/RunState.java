@@ -21,7 +21,7 @@ import com.github.catchitcozucan.core.internal.util.domain.BaseDomainObject;
 public class RunState extends BaseDomainObject {
 
 	public enum State {
-		InQueue, InProcess, InWait;
+		InQueue, InProcess, InWait; //NOSONAR
 	}
 
 	private final State state;

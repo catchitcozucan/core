@@ -47,16 +47,13 @@ public class Slf4JSetup implements LoggingService {
     private static final String MAX_LOG_FILE_SIZE = "100MB";
     private static final String LOG_PATTERN = "%date %level [%thread] %logger{10}.%line %msg%n";
     public static final String COM_GITHUB_CATCHITCOZUCAN = "com.github.catchitcozucan";
-    private static Slf4JSetup INSTANCE;
+    private static Slf4JSetup INSTANCE; //NOSONAR
     private LoggerContext context;
     private static org.slf4j.Logger LOGGER; //NOSONAR - this _is_ bull.
     private static final String LOGS = "logs";
-    private boolean logSeparately;
 
     private Slf4JSetup(File logFolder, String applicationName, boolean rundebug, String logFilePrefix, boolean logSeparately) {
         context = (LoggerContext) LoggerFactory.getILoggerFactory();
-
-        this.logSeparately = logSeparately;
 
         // den SKA ha skapats tidigare men den finns inte på jenkins -> loggga till tempdir
         if (!logFolder.exists()) {
@@ -167,7 +164,7 @@ public class Slf4JSetup implements LoggingService {
         if (context != null && context.isStarted()) {
             StatusPrinter.print(context);
             context.stop();
-            INSTANCE = null;
+            INSTANCE = null; //NOSONAR
         }
     }
 

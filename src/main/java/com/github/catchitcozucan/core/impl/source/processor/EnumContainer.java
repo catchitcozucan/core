@@ -87,7 +87,7 @@ public class EnumContainer {
 
 	public static Nameable[] enumsToNameableArray(Enum[] enums) {
 		if (enums == null) {
-			return null;
+			return null; //NOSONAR
 		}
 		if (enums.length == 0) {
 			return new Nameable[] {};
@@ -95,9 +95,7 @@ public class EnumContainer {
 
 		Nameable[] nameables = new Nameable[enums.length];
 		AtomicInteger index = new AtomicInteger(0);
-		Arrays.stream(enums).forEach(e -> {
-			nameables[index.getAndIncrement()] = () -> e.name();
-		});
+		Arrays.stream(enums).forEach(e -> nameables[index.getAndIncrement()] = () -> e.name()); //NOSONAR
 		return nameables;
 	}
 }

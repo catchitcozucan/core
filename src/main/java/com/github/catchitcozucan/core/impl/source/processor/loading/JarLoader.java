@@ -1,3 +1,20 @@
+/**
+ *    Original work by Ola Aronsson 2020
+ *    Courtesy of nollettnoll AB &copy; 2012 - 2020
+ *
+ *    Licensed under the Creative Commons Attribution 4.0 International (the "License")
+ *    you may not use this file except in compliance with the License. You may obtain
+ *    a copy of the License at
+ *
+ *                https://creativecommons.org/licenses/by/4.0/
+ *
+ *    The software is provided “as is”, without warranty of any kind, express or
+ *    implied, including but not limited to the warranties of merchantability,
+ *    fitness for a particular purpose and noninfringement. In no event shall the
+ *    authors or copyright holders be liable for any claim, damages or other liability,
+ *    whether in an action of contract, tort or otherwise, arising from, out of or
+ *    in connection with the software or the use or other dealings in the software.
+ */
 package com.github.catchitcozucan.core.impl.source.processor.loading;
 
 import static com.github.catchitcozucan.core.impl.source.processor.DaProcessStepConstants.EMPTY;
@@ -20,13 +37,15 @@ public class JarLoader {
     private static final String ADD_URL = "addURL";
     private static final String NUMBERS = "[0-9]";
     private static final String JAR = ".jar";
-    private static JarLoader INSTANCE;
+    public static final String COULD_NOT_LOAD_URLS_ONTO_CLASSPATH = "Could not load urls onto classpath";
+    public static final String DASH = "-";
+    private static JarLoader INSTANCE; //NOSONAR
     List<String> pathsLoaded;
     private final Method addURL;
     private final ClassLoader classLoader;
 
     private JarLoader(ClassLoader classLoader) throws NoSuchMethodException {
-        addURL = URLClassLoader.class.getDeclaredMethod(ADD_URL, new Class[] { URL.class });
+        addURL = URLClassLoader.class.getDeclaredMethod(ADD_URL, new Class[] { URL.class }); //NOSONAR
         addURL.setAccessible(true);
         pathsLoaded = new ArrayList<>();
         this.classLoader = classLoader;
@@ -64,37 +83,30 @@ public class JarLoader {
         try {
             Class<?> cl = classLoader.loadClass(namedClassFullPath);
             if (getInstance) {
-                try {
-                    Object ret = cl.newInstance();
-                    return ret;
-                } catch (InstantiationException e) {
-                    return new Boolean(false);
-                } catch (IllegalAccessException e) {
-                    return new Boolean(false);
+                try { //NOSONAR
+                    return cl.newInstance(); //NOSONAR
+                } catch (InstantiationException | IllegalAccessException e) {
+                    return new Boolean(false); //NOSONAR
                 }
             } else {
-                return new Boolean(true);
+                return new Boolean(true); //NOSONAR
             }
         } catch (ClassNotFoundException e) {
-            return new Boolean(false);
+            return new Boolean(false); //NOSONAR
         }
     }
 
     private void doLoadTheseUrls(List<URL> selFiles) {
         try {
             loadTheseUrlsIntotheClasspath(selFiles);
-        } catch (IllegalArgumentException e) {
-            throw new ProcessRuntimeException("Could not load urls onto classpath", e);
-        } catch (IllegalAccessException e) {
-            throw new ProcessRuntimeException("Could not load urls onto classpath", e);
-        } catch (InvocationTargetException e) {
-            throw new ProcessRuntimeException("Could not load urls onto classpath", e);
+        } catch (IllegalArgumentException | IllegalAccessException | InvocationTargetException e) {
+            throw new ProcessRuntimeException(COULD_NOT_LOAD_URLS_ONTO_CLASSPATH, e);
         }
     }
 
-    private void loadTheseUrlsIntotheClasspath(List<URL> selFiles) throws IllegalArgumentException, IllegalAccessException, InvocationTargetException {
+    private void loadTheseUrlsIntotheClasspath(List<URL> selFiles) throws IllegalAccessException, InvocationTargetException {
         for (URL u : selFiles) {
-            addURL.invoke(classLoader, new Object[] { u });
+            addURL.invoke(classLoader, new Object[] { u }); //NOSONAR
             classLoader.getResourceAsStream(u.toExternalForm());
         }
     }
@@ -114,27 +126,22 @@ public class JarLoader {
         List<URL> selFiles = new ArrayList<>();
         List<File> dirsToProcess = getJarFileUrls(toMatch, 0, selFiles, dir);
         if (!dirsToProcess.isEmpty()) {
-            List<URL> urls = new ArrayList<>();
             List<URL> urlz = new ArrayList<>();
             urlz.addAll(selFiles);
-            dirsToProcess.stream().forEach(d -> {
-                getJarFileUrls(toMatch, 1, urlz, d);
-            });
+            dirsToProcess.stream().forEach(d -> getJarFileUrls(toMatch, 1, urlz, d));
             selFiles.addAll(urlz);
         }
         if (selFiles.size() > 1) {
             AtomicInteger index = new AtomicInteger(selFiles.size()-1);
             File[] toCheck = new File[selFiles.size()];
-            selFiles.stream().forEach(f -> {
-                toCheck[index.getAndDecrement()] = new File(f.getFile());
-            });
+            selFiles.stream().forEach(f -> toCheck[index.getAndDecrement()] = new File(f.getFile()));
             File[] checked = filterOutElderFilesWithSimilarFilesNames(toCheck, 5, true, true);
             final List<URL> chechedUrlz = new ArrayList<>();
             Arrays.stream(checked).forEach(ff -> {
                 URL u = null;
                 try {
                     u = ff.toURI().toURL();
-                } catch (MalformedURLException ignore) {}
+                } catch (MalformedURLException ignore) {} //NOSONAR
                 if (u != null) {
                     chechedUrlz.add(u);
                 }
@@ -144,7 +151,7 @@ public class JarLoader {
         return selFiles;
     }
 
-    private List<File> getJarFileUrls(String toMatch, int depth, List<URL> accumResult, File rootDir) {
+    private List<File> getJarFileUrls(String toMatch, int depth, List<URL> accumResult, File rootDir) { //NOSONAR
         File[] files = rootDir.listFiles();
         List<File> dirsToProcess = new ArrayList<>();
         for (File f : files) {
@@ -166,15 +173,15 @@ public class JarLoader {
                 } else if (depth == 0 && f.isDirectory() && f.canRead()) {
                     dirsToProcess.add(f);
                 }
-            } catch (MalformedURLException ignore) {}
+            } catch (MalformedURLException ignore) {} //NOSONAR
         }
         return dirsToProcess;
     }
 
-    private static File[] filterOutElderFilesWithSimilarFilesNames(File[] files, int minimumLcs, boolean ignoreNumbers, boolean mavenStyle) {
+    private static File[] filterOutElderFilesWithSimilarFilesNames(File[] files, int minimumLcs, boolean ignoreNumbers, boolean mavenStyle) { //NOSONAR
 
         List<String> index = new ArrayList<>();
-        List<File> selFiles = new ArrayList<File>();
+        List<File> selFiles = new ArrayList<>();
         for (File f : files) {
             List<FileCompareEntity> hits = new ArrayList<>();
             for (File other : files) {
@@ -183,15 +190,13 @@ public class JarLoader {
                 String otherName = stringify(other, mavenStyle, ignoreNumbers);
                 if (!otherName.equals(srcName)) {
                     String lcs = firstCommonSequence(otherName.replace(JAR, EMPTY), srcName.replace(JAR, EMPTY));
-                    if (lcs != null && lcs.length() > minimumLcs) {
-                        if (other.lastModified() > f.lastModified()) {
-                            hits.add(new FileCompareEntity(other, lcs));
-                        }
+                    if (lcs != null && lcs.length() > minimumLcs && other.lastModified() > f.lastModified()) {
+                        hits.add(new FileCompareEntity(other, lcs));
                     }
                 }
             }
 
-            if (hits.size() > 0) {
+            if (!hits.isEmpty()) {
                 int longestMatch = 0;
                 for (FileCompareEntity entry : hits) {
                     if (entry.geLcsLen() > longestMatch) {
@@ -219,7 +224,7 @@ public class JarLoader {
     private static String stringify(File f, boolean mavenStyle, boolean ignoreNumbers) {
         String ff = f.getName();
         if (mavenStyle) {
-            ff = ff.substring(0, ff.indexOf("-"));
+            ff = ff.substring(0, ff.indexOf(DASH)); //NOSONAR
         }
         if (ignoreNumbers || mavenStyle) {
             ff = ff.replaceAll(NUMBERS, EMPTY);

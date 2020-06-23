@@ -115,7 +115,7 @@ public abstract class JobBase implements Job, HistogramProvider {
 	} // it is not necessary, though healthy, to implement this
 
 	protected Stream<ProcessSubject> fetchSubjectsInCriteriaState() {
-		return persistenceService.provideSubjectStream().filter(subject -> isOrderInPickupState(subject)).collect(Collectors.toList()).stream(); //NOSONAR
+		return persistenceService.provideStateFilteredSubjectStream(); //NOSONAR
 	}
 
 	protected void exec(Process proc) {
@@ -172,10 +172,6 @@ public abstract class JobBase implements Job, HistogramProvider {
 			datan.put(labelz[i], value);
 		}
 		return datan;
-	}
-
-	private boolean isOrderInPickupState(ProcessSubject p) {
-		return Arrays.stream(criteriaStates).filter(state -> state.equals(p.getCurrentStatus())).findFirst().isPresent(); //NOSONAR
 	}
 
 	private boolean collectorIsAvailable() {

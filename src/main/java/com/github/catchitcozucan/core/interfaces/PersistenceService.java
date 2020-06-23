@@ -22,4 +22,5 @@ import java.util.stream.Stream;
 public interface PersistenceService {
     void save(ProcessSubject processSubject);
     Stream<ProcessSubject> provideSubjectStream();
+    Stream<ProcessSubject> provideStateFilteredSubjectStream();
 }

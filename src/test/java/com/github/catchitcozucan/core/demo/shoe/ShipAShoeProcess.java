@@ -1,6 +1,6 @@
 package com.github.catchitcozucan.core.demo.shoe;
 
-import com.github.catchitcozucan.core.ProcessBpmSchemeRepo;
+import com.github.catchitcozucan.core.CompileOptions;
 import com.github.catchitcozucan.core.ProcessStep;
 import com.github.catchitcozucan.core.exception.ProcessRuntimeException;
 import com.github.catchitcozucan.core.impl.ProcessBase;
@@ -13,7 +13,7 @@ import com.github.catchitcozucan.core.demo.shoe.internal.LaceProvider;
 import com.github.catchitcozucan.core.demo.shoe.internal.ShoeProvider;
 import com.github.catchitcozucan.core.demo.test.support.io.IO;
 
-@ProcessBpmSchemeRepo(relativePath = "../../../../../../../resources/bpmSchemes", activitiesPerColumn = "3")
+@CompileOptions(relativeBpmDirectoryPath = "../../../../../../../resources/bpmSchemes", bpmActivitiesPerColumn = "3")
 public class ShipAShoeProcess extends ProcessBase {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ShipAShoeProcess.class);
@@ -81,7 +81,7 @@ public class ShipAShoeProcess extends ProcessBase {
 
     //@formatter:off DO_NOT_FORMAT
 
-    private final ProcessStep doGetShoeStep = new ProcessStep(){ 
+    private final com.github.catchitcozucan.core.ProcessStep doGetShoeStep = new com.github.catchitcozucan.core.ProcessStep(){ 
 
         @Override
         public void execute() {
@@ -110,7 +110,7 @@ public class ShipAShoeProcess extends ProcessBase {
 
     };
 
-    private final ProcessStep doSendPackageStep = new ProcessStep(){ 
+    private final com.github.catchitcozucan.core.ProcessStep doSendPackageStep = new com.github.catchitcozucan.core.ProcessStep(){ 
 
         @Override
         public void execute() {
@@ -139,7 +139,7 @@ public class ShipAShoeProcess extends ProcessBase {
 
     };
 
-    private final ProcessStep doGetLacesStep = new ProcessStep(){ 
+    private final com.github.catchitcozucan.core.ProcessStep doGetLacesStep = new com.github.catchitcozucan.core.ProcessStep(){ 
 
         @Override
         public void execute() {
@@ -168,7 +168,7 @@ public class ShipAShoeProcess extends ProcessBase {
 
     };
 
-    private final ProcessStep doGetPackagingStep = new ProcessStep(){ 
+    private final com.github.catchitcozucan.core.ProcessStep doGetPackagingStep = new com.github.catchitcozucan.core.ProcessStep(){ 
 
         @Override
         public void execute() {

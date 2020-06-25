@@ -24,10 +24,10 @@ import java.lang.annotation.Target;
 
 @Target({ ElementType.TYPE })
 @Retention(RetentionPolicy.CLASS)
-public @interface ProcessBpmSchemeRepo {
-	String relativePath() default ".";
-	String activitiesPerColumn() default "3";
-	String mavenModulePath() default "NONE";
+public @interface CompileOptions {
+	String relativeBpmDirectoryPath() default ".";
+	String bpmActivitiesPerColumn() default "3";
+	String mavenModulePathToStatusEnumeration() default "NONE";
 	String criteriaStateOnlyFailure() default "false";
-	String acceptFailures() default "false";
+	String acceptStatusEvaluationFailures() default "false";
 }

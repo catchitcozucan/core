@@ -51,7 +51,7 @@ import javax.tools.JavaCompiler;
 import javax.tools.ToolProvider;
 
 import com.github.catchitcozucan.core.MakeStep;
-import com.github.catchitcozucan.core.ProcessBpmSchemeRepo;
+import com.github.catchitcozucan.core.CompileOptions;
 import com.github.catchitcozucan.core.ProcessStatus;
 import com.github.catchitcozucan.core.exception.ProcessRuntimeException;
 import com.github.catchitcozucan.core.impl.source.processor.bpm.BpmSchemeElementDescriptor;
@@ -98,7 +98,7 @@ public class DaProcessStepProcessor extends AbstractProcessor {
         }
         Set<? extends Element> elementsToWorkMakeStep = roundEnv.getElementsAnnotatedWith(MakeStep.class);
         Set<? extends Element> elementsToWorkProcess = roundEnv.getElementsAnnotatedWith(ProcessStatus.class);
-        Set<? extends Element> elementsToWorkBpmSchemeLocation = roundEnv.getElementsAnnotatedWith(ProcessBpmSchemeRepo.class);
+        Set<? extends Element> elementsToWorkBpmSchemeLocation = roundEnv.getElementsAnnotatedWith(CompileOptions.class);
         if (elementsToWorkMakeStep.isEmpty()) {
             return true;
         }
@@ -436,7 +436,7 @@ public class DaProcessStepProcessor extends AbstractProcessor {
                 throw new ProcessRuntimeException("Could not build due to Status enum conceptual misunderstandings");
             }
         } else {
-            warn("No BPM descriptors found - I will not generate BPM 2.0 XML schemes. Either the @ProcessBpmSchemeRepo annotation was not used or there where issues loading your status enumaration classes.");
+            warn("No BPM descriptors found - I will not generate BPM 2.0 XML schemes. Either the @CompileOptions annotation was not used or there where issues loading your status enumaration classes.");
         }
     }
 

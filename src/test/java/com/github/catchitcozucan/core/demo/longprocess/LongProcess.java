@@ -1,7 +1,7 @@
 package com.github.catchitcozucan.core.demo.longprocess;
 
 import com.github.catchitcozucan.core.MakeStep;
-import com.github.catchitcozucan.core.ProcessBpmSchemeRepo;
+import com.github.catchitcozucan.core.CompileOptions;
 import com.github.catchitcozucan.core.ProcessStep;
 import com.github.catchitcozucan.core.exception.ProcessRuntimeException;
 import com.github.catchitcozucan.core.impl.ProcessBase;
@@ -10,7 +10,7 @@ import com.github.catchitcozucan.core.interfaces.ProcessSubject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@ProcessBpmSchemeRepo(relativePath = "../../../../../../../resources/bpmSchemes", activitiesPerColumn = "3")
+@CompileOptions(relativeBpmDirectoryPath = "../../../../../../../resources/bpmSchemes", bpmActivitiesPerColumn = "3")
 public class LongProcess extends ProcessBase {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(LongProcess.class);

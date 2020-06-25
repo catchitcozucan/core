@@ -23,7 +23,7 @@ import static com.github.catchitcozucan.core.impl.source.processor.DaProcessStep
 import static com.github.catchitcozucan.core.impl.source.processor.DaProcessStepConstants.FILE;
 import static com.github.catchitcozucan.core.impl.source.processor.DaProcessStepConstants.NL;
 import static com.github.catchitcozucan.core.impl.source.processor.DaProcessStepConstants.NONE;
-import static com.github.catchitcozucan.core.impl.source.processor.DaProcessStepConstants.PROCESSBPMSCHEMEREPO_JAVA_PATH;
+import static com.github.catchitcozucan.core.impl.source.processor.DaProcessStepConstants.ANNOT_COMPILEOPTIONS_JAVA_PATH;
 import static com.github.catchitcozucan.core.impl.source.processor.DaProcessStepConstants.TSYM;
 import static com.github.catchitcozucan.core.impl.source.processor.DaProcessStepConstants.TYPE;
 import static com.github.catchitcozucan.core.impl.source.processor.DaProcessStepConstants.info;
@@ -43,7 +43,7 @@ import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
 
 import com.github.catchitcozucan.core.MakeStep;
-import com.github.catchitcozucan.core.ProcessBpmSchemeRepo;
+import com.github.catchitcozucan.core.CompileOptions;
 import com.github.catchitcozucan.core.ProcessStatus;
 import com.github.catchitcozucan.core.internal.util.io.IO;
 import com.github.catchitcozucan.core.internal.util.reflect.ReflectionUtils;
@@ -126,14 +126,14 @@ public class DaProcessStepLookup {
 			return isValidMethod(elem, annotationTypePath);
 		}).forEach(ee -> {
 			File classSymbol = (File) ReflectionUtils.getFieldValueSilent(ReflectionUtils.getFieldValueSilent(ee, CLASSFILE), FILE);
-			String completePath = classSymbol.getParent() + File.separator + ee.getAnnotation(ProcessBpmSchemeRepo.class).relativePath();
-			String mavenModulePath = ee.getAnnotation(ProcessBpmSchemeRepo.class).mavenModulePath();
+			String completePath = classSymbol.getParent() + File.separator + ee.getAnnotation(CompileOptions.class).relativeBpmDirectoryPath();
+			String mavenModulePath = ee.getAnnotation(CompileOptions.class).mavenModulePathToStatusEnumeration();
 			if(mavenModulePath.equals(NONE)){
 				mavenModulePath = null;
 			}
-			boolean criteriaStateOnlyFailure = IO.looksLikeTrue(ee.getAnnotation(ProcessBpmSchemeRepo.class).criteriaStateOnlyFailure());
-			boolean acceptFailures = IO.looksLikeTrue(ee.getAnnotation(ProcessBpmSchemeRepo.class).acceptFailures());
-			String activitesPerColumnStr = ee.getAnnotation(ProcessBpmSchemeRepo.class).activitiesPerColumn();
+			boolean criteriaStateOnlyFailure = IO.looksLikeTrue(ee.getAnnotation(CompileOptions.class).criteriaStateOnlyFailure());
+			boolean acceptFailures = IO.looksLikeTrue(ee.getAnnotation(CompileOptions.class).acceptStatusEvaluationFailures());
+			String activitesPerColumnStr = ee.getAnnotation(CompileOptions.class).bpmActivitiesPerColumn();
 			Integer activitiesPerColumn = ACTIVITIES_PER_COLUMN_DEFAULT;
 			try {
 				activitiesPerColumn = Integer.parseInt(activitesPerColumnStr);
@@ -151,7 +151,7 @@ public class DaProcessStepLookup {
 				IO.makeOrUseDir(completePath);
 				bpmFolderPerProcessClass.put(ee.toString(), new ClassPathActivitesPerColumn(activitiesPerColumn, new File(completePath), mavenModulePath, criteriaStateOnlyFailure, acceptFailures));
 			} catch (RuntimeException e) {
-				DaProcessStepConstants.error(ee, "Relativepath for @%s defined as %s in %s could not be created/used", ProcessBpmSchemeRepo.class.getSimpleName(), ee.toString(), completePath);
+				DaProcessStepConstants.error(ee, "Relativepath for @%s defined as %s in %s could not be created/used", CompileOptions.class.getSimpleName(), ee.toString(), completePath);
 				return;
 			}
 		});
@@ -209,13 +209,13 @@ public class DaProcessStepLookup {
 				return false;
 			}
 			return true;
-		} else if (annotationTypePath.equals(PROCESSBPMSCHEMEREPO_JAVA_PATH)) {
+		} else if (annotationTypePath.equals(ANNOT_COMPILEOPTIONS_JAVA_PATH)) {
 			if (!item.getKind().equals(ElementKind.CLASS)) {
-				DaProcessStepConstants.error(item, "Only classes can be annotated with @%s", ProcessBpmSchemeRepo.class.getSimpleName());
+				DaProcessStepConstants.error(item, "Only classes can be annotated with @%s", CompileOptions.class.getSimpleName());
 				return false;
 			}
 			if (item.getModifiers().contains(Modifier.ABSTRACT)) {
-				DaProcessStepConstants.error(item, "The type %s is abstract. You can't annotate abstract types with @s%", item.getSimpleName(), ProcessBpmSchemeRepo.class.getSimpleName());
+				DaProcessStepConstants.error(item, "The type %s is abstract. You can't annotate abstract types with @s%", item.getSimpleName(), CompileOptions.class.getSimpleName());
 				return false;
 			}
 			return true;

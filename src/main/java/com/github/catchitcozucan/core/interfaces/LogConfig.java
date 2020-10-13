@@ -17,10 +17,10 @@
  */
 package com.github.catchitcozucan.core.interfaces;
 
-import static com.github.catchitcozucan.core.impl.ProcessLogging.LoggingSetup;
+import static com.github.catchitcozucan.core.impl.ProcessLogging.LoggingSetupStrategy;
 
 public interface LogConfig {
     String getLoggingApp();
     String getSytemLogParentDir();
-    LoggingSetup getLogSeparately();
+    LoggingSetupStrategy getLoggingSetupStrategy();
 }

@@ -45,11 +45,10 @@ import com.github.catchitcozucan.core.exception.ProcessRuntimeException;
 import com.github.catchitcozucan.core.histogram.HistogramStatus;
 import com.github.catchitcozucan.core.impl.CatchIt;
 import com.github.catchitcozucan.core.impl.JobBase;
-import com.github.catchitcozucan.core.impl.ProcessLogging;
 import com.github.catchitcozucan.core.impl.ProcessingFlags;
 import com.github.catchitcozucan.core.impl.RunState;
-import static com.github.catchitcozucan.core.impl.ProcessLogging.LoggingSetup;
-import static com.github.catchitcozucan.core.impl.ProcessLogging.LoggingSetup.*;
+import static com.github.catchitcozucan.core.impl.ProcessLogging.LoggingSetupStrategy;
+import static com.github.catchitcozucan.core.impl.ProcessLogging.LoggingSetupStrategy.*;
 import com.github.catchitcozucan.core.impl.startup.NumberOfTimeUnits;
 import com.github.catchitcozucan.core.interfaces.CatchItConfig;
 import com.github.catchitcozucan.core.interfaces.IsolationLevel;
@@ -114,7 +113,7 @@ public class TestSuiteShoes {
 				}
 
 				@Override
-				public LoggingSetup getLogSeparately() {
+				public LoggingSetupStrategy getLoggingSetupStrategy() {
 					return SETUP_LOG_SEPARATELY;
 				}
 			};
@@ -421,7 +420,7 @@ public class TestSuiteShoes {
 					}
 
 					@Override
-					public LoggingSetup getLogSeparately() {
+					public LoggingSetupStrategy getLoggingSetupStrategy() {
 						return SETUP_LOG_SEPARATELY;
 					}
 				};

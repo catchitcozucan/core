@@ -28,16 +28,18 @@ import org.slf4j.LoggerFactory;
 public class ProcessLogging {
 
 	private static final String DEF_PROCESSING_APP = "processing";
+	public static final String NOAPP = "noapp";
+	public static final String NOPATH = "nopath";
 	private static ProcessLogging INSTANCE; //NOSONAR
 
-	public enum LoggingSetup {
+	public enum LoggingSetupStrategy {
 		SETUP_LOG_SEPARATELY, SETUP_LOGGING_LOG_INCLUSIVELY, NO_LOGGING_SETUP
 	}
 
-	private ProcessLogging(String sytemLogParentDir, String loggingApp, LoggingSetup loggingSetup) {
-		if (loggingSetup.equals(LoggingSetup.SETUP_LOGGING_LOG_INCLUSIVELY)) {
+	private ProcessLogging(String sytemLogParentDir, String loggingApp, LoggingSetupStrategy loggingSetupStrategy) {
+		if (loggingSetupStrategy.equals(LoggingSetupStrategy.SETUP_LOGGING_LOG_INCLUSIVELY)) {
 			Slf4JSetup.init(sytemLogParentDir, loggingApp, false);
-		} else if (loggingSetup.equals(LoggingSetup.SETUP_LOG_SEPARATELY)) {
+		} else if (loggingSetupStrategy.equals(LoggingSetupStrategy.SETUP_LOG_SEPARATELY)) {
 			Slf4JSetup.init(sytemLogParentDir, loggingApp, false, DEF_PROCESSING_APP, true);
 		}
 	}
@@ -127,11 +129,15 @@ public class ProcessLogging {
 
 	public static synchronized void initLogging(LogConfig logConfig) {
 		if (INSTANCE == null) {
-			INSTANCE = new ProcessLogging(logConfig.getSytemLogParentDir(), logConfig.getLoggingApp(), logConfig.getLogSeparately());
+			if (logConfig != null) {
+				INSTANCE = new ProcessLogging(logConfig.getSytemLogParentDir(), logConfig.getLoggingApp(), logConfig.getLoggingSetupStrategy());
+			} else {
+				INSTANCE = new ProcessLogging(NOPATH, NOAPP, LoggingSetupStrategy.NO_LOGGING_SETUP);
+			}
 		}
 	}
 
-	public static synchronized void initLogging(String sytemLogParentDir, String loggingApp, LoggingSetup logSeparately) {
+	public static synchronized void initLogging(String sytemLogParentDir, String loggingApp, LoggingSetupStrategy logSeparately) {
 		if (INSTANCE == null) {
 			INSTANCE = new ProcessLogging(sytemLogParentDir, loggingApp, logSeparately);
 		}

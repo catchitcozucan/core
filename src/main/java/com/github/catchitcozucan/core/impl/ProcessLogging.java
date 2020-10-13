@@ -27,125 +27,131 @@ import org.slf4j.LoggerFactory;
 
 public class ProcessLogging {
 
-    private static final String DEF_PROCESSING_APP = "processing";
-    private static ProcessLogging INSTANCE; //NOSONAR
+	private static final String DEF_PROCESSING_APP = "processing";
+	private static ProcessLogging INSTANCE; //NOSONAR
 
-    private ProcessLogging(String sytemLogParentDir, String loggingApp, boolean logSeparately) {
-        if (!logSeparately) {
-            Slf4JSetup.init(sytemLogParentDir, loggingApp, false);
-        } else {
-            Slf4JSetup.init(sytemLogParentDir, loggingApp, false, DEF_PROCESSING_APP, logSeparately);
-        }
-    }
+	public enum LoggingSetup {
+		SETUP_LOG_SEPARATELY, SETUP_LOGGING_LOG_INCLUSIVELY, NO_LOGGING_SETUP
+	}
 
-    private ProcessLogging() { //NOSONAR
-        String systemLogPathProperty = System.getProperty(ProcessingFlags.NEN_PROCESSING_LOG_DIR);
-        String systemLogPathEnv = System.getenv(ProcessingFlags.NEN_PROCESSING_LOG_DIR);
-        String logSeparatelyPatEnv = System.getenv(ProcessingFlags.NEN_PROCESSING_LOGGING_SEPARATE_FILE);
-        String logSeparatelyPathProperty = System.getProperty(ProcessingFlags.NEN_PROCESSING_LOGGING_SEPARATE_FILE);
-        boolean doLogSeparately = false;
-        StringBuilder logPathError = new StringBuilder();
-        File specfiedLogDir = null;
-        String logVia = null;
+	private ProcessLogging(String sytemLogParentDir, String loggingApp, LoggingSetup loggingSetup) {
+		if (loggingSetup.equals(LoggingSetup.SETUP_LOGGING_LOG_INCLUSIVELY)) {
+			Slf4JSetup.init(sytemLogParentDir, loggingApp, false);
+		} else if (loggingSetup.equals(LoggingSetup.SETUP_LOG_SEPARATELY)) {
+			Slf4JSetup.init(sytemLogParentDir, loggingApp, false, DEF_PROCESSING_APP, true);
+		}
+	}
 
-        // First lookup system env
-        if (IO.hasContents(systemLogPathEnv)) {
-            try {
-                logVia = ProcessingFlags.NEN_PROCESSING_LOG_DIR + "=" + systemLogPathEnv + " via system env property";
-                specfiedLogDir = IO.makeOrUseDir(systemLogPathEnv);
-            } catch (Exception e) {
-                logPathError.append(e.getClass().getName());
-            }
-        }
+	private ProcessLogging() { //NOSONAR
+		String systemLogPathProperty = System.getProperty(ProcessingFlags.NEN_PROCESSING_LOG_DIR);
+		String systemLogPathEnv = System.getenv(ProcessingFlags.NEN_PROCESSING_LOG_DIR);
+		String logSeparatelyPatEnv = System.getenv(ProcessingFlags.NEN_PROCESSING_LOGGING_SEPARATE_FILE);
+		String logSeparatelyPathProperty = System.getProperty(ProcessingFlags.NEN_PROCESSING_LOGGING_SEPARATE_FILE);
+		Boolean doLogSeparately = null;
+		StringBuilder logPathError = new StringBuilder();
+		File specfiedLogDir = null;
+		String logVia = null;
 
-        // ..yet a system property will ALWAYS override
-        if (IO.hasContents(systemLogPathProperty)) {
-            try {
-                logVia = ProcessingFlags.NEN_PROCESSING_LOG_DIR + "=" + systemLogPathProperty + " via JVM system property";
-                specfiedLogDir = IO.makeOrUseDir(systemLogPathProperty);
-            } catch (Exception e) {
-                logPathError.append(e.getClass().getName());
-            }
-        }
+		// First lookup system env
+		if (IO.hasContents(systemLogPathEnv)) {
+			try {
+				logVia = ProcessingFlags.NEN_PROCESSING_LOG_DIR + "=" + systemLogPathEnv + " via system env property";
+				specfiedLogDir = IO.makeOrUseDir(systemLogPathEnv);
+			} catch (Exception e) {
+				logPathError.append(e.getClass().getName());
+			}
+		}
 
-        // First lookup system env
-        if (IO.hasContents(logSeparatelyPatEnv)) {
-            try {
-                if (logSeparatelyPatEnv.equalsIgnoreCase("true")) {
-                    doLogSeparately = true;
-                }
-            } catch (Exception e) {
-                logPathError.append(e.getClass().getName());
-            }
-        }
+		// ..yet a system property will ALWAYS override
+		if (IO.hasContents(systemLogPathProperty)) {
+			try {
+				logVia = ProcessingFlags.NEN_PROCESSING_LOG_DIR + "=" + systemLogPathProperty + " via JVM system property";
+				specfiedLogDir = IO.makeOrUseDir(systemLogPathProperty);
+			} catch (Exception e) {
+				logPathError.append(e.getClass().getName());
+			}
+		}
 
-        // ..yet a system property will ALWAYS override
-        if (IO.hasContents(logSeparatelyPathProperty)) {
-            try {
-                if (logSeparatelyPathProperty.equalsIgnoreCase("true")) {
-                    doLogSeparately = true;
-                } else if (logSeparatelyPathProperty.equalsIgnoreCase("false")) {
-                    doLogSeparately = false;
-                }
-            } catch (Exception e) {
-                logPathError.append(e.getClass().getName());
-            }
-        }
+		// First lookup system env
+		if (IO.hasContents(logSeparatelyPatEnv)) {
+			try {
+				if (logSeparatelyPatEnv.equalsIgnoreCase("true")) {
+					doLogSeparately = Boolean.TRUE;
+				}
+			} catch (Exception e) {
+				logPathError.append(e.getClass().getName());
+			}
+		}
+
+		// ..yet a system property will ALWAYS override
+		if (IO.hasContents(logSeparatelyPathProperty)) {
+			try {
+				if (logSeparatelyPathProperty.equalsIgnoreCase("true")) {
+					doLogSeparately = Boolean.TRUE;
+				} else if (logSeparatelyPathProperty.equalsIgnoreCase("false")) {
+					doLogSeparately = Boolean.FALSE;
+				}
+			} catch (Exception e) {
+				logPathError.append(e.getClass().getName());
+			}
+		}
 
 
-        if (specfiedLogDir != null) {
-            if (!doLogSeparately) {
-                Slf4JSetup.init(specfiedLogDir.getAbsolutePath(), getLoggingApp(), doLogSeparately);
-            } else {
-                Slf4JSetup.init(specfiedLogDir.getAbsolutePath(), getLoggingApp(), false, DEF_PROCESSING_APP, doLogSeparately);
-            }
-        } else {
-            Slf4JSetup.initForApp(DEF_PROCESSING_APP, false);
-        }
-        Logger logger = LoggerFactory.getLogger(JobBase.class); //NOSONAR
-        if (logPathError.length() > 0) {
-            logger.error(String.format("Dismissed log dir set up via %s - caught %s", logVia, logPathError.toString())); //NOSONAR THIS IS BULL.
-        }
-    }
+		if (specfiedLogDir != null) {
+			if (doLogSeparately != null) {
+				if (!doLogSeparately) {
+					Slf4JSetup.init(specfiedLogDir.getAbsolutePath(), getLoggingApp(), doLogSeparately);
+				} else {
+					Slf4JSetup.init(specfiedLogDir.getAbsolutePath(), getLoggingApp(), false, DEF_PROCESSING_APP, doLogSeparately);
+				}
+			}
+		} else if (doLogSeparately != null) {
+			Slf4JSetup.initForApp(DEF_PROCESSING_APP, false);
+		}
+		Logger logger = LoggerFactory.getLogger(JobBase.class); //NOSONAR
+		if (logPathError.length() > 0) {
+			logger.error(String.format("Dismissed log dir set up via %s - caught %s", logVia, logPathError.toString())); //NOSONAR THIS IS BULL.
+		}
+	}
 
-    public static synchronized void halt(){
-        Slf4JSetup.getInstance().halt();
-        INSTANCE = null;
-    }
+	public static synchronized void halt() {
+		Slf4JSetup.getInstance().halt();
+		INSTANCE = null;
+	}
 
-    public static synchronized void initLogging() {
-        if (INSTANCE == null) {
-            INSTANCE = new ProcessLogging();
-        }
-    }
+	public static synchronized void initLogging() {
+		if (INSTANCE == null) {
+			INSTANCE = new ProcessLogging();
+		}
+	}
 
-    public static synchronized void initLogging(LogConfig logConfig) {
-        if (INSTANCE == null) {
-            INSTANCE = new ProcessLogging(logConfig.getSytemLogParentDir(), logConfig.getLoggingApp(), logConfig.getLogSeparately());
-        }
-    }
+	public static synchronized void initLogging(LogConfig logConfig) {
+		if (INSTANCE == null) {
+			INSTANCE = new ProcessLogging(logConfig.getSytemLogParentDir(), logConfig.getLoggingApp(), logConfig.getLogSeparately());
+		}
+	}
 
-    public static synchronized void initLogging(String sytemLogParentDir, String loggingApp, boolean logSeparately) {
-        if (INSTANCE == null) {
-            INSTANCE = new ProcessLogging(sytemLogParentDir, loggingApp, logSeparately);
-        }
-    }
+	public static synchronized void initLogging(String sytemLogParentDir, String loggingApp, LoggingSetup logSeparately) {
+		if (INSTANCE == null) {
+			INSTANCE = new ProcessLogging(sytemLogParentDir, loggingApp, logSeparately);
+		}
+	}
 
-    private static String getLoggingApp() {
-        String systemLoggingAppProperty = System.getProperty(ProcessingFlags.NEN_PROCESSING_LOGGING_APP);
-        String systemLoggingAppEnv = System.getenv(ProcessingFlags.NEN_PROCESSING_LOGGING_APP);
+	private static String getLoggingApp() {
+		String systemLoggingAppProperty = System.getProperty(ProcessingFlags.NEN_PROCESSING_LOGGING_APP);
+		String systemLoggingAppEnv = System.getenv(ProcessingFlags.NEN_PROCESSING_LOGGING_APP);
 
-        // First lookup JVM sys property app
-        if (IO.hasContents(systemLoggingAppProperty)) {
-            return systemLoggingAppProperty;
-        }
-        // then lookup env app
-        if (IO.hasContents(systemLoggingAppEnv)) {
-            return systemLoggingAppEnv;
-        }
+		// First lookup JVM sys property app
+		if (IO.hasContents(systemLoggingAppProperty)) {
+			return systemLoggingAppProperty;
+		}
+		// then lookup env app
+		if (IO.hasContents(systemLoggingAppEnv)) {
+			return systemLoggingAppEnv;
+		}
 
-        // give up..
-        return DEF_PROCESSING_APP;
-    }
+		// give up..
+		return DEF_PROCESSING_APP;
+	}
 }
 

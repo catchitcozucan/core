@@ -45,10 +45,11 @@ import com.github.catchitcozucan.core.exception.ProcessRuntimeException;
 import com.github.catchitcozucan.core.histogram.HistogramStatus;
 import com.github.catchitcozucan.core.impl.CatchIt;
 import com.github.catchitcozucan.core.impl.JobBase;
+import com.github.catchitcozucan.core.impl.ProcessLogging;
 import com.github.catchitcozucan.core.impl.ProcessingFlags;
 import com.github.catchitcozucan.core.impl.RunState;
-import com.github.catchitcozucan.core.impl.source.processor.EnumContainer;
-import com.github.catchitcozucan.core.impl.source.processor.Nameable;
+import static com.github.catchitcozucan.core.impl.ProcessLogging.LoggingSetup;
+import static com.github.catchitcozucan.core.impl.ProcessLogging.LoggingSetup.*;
 import com.github.catchitcozucan.core.impl.startup.NumberOfTimeUnits;
 import com.github.catchitcozucan.core.interfaces.CatchItConfig;
 import com.github.catchitcozucan.core.interfaces.IsolationLevel;
@@ -58,7 +59,6 @@ import com.github.catchitcozucan.core.interfaces.LogConfig;
 import com.github.catchitcozucan.core.interfaces.PersistenceService;
 import com.github.catchitcozucan.core.interfaces.PoolConfig;
 import com.github.catchitcozucan.core.interfaces.Process;
-import com.github.catchitcozucan.core.interfaces.ProcessSubject;
 import com.github.catchitcozucan.core.interfaces.RejectableTypedRelativeWithName;
 import com.github.catchitcozucan.core.interfaces.Task;
 import com.github.catchitcozucan.core.internal.util.id.IdGenerator;
@@ -114,8 +114,8 @@ public class TestSuiteShoes {
 				}
 
 				@Override
-				public boolean getLogSeparately() {
-					return true;
+				public LoggingSetup getLogSeparately() {
+					return SETUP_LOG_SEPARATELY;
 				}
 			};
 		}
@@ -421,8 +421,8 @@ public class TestSuiteShoes {
 					}
 
 					@Override
-					public boolean getLogSeparately() {
-						return true;
+					public LoggingSetup getLogSeparately() {
+						return SETUP_LOG_SEPARATELY;
 					}
 				};
 			}

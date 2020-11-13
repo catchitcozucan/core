@@ -414,7 +414,16 @@ public class Async {
 
 	private void handleRejection(RejectableTypedRelativeWithName toExec, boolean rejectedFromTheOutsideWorld) { //NOSONAR
 		if (toExec.provideRejectionAction().equals(RejectableTypedRelativeWithName.RejectionAction.PUT_ON_WAITING_LIST)) {
+
 			Class<?>[] interfaces = toExec.getClass().getInterfaces();
+			if (interfaces == null || interfaces.length == 0) {
+				if (toExec.getClass().getSuperclass() != null && toExec.getClass().getSuperclass().getInterfaces() != null && toExec.getClass().getSuperclass().getInterfaces().length > 0) {
+					interfaces = toExec.getClass().getSuperclass().getInterfaces();
+				} else {
+					interfaces = null;
+				}
+			}
+
 			if (interfaces == null) {
 				throw new ProcessRuntimeException(String.format(YIKES_WHAT_S_THIS_THING_S_IS_NOT_OF_A_SUPPORTED_TYPE_IT_SHOULD_IMPLEMENT_SOMETHIND_A_TASK_PROCESS_OR_JOB, toExec.getClass().getName()));
 			} else {

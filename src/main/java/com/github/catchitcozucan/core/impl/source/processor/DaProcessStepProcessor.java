@@ -76,6 +76,7 @@ public class DaProcessStepProcessor extends AbstractProcessor {
     private static final String SEMI_COLON = ";";
     private static final String METHOD_NAME = "METHOD_NAME";
     private static final String PARENTHESIS = "()";
+    public static final String MAVEN_HOME = "maven.home";
     private Set<String> hasRecievedCommentHeader;
 
     public DaProcessStepProcessor() {
@@ -91,7 +92,7 @@ public class DaProcessStepProcessor extends AbstractProcessor {
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) { //NOSONAR
 
-        if (roundEnv.processingOver()) {
+        if (roundEnv.processingOver() || System.getProperty(MAVEN_HOME)==null) { // TODO - fix the intellij plugin. this last condition will for now make mvn cmdline builds the only processing alternative..
             info("DaProcessStepProcessor finished.");
             IO.deleteRecursively(new File(DaProcessStepLookup.TMP_COMP_PATH));
             return true;

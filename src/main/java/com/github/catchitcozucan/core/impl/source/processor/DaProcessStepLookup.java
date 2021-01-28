@@ -51,6 +51,7 @@ import com.github.catchitcozucan.core.internal.util.reflect.ReflectionUtils;
 public class DaProcessStepLookup {
 
 	private static final int ACTIVITIES_PER_COLUMN_DEFAULT = 3;
+	private static final String PATH = "path";
 
 	private DaProcessStepLookup() {
 	}
@@ -125,10 +126,15 @@ public class DaProcessStepLookup {
 			String annotationTypePath = elem.getAnnotationMirrors().get(0).getAnnotationType().toString();
 			return isValidMethod(elem, annotationTypePath);
 		}).forEach(ee -> {
-			File classSymbol = (File) ReflectionUtils.getFieldValueSilent(ReflectionUtils.getFieldValueSilent(ee, CLASSFILE), FILE);
+			File classSymbol = null;
+			classSymbol = (File) ReflectionUtils.getFieldValueSilent(ReflectionUtils.getFieldValueSilent(ee, CLASSFILE), FILE); // JDK-8
+			if (classSymbol == null) {
+				Object classSymbolObj = (Object) ReflectionUtils.getFieldValueSilent(ReflectionUtils.getFieldValueSilent(ee, CLASSFILE), PATH); // AFTER JDK-8
+				classSymbol = new File(classSymbolObj.toString());
+			}
 			String completePath = classSymbol.getParent() + File.separator + ee.getAnnotation(CompileOptions.class).relativeBpmDirectoryPath();
 			String mavenModulePath = ee.getAnnotation(CompileOptions.class).mavenModulePathToStatusEnumeration();
-			if(mavenModulePath.equals(NONE)){
+			if (mavenModulePath.equals(NONE)) {
 				mavenModulePath = null;
 			}
 			boolean criteriaStateOnlyFailure = IO.looksLikeTrue(ee.getAnnotation(CompileOptions.class).criteriaStateOnlyFailure());

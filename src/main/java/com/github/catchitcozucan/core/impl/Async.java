@@ -131,9 +131,17 @@ public class Async {
 		}
 	}
 
+	synchronized void stop() {
+		try {
+			pool.stopServer(false);
+		} finally {
+			INSTANCE = null;
+		}
+	}
+
 	synchronized void kill() {
 		try {
-			pool.stopServer();
+			pool.stopServer(true);
 		} finally {
 			INSTANCE = null;
 		}
@@ -141,7 +149,7 @@ public class Async {
 
 	synchronized void killSilent() {
 		try {
-			pool.stopServer();
+			pool.stopServer(true);
 		} catch (Exception ignore) {} //NOSONAR
 		finally {
 			INSTANCE = null;

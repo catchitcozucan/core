@@ -109,7 +109,7 @@ public class ProcessThreadPool implements Exitable {
     }
 
 
-    public synchronized void stopServer() { //NOSONAR
+    public synchronized void stopServer(boolean nullExecutors) { //NOSONAR
 
         tasks.stream().forEach(Task::signalInterrupt);
 
@@ -131,11 +131,13 @@ public class ProcessThreadPool implements Exitable {
 
             } catch (Exception ignore) {} //NOSONAR
             finally {
-                if (executor != null && executor.isTerminated()) {
-                    executor = null;
-                }
-                if (executorForTimeout != null && executorForTimeout.isTerminated()) {
-                    executorForTimeout = null;
+                if (nullExecutors) {
+                    if (executor != null && executor.isTerminated()) {
+                        executor = null;
+                    }
+                    if (executorForTimeout != null && executorForTimeout.isTerminated()) {
+                        executorForTimeout = null;
+                    }
                 }
             }
         }
@@ -180,7 +182,7 @@ public class ProcessThreadPool implements Exitable {
 
     @Override
     public void exitz() {
-        stopServer();
+        stopServer(true);
     }
 
     private class ReaperThread extends Thread implements Exitable {

@@ -82,6 +82,16 @@ public class CatchIt implements AsyncExecutor, WorkingEntity {
         INSTANCE = null;
     }
 
+    public static synchronized void stop() {
+        try {
+            Async.getInstance().stop();
+        } catch (Exception e) {
+            if (LOGGER != null) {
+                LOGGER.warn("There were Issues during stop", e);
+            }
+        }
+    }
+
     public static synchronized void reInitPool(CatchItConfig config) {
         killInternal(false);
         INSTANCE = null;
@@ -93,7 +103,7 @@ public class CatchIt implements AsyncExecutor, WorkingEntity {
             Async.getInstance().kill();
         } catch (Exception e) {
             if (LOGGER != null) {
-                LOGGER.warn("There were Issues during stop", e);
+                LOGGER.warn("There were Issues during kill", e);
             }
         }
         if (killLogging) {
@@ -101,7 +111,7 @@ public class CatchIt implements AsyncExecutor, WorkingEntity {
                 ProcessLogging.halt();
             } catch (Exception e) {
                 if (LOGGER != null) {
-                    LOGGER.warn("There were Issues during logging stop", e);
+                    LOGGER.warn("There were Issues during logging kill", e);
                 }
             }
         }

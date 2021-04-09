@@ -156,7 +156,7 @@ public class DaProcessStepConstants {
 		MavenWriter.getInstance().error(mkMessage(msg));
 	}
 
-	static void info(String msg) {
+	public static void info(String msg) {
 		MavenWriter.getInstance().info(mkMessage(msg));
 	}
 

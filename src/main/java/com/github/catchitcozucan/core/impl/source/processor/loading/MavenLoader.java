@@ -1,24 +1,26 @@
 /**
- *    Original work by Ola Aronsson 2020
- *    Courtesy of nollettnoll AB &copy; 2012 - 2020
+ * Original work by Ola Aronsson 2020
+ * Courtesy of nollettnoll AB &copy; 2012 - 2020
  *
- *    Licensed under the Creative Commons Attribution 4.0 International (the "License")
- *    you may not use this file except in compliance with the License. You may obtain
- *    a copy of the License at
+ * Licensed under the Creative Commons Attribution 4.0 International (the "License")
+ * you may not use this file except in compliance with the License. You may obtain
+ * a copy of the License at
  *
- *                https://creativecommons.org/licenses/by/4.0/
+ * https://creativecommons.org/licenses/by/4.0/
  *
- *    The software is provided “as is”, without warranty of any kind, express or
- *    implied, including but not limited to the warranties of merchantability,
- *    fitness for a particular purpose and noninfringement. In no event shall the
- *    authors or copyright holders be liable for any claim, damages or other liability,
- *    whether in an action of contract, tort or otherwise, arising from, out of or
- *    in connection with the software or the use or other dealings in the software.
+ * The software is provided “as is”, without warranty of any kind, express or
+ * implied, including but not limited to the warranties of merchantability,
+ * fitness for a particular purpose and noninfringement. In no event shall the
+ * authors or copyright holders be liable for any claim, damages or other liability,
+ * whether in an action of contract, tort or otherwise, arising from, out of or
+ * in connection with the software or the use or other dealings in the software.
  */
 package com.github.catchitcozucan.core.impl.source.processor.loading;
 
 import static com.github.catchitcozucan.core.impl.source.processor.DaProcessStepConstants.DOT;
 import static com.github.catchitcozucan.core.impl.source.processor.DaProcessStepConstants.SLASH;
+import static com.github.catchitcozucan.core.impl.source.processor.DaProcessStepConstants.info;
+import static com.github.catchitcozucan.core.impl.source.processor.DaProcessStepConstants.warn;
 
 import java.io.File;
 import java.io.IOException;
@@ -47,6 +49,8 @@ public class MavenLoader {
     private static final String PLEASE_DO_NOT_TRY_TO_LOAD_THE_JVM_S_OWN_CLASSES_SUCH_AS_S_THROUGH_ME = "Please do not try to load the JVM's own classes such as %s through me";
     private static final String PLEASE_DO_NOT_TRY_TO_LOAD_THE_JVM_S_OWN_CLASSES_SUCH_AS_S_THROUGH_ME1 = "Please do not try to load the JVM's own classes such as %s through me";
     private static final String JAVA = "java";
+    public static final String ATTEMPTING_LOADING_IT_VIA_YOUR_SETTINGS_XML_HOME_M_2_SETTINGS_XML = "            Attempting loading it via your settings.xml ($HOME/.m2/settings.xml)..";
+    public static final String FAILED_LOCATING_YOUR_MAVEN_REPO_VIA_PROVIDED_PATH_S = "            Failed locating your maven repo via provided path %s : %s";
     private final JarLoader loader;
     private static MavenLoader INSTANCE; //NOSONAR
 
@@ -98,6 +102,13 @@ public class MavenLoader {
         File m2RepoBaseDir = null;
         if (IO.hasContents(repoPath)) {
             m2RepoBaseDir = new File(repoPath);
+            try {
+                testRepoDir(m2RepoBaseDir);
+            } catch (ProcessRuntimeException failure) {
+                warn(String.format(FAILED_LOCATING_YOUR_MAVEN_REPO_VIA_PROVIDED_PATH_S, repoPath, failure.getMessage()));
+                info(ATTEMPTING_LOADING_IT_VIA_YOUR_SETTINGS_XML_HOME_M_2_SETTINGS_XML);
+                m2RepoBaseDir = fetchMavenrepoPathFromSettingsFile();
+            }
         } else {
             m2RepoBaseDir = fetchMavenrepoPathFromSettingsFile();
         }

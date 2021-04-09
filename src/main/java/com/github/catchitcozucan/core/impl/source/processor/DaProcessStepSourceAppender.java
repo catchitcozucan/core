@@ -77,6 +77,7 @@ public class DaProcessStepSourceAppender extends BaseDomainObject {
     private static final String FORMATTER_ON = new StringBuilder("    //@formatter:on END DO_NOT_FORMAT").append(NL).append(NL).toString();
 	private boolean formatterNotAppended;
 	private String mavenModulePath;
+	private String mavenRepoPath;
 	private boolean criteriaStateOnlyFailure;
 	private boolean acceptEnumFailures;
 
@@ -330,6 +331,14 @@ public class DaProcessStepSourceAppender extends BaseDomainObject {
 
 	public boolean getAcceptEnumFilures() {
 		return acceptEnumFailures;
+	}
+
+	public void setMavenRepoPath(String mavenRepoPath) {
+		this.mavenRepoPath = mavenRepoPath;
+	}
+
+	public String getMavenRepoPath() {
+		return mavenRepoPath;
 	}
 }
 

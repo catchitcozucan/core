@@ -137,6 +137,10 @@ public class DaProcessStepLookup {
 			if (mavenModulePath.equals(NONE)) {
 				mavenModulePath = null;
 			}
+			String mavenRepoPath = ee.getAnnotation(CompileOptions.class).mavenRepoPath();
+			if (mavenRepoPath.equals(NONE)) {
+				mavenRepoPath = null;
+			}
 			boolean criteriaStateOnlyFailure = IO.looksLikeTrue(ee.getAnnotation(CompileOptions.class).criteriaStateOnlyFailure());
 			boolean acceptFailures = IO.looksLikeTrue(ee.getAnnotation(CompileOptions.class).acceptStatusEvaluationFailures());
 			String activitesPerColumnStr = ee.getAnnotation(CompileOptions.class).bpmActivitiesPerColumn();
@@ -155,7 +159,7 @@ public class DaProcessStepLookup {
 			info(String.format("Trying to use or create BPM repo folder : %s", completePath));
 			try {
 				IO.makeOrUseDir(completePath);
-				bpmFolderPerProcessClass.put(ee.toString(), new ClassPathActivitesPerColumn(activitiesPerColumn, new File(completePath), mavenModulePath, criteriaStateOnlyFailure, acceptFailures));
+				bpmFolderPerProcessClass.put(ee.toString(), new ClassPathActivitesPerColumn(activitiesPerColumn, new File(completePath), mavenModulePath, mavenRepoPath, criteriaStateOnlyFailure, acceptFailures));
 			} catch (RuntimeException e) {
 				DaProcessStepConstants.error(ee, "Relativepath for @%s defined as %s in %s could not be created/used", CompileOptions.class.getSimpleName(), ee.toString(), completePath);
 				return;
@@ -179,6 +183,7 @@ public class DaProcessStepLookup {
 				a.setBpmRepoFolder(bpmRepoFolder);
 				a.setBpmActivitiesPerColumn(bpmFolderPerProcessClass.get(a.toString()).acivitiesPercolumn);
 				a.setMavenModulePath(bpmFolderPerProcessClass.get(a.toString()).mavenModulePath);
+				a.setMavenRepoPath(bpmFolderPerProcessClass.get(a.toString()).mavenRepoPath);
 				a.setCriteriaStateOnlyFailure(bpmFolderPerProcessClass.get(a.toString()).criteriaStateOnlyFailure);
 				a.setAcceptEnumFailures(bpmFolderPerProcessClass.get(a.toString()).acceptFailures);
 			}
@@ -245,12 +250,14 @@ public class DaProcessStepLookup {
 		final Integer acivitiesPercolumn;
 		final File pathToFile;
 		final String mavenModulePath;
+		final String mavenRepoPath;
 		final boolean criteriaStateOnlyFailure;
 		final boolean acceptFailures;
-		public ClassPathActivitesPerColumn(Integer acivitiesPercolumn, File pathToFile, String mavenModulePath, boolean criteriaStateOnlyFailure, boolean acceptFailures) {
+		public ClassPathActivitesPerColumn(Integer acivitiesPercolumn, File pathToFile, String mavenModulePath, String mavenRepoPath, boolean criteriaStateOnlyFailure, boolean acceptFailures) {
 			this.acivitiesPercolumn = acivitiesPercolumn;
 			this.pathToFile = pathToFile;
 			this.mavenModulePath = mavenModulePath;
+			this.mavenRepoPath = mavenRepoPath;
 			this.criteriaStateOnlyFailure = criteriaStateOnlyFailure;
 			this.acceptFailures = acceptFailures;
 		}

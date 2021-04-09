@@ -186,7 +186,7 @@ public class DaProcessStepProcessor extends AbstractProcessor {
 
             if (statusClass == null && IO.hasContents(appender.getMavenModulePath())) {
                 info(String.format("         *  Trying to access status class %s via on-the-fly-loading of maven jars found under %s..", className, appender.getMavenModulePath()));
-                MavenLoader.getInstance().tryLoadJarsBasedOnModulePath(appender.getMavenModulePath());
+                MavenLoader.getInstance().tryLoadJarsBasedOnModulePath(appender.getMavenModulePath(), appender.getMavenRepoPath());
                 statusClass = MavenLoader.getInstance().loadClass(className);
                 if (statusClass != null) {
                     info(String.format("         *  Sucessfully loaded status class %s via on-the-fly-loading of maven jars found under %s.", className, appender.getMavenModulePath()));

@@ -33,9 +33,9 @@ public class ReflectionUtils {
 
 	public static Field getFieldRecursivelySilentFromInstance(Object instance, String fieldName) {
 		Field result = null;
-		List<Class> orderedList = getAllClasses(instance);
+		List<Class<?>> orderedList = getAllClasses(instance);
 		List<String> namez = new ArrayList<>();
-		for (Class c : orderedList) {
+		for (Class<?> c : orderedList) {
 			Arrays.stream(c.getDeclaredFields()).forEach(f -> namez.add(NAME + f.getName() + COLON + CLAZZ + f.getType().toString()));
 			Field f = getFieldValueSilent(c, fieldName);
 			if (f != null) {
@@ -52,7 +52,7 @@ public class ReflectionUtils {
 			if (f == null) {
 				return null;
 			}
-			f.setAccessible(true);
+			f.setAccessible(true); //NOSONAR
 			return f.get(instance);
 		} catch (IllegalAccessException ignore) {} //NOSONAR
 		return null;
@@ -66,14 +66,14 @@ public class ReflectionUtils {
 		return f;
 	}
 
-	private static List<Class> getAllClasses(Object o) {
-		List<Class> classList = new LinkedList<>();
+	private static List<Class<?>> getAllClasses(Object o) {
+		List<Class<?>> classList = new LinkedList<>();
 		classList.add(o.getClass());
-		Class superclass = o.getClass().getSuperclass();
+		Class<?> superclass = o.getClass().getSuperclass();
 		if (superclass != null) {
 			classList.add(superclass);
 			while (superclass != null) {
-				Class clazz = superclass;
+				Class<?> clazz = superclass;
 				superclass = clazz.getSuperclass();
 				if (superclass != null) {
 					classList.add(superclass);

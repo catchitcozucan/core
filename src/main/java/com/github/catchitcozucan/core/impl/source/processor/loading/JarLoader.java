@@ -39,6 +39,8 @@ public class JarLoader {
     private static final String JAR = ".jar";
     public static final String COULD_NOT_LOAD_URLS_ONTO_CLASSPATH = "Could not load urls onto classpath";
     public static final String DASH = "-";
+    public static final String EXPECTED_DIR_S_DOES_NOT_EXIST = "Expected dir %s does not exist!";
+    public static final String EXPECTED_DIR_NOT_DIR = "Expected dir %s is not a directory!";
     private static JarLoader INSTANCE; //NOSONAR
     List<String> pathsLoaded;
     private final Method addURL;
@@ -46,7 +48,7 @@ public class JarLoader {
 
     private JarLoader(ClassLoader classLoader) throws NoSuchMethodException {
         addURL = URLClassLoader.class.getDeclaredMethod(ADD_URL, new Class[] { URL.class }); //NOSONAR
-        addURL.setAccessible(true);
+        addURL.setAccessible(true); //NOSONAR
         pathsLoaded = new ArrayList<>();
         this.classLoader = classLoader;
     }
@@ -114,10 +116,10 @@ public class JarLoader {
     private static File doChecks(String absPath) {
         File dir = new File(absPath);
         if (!dir.exists()) {
-            throw new IllegalArgumentException("Expected dir " + absPath + " does not exist!");
+            throw new IllegalArgumentException(String.format(EXPECTED_DIR_S_DOES_NOT_EXIST, absPath));
         }
         if (!dir.isDirectory()) {
-            throw new IllegalArgumentException("Expected dir " + absPath + " is not a folder!");
+            throw new IllegalArgumentException(String.format(EXPECTED_DIR_NOT_DIR, absPath));
         }
         return dir;
     }

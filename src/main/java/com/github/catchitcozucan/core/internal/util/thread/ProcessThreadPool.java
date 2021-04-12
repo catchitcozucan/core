@@ -99,7 +99,7 @@ public class ProcessThreadPool implements Exitable {
     public void submitWithTimeout(Runnable r, long timeout, TimeUnit unit) {
         init(poolConfig, true);
         Task t = new Task(r);
-        final Future handler = executor.submit(t);
+        final Future<?> handler = executor.submit(t);
         executorForTimeout.schedule(() -> {
             if (handler != null && !handler.isDone()) {
                 handler.cancel(true);
@@ -148,7 +148,7 @@ public class ProcessThreadPool implements Exitable {
             executorForTimeout.shutdownNow();
         }
         executorForTimeout = Executors.newScheduledThreadPool(1);
-        final Future handler = executor.submit(new Task(() -> {
+        final Future<?> handler = executor.submit(new Task(() -> {
             try {
                 executor.awaitTermination(timeout, unit);
             } catch (InterruptedException e) { // NOSONAR IT IS CLEARLY NOT IGNORED

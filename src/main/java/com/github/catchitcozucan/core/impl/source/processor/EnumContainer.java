@@ -23,10 +23,14 @@ import java.util.concurrent.atomic.AtomicInteger;
 import com.github.catchitcozucan.core.internal.util.io.IO;
 
 public class EnumContainer {
+	public static final String DOLLAR_SIGN = "$";
+	public static final String PROCESS_STATUS_ENUM_PROVIDER_BASED_ON_S_HAS_ISSUES = "Process status enum provider based on %s has issues : ";
+	public static final String PROPER_CLASSNAME_COULD_NOT_BE_DEDUCTED = "proper classname could not be deducted, ";
+	public static final String ENUN_FIELD_NAME_COULD_NOT_BE_DEDUCTED = "enun field name could not be deducted";
 	private final Nameable[] enums;
 	private final String className;
 	private final String enumFieldName;
-	private final Class sourceInspectionClass;
+	private final Class<?> sourceInspectionClass;
 	private final String originatingClassPath;
 
 	public EnumContainer(Class<?> enumCorrier, String originatingClassPath) {
@@ -43,8 +47,8 @@ public class EnumContainer {
 			index.incrementAndGet();
 		});
 		String rawClassName = enumRaws[0].getClass().getName();
-		this.enumFieldName = rawClassName.substring(rawClassName.indexOf("$") + 1); //NOSONAR
-		this.className = rawClassName.substring(0, rawClassName.indexOf("$")); // NOSONAR
+		this.enumFieldName = rawClassName.substring(rawClassName.indexOf(DOLLAR_SIGN) + 1); //NOSONAR
+		this.className = rawClassName.substring(0, rawClassName.indexOf(DOLLAR_SIGN)); // NOSONAR
 	}
 
 	public Nameable[] values() {
@@ -71,12 +75,12 @@ public class EnumContainer {
 		if (isSane()) {
 			return DaProcessStepConstants.EMPTY;
 		} else {
-			StringBuilder err = new StringBuilder(String.format("Process status enum provider based on %s has issues : ", sourceInspectionClass.getName()));
+			StringBuilder err = new StringBuilder(String.format(PROCESS_STATUS_ENUM_PROVIDER_BASED_ON_S_HAS_ISSUES, sourceInspectionClass.getName()));
 			if (!IO.hasContents(className)) {
-				err.append("proper classname could not be deducted, ");
+				err.append(PROPER_CLASSNAME_COULD_NOT_BE_DEDUCTED);
 			}
 			if (!IO.hasContents(enumFieldName)) {
-				err.append("enun field name could not be deducted");
+				err.append(ENUN_FIELD_NAME_COULD_NOT_BE_DEDUCTED);
 			}
 			if (err.toString().endsWith(", ")) {
 				err.delete(err.length() - 2, err.length());

@@ -35,6 +35,8 @@ import com.github.catchitcozucan.core.internal.util.io.IO;
 public class BpmSchemeGenerator extends BaseDomainObject {
 
 
+    public static final String FILE = "file";
+    public static final String FINISHED_10 = "FINISHED:&#10;";
     private final File xmlFile;
     private final List<BpmSchemeElementDescriptor> descriptors;
     private final Integer bpmActivitiesPercolumn;
@@ -421,7 +423,7 @@ public class BpmSchemeGenerator extends BaseDomainObject {
         // b. this is simply the finish state. It has only one incoming flow, namely, the flow from the
         // tree that took as here..
         String taskId = generateIdForType(BpmSchemeElementDescriptor.Type.ACTIVITY);
-        processSection.append(String.format(FINISH_TASK, taskId, new StringBuilder("FINISHED:&#10;").append(d.getStatusUponSuccess()).toString(), flowTaskIncoming));
+        processSection.append(String.format(FINISH_TASK, taskId, new StringBuilder(FINISHED_10).append(d.getStatusUponSuccess()).toString(), flowTaskIncoming));
 
         // c. now we connect above elements through a flow : from idSource to this task
         processSection.append(String.format(FLOW_FROM_START_TO_TASK, flowTaskIncoming, idSource, taskId));
@@ -435,7 +437,7 @@ public class BpmSchemeGenerator extends BaseDomainObject {
 
     @Override
     public String doToString() {
-        ToStringBuilder b = new ToStringBuilder("file", xmlFile.getAbsolutePath());
+        ToStringBuilder b = new ToStringBuilder(FILE, xmlFile.getAbsolutePath());
         descriptors.stream().forEachOrdered(d -> b.append(d.getTaskName(), d.toString()));
         return b.toString();
     }

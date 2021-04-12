@@ -92,7 +92,7 @@ public class DaProcessStepProcessor extends AbstractProcessor {
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) { //NOSONAR
 
-        if (roundEnv.processingOver() || System.getProperty(MAVEN_HOME)==null) { // TODO - fix the intellij plugin. this last condition will for now make mvn cmdline builds the only processing alternative..
+        if (roundEnv.processingOver() || System.getProperty(MAVEN_HOME)==null) {
             info("DaProcessStepProcessor finished.");
             IO.deleteRecursively(new File(DaProcessStepLookup.TMP_COMP_PATH));
             return true;
@@ -120,7 +120,7 @@ public class DaProcessStepProcessor extends AbstractProcessor {
             info("Working appender : " + sourceAppender.toString());
             sourceAppender.clear();
             if (!appendersWorked.contains(sourceAppender)) {
-                workAppenderElements(sourceAppender, new ArrayList<Integer>());
+                workAppenderElements(sourceAppender, new ArrayList<>());
                 appendersWorked.add(sourceAppender);
             }
         });

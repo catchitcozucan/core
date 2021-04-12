@@ -35,6 +35,11 @@ import org.slf4j.LoggerFactory;
 
 public class CatchIt implements AsyncExecutor, WorkingEntity {
 
+    public static final String I_AM_ALREADY_INITIALIZED = "I am already initialized";
+    public static final String INITALIZE_ME_FIRST = "Initalize me first!";
+    public static final String THERE_WERE_ISSUES_DURING_STOP = "There were Issues during stop";
+    public static final String THERE_WERE_ISSUES_DURING_KILL = "There were Issues during kill";
+    public static final String THERE_WERE_ISSUES_DURING_LOGGING_KILL = "There were Issues during logging kill";
     private static CatchIt INSTANCE; //NOSONAR
     private static Logger LOGGER; //NOSONAR
 
@@ -53,7 +58,7 @@ public class CatchIt implements AsyncExecutor, WorkingEntity {
         if (INSTANCE == null) {
             INSTANCE = new CatchIt(null);
         } else {
-            LOGGER.warn("I am already initialized");
+            LOGGER.warn(I_AM_ALREADY_INITIALIZED);
         }
     }
 
@@ -61,7 +66,7 @@ public class CatchIt implements AsyncExecutor, WorkingEntity {
         if (INSTANCE == null) {
             INSTANCE = new CatchIt(config);
         } else {
-            LOGGER.warn("I am already initialized");
+            LOGGER.warn(I_AM_ALREADY_INITIALIZED);
         }
     }
 
@@ -72,7 +77,7 @@ public class CatchIt implements AsyncExecutor, WorkingEntity {
 
     public static synchronized CatchIt getInstance() {
         if (INSTANCE == null) {
-            throw new ProcessRuntimeException("Initalize me first!");
+            throw new ProcessRuntimeException(INITALIZE_ME_FIRST);
         }
         return INSTANCE;
     }
@@ -87,7 +92,7 @@ public class CatchIt implements AsyncExecutor, WorkingEntity {
             Async.getInstance().stop();
         } catch (Exception e) {
             if (LOGGER != null) {
-                LOGGER.warn("There were Issues during stop", e);
+                LOGGER.warn(THERE_WERE_ISSUES_DURING_STOP, e);
             }
         }
     }
@@ -103,7 +108,7 @@ public class CatchIt implements AsyncExecutor, WorkingEntity {
             Async.getInstance().kill();
         } catch (Exception e) {
             if (LOGGER != null) {
-                LOGGER.warn("There were Issues during kill", e);
+                LOGGER.warn(THERE_WERE_ISSUES_DURING_KILL, e);
             }
         }
         if (killLogging) {
@@ -111,7 +116,7 @@ public class CatchIt implements AsyncExecutor, WorkingEntity {
                 ProcessLogging.halt();
             } catch (Exception e) {
                 if (LOGGER != null) {
-                    LOGGER.warn("There were Issues during logging kill", e);
+                    LOGGER.warn(THERE_WERE_ISSUES_DURING_LOGGING_KILL, e);
                 }
             }
         }

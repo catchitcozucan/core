@@ -129,7 +129,7 @@ public class DaProcessStepLookup {
 			File classSymbol = null;
 			classSymbol = (File) ReflectionUtils.getFieldValueSilent(ReflectionUtils.getFieldValueSilent(ee, CLASSFILE), FILE); // JDK-8
 			if (classSymbol == null) {
-				Object classSymbolObj = (Object) ReflectionUtils.getFieldValueSilent(ReflectionUtils.getFieldValueSilent(ee, CLASSFILE), PATH); // AFTER JDK-8
+				Object classSymbolObj = ReflectionUtils.getFieldValueSilent(ReflectionUtils.getFieldValueSilent(ee, CLASSFILE), PATH); // AFTER JDK-8
 				classSymbol = new File(classSymbolObj.toString());
 			}
 			String completePath = classSymbol.getParent() + File.separator + ee.getAnnotation(CompileOptions.class).relativeBpmDirectoryPath();

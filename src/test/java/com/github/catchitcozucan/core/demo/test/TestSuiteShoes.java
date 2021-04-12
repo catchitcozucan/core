@@ -47,8 +47,10 @@ import com.github.catchitcozucan.core.impl.CatchIt;
 import com.github.catchitcozucan.core.impl.JobBase;
 import com.github.catchitcozucan.core.impl.ProcessingFlags;
 import com.github.catchitcozucan.core.impl.RunState;
+
 import static com.github.catchitcozucan.core.impl.ProcessLogging.LoggingSetupStrategy;
 import static com.github.catchitcozucan.core.impl.ProcessLogging.LoggingSetupStrategy.*;
+
 import com.github.catchitcozucan.core.impl.startup.NumberOfTimeUnits;
 import com.github.catchitcozucan.core.interfaces.CatchItConfig;
 import com.github.catchitcozucan.core.interfaces.IsolationLevel;
@@ -351,7 +353,7 @@ public class TestSuiteShoes {
 		assertTrue(CatchIt.currentlyExecuting());
 	}
 
-	@Test(expected = ProcessRuntimeException.class)
+	@Test(expected = ProcessRuntimeException.class)  //NOSONAR
 	public void k_testRejectionAsyncRejectedByKind() {
 		Task t1 = makeTask(IsolationLevel.Level.INCLUSIVE, RejectableTypedRelativeWithName.RejectionAction.IGNORE, false, true);
 		CatchIt.getInstance().submitTask(t1);

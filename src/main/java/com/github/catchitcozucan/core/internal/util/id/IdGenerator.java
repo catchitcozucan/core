@@ -34,6 +34,12 @@ public class IdGenerator {
 	private static final String A_Z_0_9_AND_MASVINGE = "([A-Z0-9]{";
 	private static final String MASVINGE_PARENTHESIS = "})";
 	private static final String REST_OF_EXPR = "$1-";
+	public static final String YOU_CANNOT_BE_SERIOUS_GENERATING_IDS_UPON_A_VALUE_RANGE_OF_0_CHARACTERS_PLEASE_PROVIDE_A_MINIMUM_OF_1 = "You cannot be serious generating \"IDs\" upon a value-range of {0} characters! Please provide a minimum of {1}";
+	public static final String LENGTH_0_WILL_CAUSE_AN_UNDERFLOW_FOR_MY_COUNTER_IS_ALREADY_UP_TO_1 = "Length {0} will cause an underflow for my counter is already up to {1}";
+	public static final String PERCENTAGE = "%";
+	public static final String S = "s";
+	public static final String YOU_CANNOT_BE_SERIOUS_GENERATING_IDS_UPON_A_VALUE_RANGE_OF_0_CHARACTERS_PLEASE_PROVIDE_A_MINIMUM_OF_11 = "You cannot be serious generating \"IDs\" upon a value-range of {0} characters! Please provide a minimum of {1}";
+	public static final String YOU_CANNOT_BE_SERIOUS_TRYING_TO_GROUP_STUFF_WHEREAS_THE_NUMBER_OF_GROUPS_0_IS_LARGER_THEN_THE_TOTAL_DESIRED_KEY_LENGTH_1 = "You cannot be serious trying to group stuff whereas the number of groups {0} is larger then the total desired key length {1}";
 	private static IdGenerator INSTANCE; //NOSONAR
 
 	private static int COUNTER; // NOSONAR
@@ -63,16 +69,16 @@ public class IdGenerator {
 
 	public String getId(int length) {
 		if (length < MINIMUN_VALUE_LENGTH) {
-			throw new IllegalArgumentException(MessageFormat.format("You cannot be serious generating \"IDs\" upon a value-range of {0} characters! Please provide a minimum of {1}", length, MINIMUN_VALUE_LENGTH));
+			throw new IllegalArgumentException(MessageFormat.format(YOU_CANNOT_BE_SERIOUS_GENERATING_IDS_UPON_A_VALUE_RANGE_OF_0_CHARACTERS_PLEASE_PROVIDE_A_MINIMUM_OF_1, length, MINIMUN_VALUE_LENGTH));
 		}
 
 		synchronized (counterLock) {
 			COUNTER++;
 			String counterString = "" + COUNTER;
 			if (counterString.length() > length) {
-				throw new IllegalArgumentException(MessageFormat.format("Length {0} will cause an underflow for my counter is already up to {1}", length, COUNTER));
+				throw new IllegalArgumentException(MessageFormat.format(LENGTH_0_WILL_CAUSE_AN_UNDERFLOW_FOR_MY_COUNTER_IS_ALREADY_UP_TO_1, length, COUNTER));
 			}
-			String result = new StringBuilder(String.format("%" + length + "s", seed.substring(counterString.length(), seed.length()) + COUNTER).replace(' ', '0')).reverse().toString(); // NOSONAR
+			String result = new StringBuilder(String.format(PERCENTAGE + length + S, seed.substring(counterString.length(), seed.length()) + COUNTER).replace(' ', '0')).reverse().toString(); // NOSONAR
 			return result.substring(0, length);
 		}
 	}
@@ -80,10 +86,10 @@ public class IdGenerator {
     // basically from here : https://codereview.stackexchange.com/questions/159421/generate-16-digit-unique-code-like-product-serial
 	public String getIdMoreRandom(int length, int groupDashing) {
 		if (length < MINIMUN_VALUE_LENGTH_MORE_RANDOM) {
-			throw new IllegalArgumentException(MessageFormat.format("You cannot be serious generating \"IDs\" upon a value-range of {0} characters! Please provide a minimum of {1}", length, MINIMUN_VALUE_LENGTH));
+			throw new IllegalArgumentException(MessageFormat.format(YOU_CANNOT_BE_SERIOUS_GENERATING_IDS_UPON_A_VALUE_RANGE_OF_0_CHARACTERS_PLEASE_PROVIDE_A_MINIMUM_OF_11, length, MINIMUN_VALUE_LENGTH));
 		}
 		if (length < groupDashing) {
-			throw new IllegalArgumentException(MessageFormat.format("You cannot be serious trying to group stuff whereas the number of groups {0} is larger then the total desired key length {1}", length, groupDashing));
+			throw new IllegalArgumentException(MessageFormat.format(YOU_CANNOT_BE_SERIOUS_TRYING_TO_GROUP_STUFF_WHEREAS_THE_NUMBER_OF_GROUPS_0_IS_LARGER_THEN_THE_TOTAL_DESIRED_KEY_LENGTH_1, length, groupDashing));
 		}
 
 		int numberOfDashes = groupDashing;

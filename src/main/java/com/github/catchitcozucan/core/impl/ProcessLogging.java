@@ -30,6 +30,12 @@ public class ProcessLogging {
 	private static final String DEF_PROCESSING_APP = "processing";
 	public static final String NOAPP = "noapp";
 	public static final String NOPATH = "nopath";
+	public static final String DISMISSED_LOG_DIR_SET_UP_VIA_S_CAUGHT_S = "Dismissed log dir set up via %s - caught %s";
+	public static final String VIA_SYSTEM_ENV_PROPERTY = " via system env property";
+	public static final String VIA_JVM_SYSTEM_PROPERTY = " via JVM system property";
+	public static final String EQUALS = "=";
+	public static final String TRUE = "true";
+	public static final String FALSE = "false";
 	private static ProcessLogging INSTANCE; //NOSONAR
 
 	public enum LoggingSetupStrategy {
@@ -57,7 +63,7 @@ public class ProcessLogging {
 		// First lookup system env
 		if (IO.hasContents(systemLogPathEnv)) {
 			try {
-				logVia = ProcessingFlags.NEN_PROCESSING_LOG_DIR + "=" + systemLogPathEnv + " via system env property";
+				logVia = ProcessingFlags.NEN_PROCESSING_LOG_DIR + EQUALS + systemLogPathEnv + VIA_SYSTEM_ENV_PROPERTY;
 				specfiedLogDir = IO.makeOrUseDir(systemLogPathEnv);
 			} catch (Exception e) {
 				logPathError.append(e.getClass().getName());
@@ -67,7 +73,7 @@ public class ProcessLogging {
 		// ..yet a system property will ALWAYS override
 		if (IO.hasContents(systemLogPathProperty)) {
 			try {
-				logVia = ProcessingFlags.NEN_PROCESSING_LOG_DIR + "=" + systemLogPathProperty + " via JVM system property";
+				logVia = ProcessingFlags.NEN_PROCESSING_LOG_DIR + EQUALS + systemLogPathProperty + VIA_JVM_SYSTEM_PROPERTY;
 				specfiedLogDir = IO.makeOrUseDir(systemLogPathProperty);
 			} catch (Exception e) {
 				logPathError.append(e.getClass().getName());
@@ -77,7 +83,7 @@ public class ProcessLogging {
 		// First lookup system env
 		if (IO.hasContents(logSeparatelyPatEnv)) {
 			try {
-				if (logSeparatelyPatEnv.equalsIgnoreCase("true")) {
+				if (logSeparatelyPatEnv.equalsIgnoreCase(TRUE)) {
 					doLogSeparately = Boolean.TRUE;
 				}
 			} catch (Exception e) {
@@ -88,9 +94,9 @@ public class ProcessLogging {
 		// ..yet a system property will ALWAYS override
 		if (IO.hasContents(logSeparatelyPathProperty)) {
 			try {
-				if (logSeparatelyPathProperty.equalsIgnoreCase("true")) {
+				if (logSeparatelyPathProperty.equalsIgnoreCase(TRUE)) {
 					doLogSeparately = Boolean.TRUE;
-				} else if (logSeparatelyPathProperty.equalsIgnoreCase("false")) {
+				} else if (logSeparatelyPathProperty.equalsIgnoreCase(FALSE)) {
 					doLogSeparately = Boolean.FALSE;
 				}
 			} catch (Exception e) {
@@ -101,7 +107,7 @@ public class ProcessLogging {
 
 		if (specfiedLogDir != null) {
 			if (doLogSeparately != null) {
-				if (!doLogSeparately) {
+				if (!doLogSeparately.booleanValue()) {
 					Slf4JSetup.init(specfiedLogDir.getAbsolutePath(), getLoggingApp(), doLogSeparately);
 				} else {
 					Slf4JSetup.init(specfiedLogDir.getAbsolutePath(), getLoggingApp(), false, DEF_PROCESSING_APP, doLogSeparately);
@@ -112,7 +118,7 @@ public class ProcessLogging {
 		}
 		Logger logger = LoggerFactory.getLogger(JobBase.class); //NOSONAR
 		if (logPathError.length() > 0) {
-			logger.error(String.format("Dismissed log dir set up via %s - caught %s", logVia, logPathError.toString())); //NOSONAR THIS IS BULL.
+			logger.error(String.format(DISMISSED_LOG_DIR_SET_UP_VIA_S_CAUGHT_S, logVia, logPathError.toString())); //NOSONAR THIS IS BULL.
 		}
 	}
 

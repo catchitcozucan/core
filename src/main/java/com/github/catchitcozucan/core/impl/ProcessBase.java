@@ -33,10 +33,23 @@ import org.slf4j.LoggerFactory;
 
 public abstract class ProcessBase implements Process {
 
+    public static final String YOUR_STATUS_CAN_NEVER_BE_NULL_YOUR_PROCESS_SUBJECT_IMPL_S_IS_WRONG_PERHAPS_YOU_HAVE_JUST_EXTENDED_THE_BASE_CLASS_BUT_DID_OVERRIDE_THE_GET_STATUS_METHOD = "Your status CAN NEVER BE NULL! Your ProcessSubject-impl %s is wrong, perhaps you have just extended the base class but did override the getStatus()-method!";
+    public static final String YOUR_STATUS_CLASS_S_HAS_NOT_IMPLEMENTED_THE_SIMPLE_GET_STS_NO_ARG_METHOD_NOR_DOES_IT_SEEM_TO_IMPLEMENT_NAME_IS_IT_AN_ENUM = "Your status class %s HAS NOT implemented the simple getSts()-no-arg-method nor does it seem to implement name() (is it an enum!!!)!";
+    public static final String PROCESS_S_EXECUTING_STEP_S_ON_ITEM_S_FOR_SUBJECT_S = "process %s executing step '%s' on item %s for subject %s";
+    public static final String SUCCEDED_S_ITEM_IS_NOW_IN_STATE_S_S = "Succeded %s. item is now in state %s [%s]";
+    public static final String STATUS_DESCRIPTION_ENUN_IS_IMPLEMENTED_WRONGLY_IT_SHOULD_BE_A_CHAR_OF_LENGTH_1_I_GOT_S = "Status-description-enun is implemented wrongly - it should be a char of length 1, I got %s";
+    public static final String SENT_IN_CLASS_S_DOES_NOT_MATCH_EXPECTED_INVOKER_HELD_STATUS_CLASS_S = "Sent in class %s does not match expected invoker-held-status-class %s";
+    public static final String COULD_NOT_GET_STATUS_DESCRIPTION = "Could not getStatusDescription";
+    public static final String PROCESSSTEP_S_FAILED_S_ITEM_S_IS_NOW_IN_STATE_S_S = "Processstep %s failed [%s]. Item %s is now in state %s [%s]";
+    public static final String PROCESSSTEP_S_FAILED_ERRORCODE_S_S_ITEM_S_IS_NOW_IN_STATE_S_S = "Processstep %s failed Errorcode %s [%s]. Item %s is now in state %s [%s]";
+    public static final String PROCESSSTEP = "Processstep";
+    public static final String CRITICAL_PROCESS_STEP_LEAKED_TO_JOB_DURING = "CRITICAL : processStep LEAKED to JOB during";
+    public static final String CAUSE = " cause : ";
+    public static final String PROCESS_INSTANCE_OF_S_HAS_SUCCESSFULLY_COMPLETED_ITEM_S_HAS_REACHED_FINAL_STATE_S_S = "Process instance of '%s' has successfully completed. Item %s has reached final state %s [%s]";
     private boolean hasBailed; // NOSONAR - THIS CODE IS JUST A SKETCH SO FAR
     private final ProcessSubject processSubject; // NOSONAR - THIS CODE IS JUST A SKETCH SO FAR
     private final Method stsMethod;
-    private final Class statusClass;
+    private final Class<?> statusClass;
     private static final String STS_NO_ARG_METHOD_SIGNATURE = "getSts";
     private PersistenceService persistenceService;
     private Enum<?> statusUponFailure = null;
@@ -54,17 +67,17 @@ public abstract class ProcessBase implements Process {
         this.persistenceService = persistenceService;
         this.processSubject = processSubject;
         Method tmpMethod = null;
-        Class tmpClass = null;
+        Class<?> tmpClass = null;
         try {
             if (processSubject.getCurrentStatus() == null) {
-                throw new ProcessRuntimeException(String.format("Your status CAN NEVER BE NULL! Your ProcessSubject-impl %s is wrong, perhaps you have just extended the base class but did override the getStatus()-method!", processSubject.getClass())); // NOSONAR
+                throw new ProcessRuntimeException(String.format(YOUR_STATUS_CAN_NEVER_BE_NULL_YOUR_PROCESS_SUBJECT_IMPL_S_IS_WRONG_PERHAPS_YOU_HAVE_JUST_EXTENDED_THE_BASE_CLASS_BUT_DID_OVERRIDE_THE_GET_STATUS_METHOD, processSubject.getClass())); // NOSONAR
             }
             tmpClass = processSubject.getCurrentStatus().getClass();
             tmpMethod = tmpClass.getDeclaredMethod(STS_NO_ARG_METHOD_SIGNATURE, new Class[] {}); // NOSONAR
         } catch (NoSuchMethodException ignore) {
 
             if (!(processSubject.getCurrentStatus() instanceof Enum)) {
-                throw new ProcessRuntimeException(String.format("Your status class %s HAS NOT implemented the simple getSts()-no-arg-method nor does it seem to implement name() (is it an enum!!!)!", processSubject.getCurrentStatus().getClass().getName()));
+                throw new ProcessRuntimeException(String.format(YOUR_STATUS_CLASS_S_HAS_NOT_IMPLEMENTED_THE_SIMPLE_GET_STS_NO_ARG_METHOD_NOR_DOES_IT_SEEM_TO_IMPLEMENT_NAME_IS_IT_AN_ENUM, processSubject.getCurrentStatus().getClass().getName()));
             }
         }
         stsMethod = tmpMethod;
@@ -114,7 +127,7 @@ public abstract class ProcessBase implements Process {
             ((ProcessSubjectBase) getSubject()).clearError();
             setProcessName(toExecute.processName());
             currentStatusUponFailure(toExecute.statusUponFailure());
-            String messageSuffix = String.format("process %s executing step '%s' on item %s for subject %s", toExecute.processName(), toExecute.description(), id(), subjectIdentifier());
+            String messageSuffix = String.format(PROCESS_S_EXECUTING_STEP_S_ON_ITEM_S_FOR_SUBJECT_S, toExecute.processName(), toExecute.description(), id(), subjectIdentifier());
             try {
                 toExecute.execute();
             } catch (ProcessRuntimeException e) {
@@ -135,7 +148,7 @@ public abstract class ProcessBase implements Process {
                 currentStatusUponFailure(null);
                 if (!hasBailed()) {
                     saveInStatus(toExecute.statusUponSuccess()); // Yihoo. det gick bra
-                    LOGGER.info(String.format("Succeded %s. item is now in state %s [%s]", messageSuffix, currentStatusName(), currentStatusDescription())); // NOSONAR
+                    LOGGER.info(String.format(SUCCEDED_S_ITEM_IS_NOW_IN_STATE_S_S, messageSuffix, currentStatusName(), currentStatusDescription())); // NOSONAR
                     if (finished()) {
                         logFinished();
                     } else {
@@ -175,14 +188,14 @@ public abstract class ProcessBase implements Process {
             } else {
                 raw = stsMethod.invoke(processSubject.getCurrentStatus(), new Class[] {}).toString(); // NOSONAR
                 if (raw.length() != 1) {
-                    throw new ProcessRuntimeException(String.format("Status-description-enun is implemented wrongly - it should be a char of length 1, I got %s", raw));
+                    throw new ProcessRuntimeException(String.format(STATUS_DESCRIPTION_ENUN_IS_IMPLEMENTED_WRONGLY_IT_SHOULD_BE_A_CHAR_OF_LENGTH_1_I_GOT_S, raw));
                 }
                 return Character.toString(raw.charAt(0));
             }
         } catch (ClassCastException ce) {
-            throw new ProcessRuntimeException(String.format("Sent in class %s does not match expected invoker-held-status-class %s", processSubject.getCurrentStatus().getClass().getName(), statusClass.getName()));
+            throw new ProcessRuntimeException(String.format(SENT_IN_CLASS_S_DOES_NOT_MATCH_EXPECTED_INVOKER_HELD_STATUS_CLASS_S, processSubject.getCurrentStatus().getClass().getName(), statusClass.getName()));
         } catch (Exception e) {
-            throw new ProcessRuntimeException("Could not getStatusDescription", e);
+            throw new ProcessRuntimeException(COULD_NOT_GET_STATUS_DESCRIPTION, e);
         }
     }
 
@@ -237,16 +250,16 @@ public abstract class ProcessBase implements Process {
         persistenceService.save(processSubject);
         String message = null;
         if (errorCodeStr == null) {
-            message = String.format("Processstep %s failed [%s]. Item %s is now in state %s [%s]", messageSuffix, ThrowableUtils.getTopStackInfo(t), id(), currentStatusName(), currentStatusDescription());
+            message = String.format(PROCESSSTEP_S_FAILED_S_ITEM_S_IS_NOW_IN_STATE_S_S, messageSuffix, ThrowableUtils.getTopStackInfo(t), id(), currentStatusName(), currentStatusDescription());
         } else {
-            message = String.format("Processstep %s failed Errorcode %s [%s]. Item %s is now in state %s [%s]", messageSuffix, errorCodeStr, ThrowableUtils.getTopStackInfo(t), id(), currentStatusName(), currentStatusDescription());
+            message = String.format(PROCESSSTEP_S_FAILED_ERRORCODE_S_S_ITEM_S_IS_NOW_IN_STATE_S_S, messageSuffix, errorCodeStr, ThrowableUtils.getTopStackInfo(t), id(), currentStatusName(), currentStatusDescription());
         }
         if (t instanceof InternalJobNonRuntimeException) {
-            message = message.replace("Processstep", "CRITICAL : processStep LEAKED to JOB during");
+            message = message.replace(PROCESSSTEP, CRITICAL_PROCESS_STEP_LEAKED_TO_JOB_DURING);
         }
         if (t instanceof ProcessRuntimeException) {
             if (t.getCause() != null) {
-                message = new StringBuilder(message).append(" cause : ").append(ThrowableUtils.getTopStackInfo(t.getCause())).toString();
+                message = new StringBuilder(message).append(CAUSE).append(ThrowableUtils.getTopStackInfo(t.getCause())).toString();
             }
             LOGGER.warn(message);
         } else if (t instanceof InternalJobNonRuntimeException || t instanceof InternalProcessNonRuntimeException) {
@@ -257,7 +270,7 @@ public abstract class ProcessBase implements Process {
     }
 
     private void logFinished() {
-        LOGGER.info(String.format("Process instance of '%s' has successfully completed. Item %s has reached final state %s [%s]", name(), id(), currentStatusName(), currentStatusDescription())); //NOSONAR
+        LOGGER.info(String.format(PROCESS_INSTANCE_OF_S_HAS_SUCCESSFULLY_COMPLETED_ITEM_S_HAS_REACHED_FINAL_STATE_S_S, name(), id(), currentStatusName(), currentStatusDescription())); //NOSONAR
     }
 
     private void saveInStatus(Enum<?> statusUponSuccess) {

@@ -20,6 +20,7 @@ package com.github.catchitcozucan.core.internal.util.domain;
 public abstract class BaseDomainObject implements ToStringAble {
 
 	private static final String REGEXP_ONLY_NUMBERS = "^[0-9]+$";
+	public static final String NULL = "null";
 
 	@Override
 	public final int hashCode() {
@@ -45,7 +46,7 @@ public abstract class BaseDomainObject implements ToStringAble {
 	public final String toString() {
 		String str = doToString();
 		if (str == null) {
-			return "null";
+			return NULL;
 		} else {
 			return str;
 		}

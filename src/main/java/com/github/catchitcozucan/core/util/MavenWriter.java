@@ -59,13 +59,17 @@ public class MavenWriter {
 			+ "\\u202F" // NARROW NO-BREAK SPACE
 			+ "\\u205F" // MEDIUM MATHEMATICAL SPACE
 			+ "\\u3000"; // IDEOGRAPHIC SPACE
-	private static final String SPACE_CHARS_BUT_NOT_SPACE = "[ " + WH_CHARS + " ]";
+	private static final String SPACE_CHARS_BUT_NOT_SPACE = "[ " + WH_CHARS + " ]"; //NOSONAR
 	public static final String COLON = ":";
+	public static final String I_CAN_ONLY_BE_INITIALIZED_WITH_A_JAVAX_ANNOTATION_PROCESSING_MESSAGER = "I can only be initialized with a javax.annotation.processing.Messager!";
+	public static final String ERROR = "[ERROR] ";
+	public static final String INFO = "[INFO] ";
+	public static final String WARN = "[WARN] ";
 
 	private final javax.annotation.processing.Messager messager;
 
 	private MavenWriter() {
-		throw new IllegalStateException("I can only be initialized with a javax.annotation.processing.Messager!");
+		throw new IllegalStateException(I_CAN_ONLY_BE_INITIALIZED_WITH_A_JAVAX_ANNOTATION_PROCESSING_MESSAGER);
 	}
 
 	private MavenWriter(Messager messager) {
@@ -93,15 +97,15 @@ public class MavenWriter {
 	}
 
 	public void error(String msg) {
-		System.out.println("[ERROR] " + msg); //NOSONAR this is how Maven outputs..
+		System.out.println(ERROR + msg); //NOSONAR this is how Maven outputs..
 	}
 
 	public void info(String msg) {
-		System.out.println("[INFO] " + msg); //NOSONAR - this _is_ how primitive manve's output is..
+		System.out.println(INFO + msg); //NOSONAR - this _is_ how primitive manve's output is..
 	}
 
 	public void warn(String msg) {
-		System.out.println("[WARN] " + msg); //NOSONAR - this _is_ how primitive manve's output is..
+		System.out.println(WARN + msg); //NOSONAR - this _is_ how primitive manve's output is..
 	}
 
 	public static String formattedErrors(String in) {

@@ -46,7 +46,7 @@ public class CustomClassLoader extends ClassLoader {
     @Override
     public Class<?> loadClass(String name) throws ClassNotFoundException {
         if (name.startsWith(basePackage)) {
-            Class c = getClass(name);
+            Class<?> c = getClass(name);
             if (c != null) {
                 return c;
             }

@@ -47,6 +47,14 @@ public class Slf4JSetup implements LoggingService {
     private static final String MAX_LOG_FILE_SIZE = "100MB";
     private static final String LOG_PATTERN = "%date %level [%thread] %logger{10}.%line %msg%n";
     public static final String COM_GITHUB_CATCHITCOZUCAN = "com.github.catchitcozucan";
+    public static final String JAVA_IO_TMPDIR = "java.io.tmpdir";
+    public static final String THE_LOGGING_SERVICE_IS_NOT_INITIALIZED = "The LoggingService is NOT initialized!";
+    public static final String CANNOT_CREATE_LOG_FOLDER_S = "Cannot create log folder %s";
+    public static final String PROVIDED_LOG_PATH_S_IS_AN_EXISTING_FILE_IT_SHOULD_BE_A_DIRECTORY = "Provided log path %s is an existing FILE. It should be a directory!";
+    public static final String SETTING_NEW_LOGLEVEL_S = "Setting new loglevel : %s";
+    public static final String GOT_NON_PARSEABLE_LOGGING_LEVEL_S_RETURNING_INFO = "Got non-parseable logging level %s - returning INFO!";
+    public static final String GOT_EMPTY_LOGGING_LEVEL_RETURNING_INFO = "Got empty logging level - returning INFO!";
+    public static final String ROLLING_FILE_APPENDER_S = "RollingFileAppender_%s";
     private static Slf4JSetup INSTANCE; //NOSONAR
     private LoggerContext context;
     private static org.slf4j.Logger LOGGER; //NOSONAR - this _is_ bull.
@@ -57,7 +65,7 @@ public class Slf4JSetup implements LoggingService {
 
         // den SKA ha skapats tidigare men den finns inte på jenkins -> loggga till tempdir
         if (!logFolder.exists()) {
-            logFolder = new File(System.getProperty("java.io.tmpdir"));
+            logFolder = new File(System.getProperty(JAVA_IO_TMPDIR));
         }
 
         PatternLayoutEncoder ple = new PatternLayoutEncoder();
@@ -111,7 +119,7 @@ public class Slf4JSetup implements LoggingService {
         if (INSTANCE != null) {
             return INSTANCE;
         } else {
-            throw new IllegalStateException("The LoggingService is NOT initialized!");
+            throw new IllegalStateException(THE_LOGGING_SERVICE_IS_NOT_INITIALIZED);
         }
     }
 
@@ -142,10 +150,10 @@ public class Slf4JSetup implements LoggingService {
                 try {
                     logFolder.mkdirs();
                 } catch (Exception e) {
-                    throw new IllegalArgumentException(String.format("Cannot create log folder %s", pathToFolder));
+                    throw new IllegalArgumentException(String.format(CANNOT_CREATE_LOG_FOLDER_S, pathToFolder));
                 }
             } else if (logFolder.isFile()) {
-                throw new IllegalArgumentException(String.format("Provided log path %s is an existing FILE. It should be a directory!", pathToFolder));
+                throw new IllegalArgumentException(String.format(PROVIDED_LOG_PATH_S_IS_AN_EXISTING_FILE_IT_SHOULD_BE_A_DIRECTORY, pathToFolder));
             }
             INSTANCE = new Slf4JSetup(logFolder, applicationName, runDebug, logFilePrefix, logSeparately);
         }
@@ -154,7 +162,7 @@ public class Slf4JSetup implements LoggingService {
     @Override
     public void setRootLogLevel(Level level) {
         if (context != null && context.isStarted() && weHaveALoglevelAndItIsNew(level)) {
-            LOGGER.info(String.format("Setting new loglevel : %s", level.levelStr)); //NOSONAR - this _is_ bull.
+            LOGGER.info(String.format(SETTING_NEW_LOGLEVEL_S, level.levelStr)); //NOSONAR - this _is_ bull.
             ((Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME)).setLevel(level);  // NOSONAR BULL.
         }
     }
@@ -175,12 +183,12 @@ public class Slf4JSetup implements LoggingService {
                 return Level.valueOf(levelProperty.trim().toUpperCase());
             } catch (Exception e) {
                 if (INSTANCE != null && LOGGER != null) {
-                    LOGGER.warn(String.format("Got non-parseable logging level %s - returning INFO!", configuredVal));
+                    LOGGER.warn(String.format(GOT_NON_PARSEABLE_LOGGING_LEVEL_S_RETURNING_INFO, configuredVal));
                 }
                 return Level.INFO;
             }
         } else {
-            LOGGER.warn("Got empty logging level - returning INFO!");
+            LOGGER.warn(GOT_EMPTY_LOGGING_LEVEL_RETURNING_INFO);
             return Level.INFO;
         }
     }
@@ -222,7 +230,7 @@ public class Slf4JSetup implements LoggingService {
         filterInfo.setLevel(level);
         filterInfo.start();
         fileAppenderInfo.addFilter(filterInfo);
-        fileAppenderInfo.setName(String.format("RollingFileAppender_%s", level.levelStr));
+        fileAppenderInfo.setName(String.format(ROLLING_FILE_APPENDER_S, level.levelStr));
         return fileAppenderInfo;
     }
 
@@ -238,7 +246,7 @@ public class Slf4JSetup implements LoggingService {
     }
 
     private static void setTriggerPolicy(RollingFileAppender<ILoggingEvent> appender, FixedWindowRollingPolicy rollingPolicy) {
-        SizeBasedTriggeringPolicy triggeringPolicy = new SizeBasedTriggeringPolicy();
+        SizeBasedTriggeringPolicy triggeringPolicy = new SizeBasedTriggeringPolicy(); //NOSONAR
         triggeringPolicy.setMaxFileSize(FileSize.valueOf(MAX_LOG_FILE_SIZE));
         triggeringPolicy.setMaxFileSize(FileSize.valueOf(MAX_LOG_FILE_SIZE));
         appender.setTriggeringPolicy(triggeringPolicy);

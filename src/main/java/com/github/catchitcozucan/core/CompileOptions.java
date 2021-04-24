@@ -29,6 +29,6 @@ public @interface CompileOptions {
 	String bpmActivitiesPerColumn() default "3";
 	String mavenModulePathToStatusEnumeration() default "NONE";
 	String mavenRepoPath() default "NONE";
-	String criteriaStateOnlyFailure() default "false";
-	String acceptStatusEvaluationFailures() default "false";
+	boolean criteriaStateOnlyFailure() default false;
+	boolean acceptStatusEvaluationFailures() default false;
 }

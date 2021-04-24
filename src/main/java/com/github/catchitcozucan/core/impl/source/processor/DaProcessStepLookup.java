@@ -141,8 +141,8 @@ public class DaProcessStepLookup {
 			if (mavenRepoPath.equals(NONE)) {
 				mavenRepoPath = null;
 			}
-			boolean criteriaStateOnlyFailure = IO.looksLikeTrue(ee.getAnnotation(CompileOptions.class).criteriaStateOnlyFailure());
-			boolean acceptFailures = IO.looksLikeTrue(ee.getAnnotation(CompileOptions.class).acceptStatusEvaluationFailures());
+			boolean criteriaStateOnlyFailure = ee.getAnnotation(CompileOptions.class).criteriaStateOnlyFailure();
+			boolean acceptFailures = ee.getAnnotation(CompileOptions.class).acceptStatusEvaluationFailures();
 			String activitesPerColumnStr = ee.getAnnotation(CompileOptions.class).bpmActivitiesPerColumn();
 			Integer activitiesPerColumn = ACTIVITIES_PER_COLUMN_DEFAULT;
 			try {

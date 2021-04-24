@@ -180,7 +180,11 @@ public class DaProcessStepSourceAppender extends BaseDomainObject {
 				if (!chkSum.equals(chkSumOrig)) {
 					removePreviousAddition();
 					DaProcessStepConstants.info("  - steps have changed : RE-WRITING");
-					sourceToAppend.replace(DaProcessStepConstants.CHKSUM_POS - 2, DaProcessStepConstants.CHKSUM_POS + DaProcessStepConstants.CHKSUM_LEN + 1, chkSum);
+					int replaceStart = 2;
+					if (NL.length() == 2) {
+						replaceStart = 3;
+					}
+					sourceToAppend.replace(DaProcessStepConstants.CHKSUM_POS - replaceStart, DaProcessStepConstants.CHKSUM_POS + DaProcessStepConstants.CHKSUM_LEN + 1, chkSum);
 					String appendedSrc;
 					if (!bpmDescriptors.isEmpty() && !sourceToAppend.toString().contains(FORMATTER_ON)) {
 						appendedSrc = sourceToAppend.toString().replace(HEADER_START_OLD, appendCriteriaStatesAndFinalStateAndToggleFormatting());
@@ -211,10 +215,20 @@ public class DaProcessStepSourceAppender extends BaseDomainObject {
 
 			String criteriaStates = String.format(CRITERIA_STATES, originatingClassPlusEnumFieldName);
 			List<String> statesShort = new ArrayList<>();
-			if(!criteriaStateOnlyFailure) {
-				statesShort.add(bpmDescriptors.get(0).getMyStateName());
+			String descriptorToSkip = null;
+			if (!criteriaStateOnlyFailure) {
+				descriptorToSkip = bpmDescriptors.get(0).getMyStateName();
+				statesShort.add(descriptorToSkip);
 			}
-			bpmDescriptors.stream().forEachOrdered(e -> statesShort.add(e.getStatusUponFailure()));
+
+			final String descriptorToSkipInStream = descriptorToSkip;
+			bpmDescriptors.stream().forEachOrdered(e -> {
+				if (criteriaStateOnlyFailure && !e.getMyStateName().equals(descriptorToSkipInStream)) {
+					statesShort.add(e.getStatusUponFailure());
+				} else {
+					statesShort.add(e.getStatusUponFailure());
+				}
+			});
 			criteriaStates = criteriaStates.replace(NEW_AND_FAIL_STATES, makeStateDescritions(originatingClassPlusEnumFieldName, statesShort));
 			addtionals.append(criteriaStates).append(NL);
 

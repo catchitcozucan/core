@@ -43,7 +43,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 
-public abstract class JobBase implements Job, HistogramProvider {
+public abstract class JobBase<T extends ProcessSubjectBase> implements Job, HistogramProvider {
 
     private static final String ZERO_MILLIS = "0 millis";
     private static final String S_EXITING_JOB_S_AS_FINISHED_B_AFTER_S_EXIT_STATE_IS_S = "%s exiting job '%s' as finished : %b after %s. Exit state is : [%s]";
@@ -123,10 +123,9 @@ public abstract class JobBase implements Job, HistogramProvider {
     }
 
     @Override
-    public void interruptExecution() {
-    } // it is not necessary, though healthy, to implement this
+    public void interruptExecution() {} // it is not necessary, though healthy, to implement this
 
-    protected Stream<ProcessSubject> fetchSubjectsInCriteriaState() {
+    protected Stream<T> fetchSubjectsInCriteriaState() {
         return persistenceService.provideStateFilteredSubjectStream(); //NOSONAR
     }
 

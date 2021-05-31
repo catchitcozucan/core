@@ -6,9 +6,10 @@ import com.github.catchitcozucan.core.interfaces.Job;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class TripsJob extends JobBase implements Job {
+public class TripsJob extends JobBase<TripSubject> implements Job {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(JobBase.class);
+	public static final String TRIP_JOB = "Trip job";
 
 	public TripsJob() {
 		super(TripOrderRepository.getInstance(), TripProcess.CRITERIA_STATES);
@@ -16,7 +17,7 @@ public class TripsJob extends JobBase implements Job {
 
 	@Override
 	public String name() {
-		return "Trip job";
+		return TRIP_JOB;
 	}
 
 	@Override

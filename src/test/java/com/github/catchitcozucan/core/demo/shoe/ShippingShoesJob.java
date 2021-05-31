@@ -6,9 +6,10 @@ import com.github.catchitcozucan.core.interfaces.Job;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ShippingShoesJob extends JobBase implements Job {
+public class ShippingShoesJob extends JobBase<Order> implements Job {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ShippingShoesJob.class);
+	public static final String SHIPPING_ORDERED_SHOES = "Shipping ordered shoes";
 
 	public ShippingShoesJob() {
 		super(OrderRepository.getInstance(), ShipAShoeProcess.CRITERIA_STATES);
@@ -16,7 +17,7 @@ public class ShippingShoesJob extends JobBase implements Job {
 
 	@Override
 	public String name() {
-		return "Shipping ordered shoes";
+		return SHIPPING_ORDERED_SHOES;
 	}
 
 	@Override

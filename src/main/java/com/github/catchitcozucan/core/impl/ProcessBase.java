@@ -31,7 +31,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 
-public abstract class ProcessBase implements Process {
+public abstract class ProcessBase<T extends ProcessSubjectBase> implements Process {
 
     public static final String YOUR_STATUS_CAN_NEVER_BE_NULL_YOUR_PROCESS_SUBJECT_IMPL_S_IS_WRONG_PERHAPS_YOU_HAVE_JUST_EXTENDED_THE_BASE_CLASS_BUT_DID_OVERRIDE_THE_GET_STATUS_METHOD = "Your status CAN NEVER BE NULL! Your ProcessSubject-impl %s is wrong, perhaps you have just extended the base class but did override the getStatus()-method!";
     public static final String YOUR_STATUS_CLASS_S_HAS_NOT_IMPLEMENTED_THE_SIMPLE_GET_STS_NO_ARG_METHOD_NOR_DOES_IT_SEEM_TO_IMPLEMENT_NAME_IS_IT_AN_ENUM = "Your status class %s HAS NOT implemented the simple getSts()-no-arg-method nor does it seem to implement name() (is it an enum!!!)!";
@@ -47,7 +47,7 @@ public abstract class ProcessBase implements Process {
     public static final String CAUSE = " cause : ";
     public static final String PROCESS_INSTANCE_OF_S_HAS_SUCCESSFULLY_COMPLETED_ITEM_S_HAS_REACHED_FINAL_STATE_S_S = "Process instance of '%s' has successfully completed. Item %s has reached final state %s [%s]";
     private boolean hasBailed; // NOSONAR - THIS CODE IS JUST A SKETCH SO FAR
-    private final ProcessSubject processSubject; // NOSONAR - THIS CODE IS JUST A SKETCH SO FAR
+    private final T processSubject; // NOSONAR - THIS CODE IS JUST A SKETCH SO FAR
     private final Method stsMethod;
     private final Class<?> statusClass;
     private static final String STS_NO_ARG_METHOD_SIGNATURE = "getSts";
@@ -61,8 +61,8 @@ public abstract class ProcessBase implements Process {
         LOGGER = LoggerFactory.getLogger(ProcessBase.class);
     }
 
-    protected ProcessBase(ProcessSubject processSubject, PersistenceService persistenceService) {
-        ((ProcessSubjectBase) processSubject).clearError();
+    protected ProcessBase(T processSubject, PersistenceService persistenceService) {
+        processSubject.clearError();
         statusUponFailure = null;
         this.persistenceService = persistenceService;
         this.processSubject = processSubject;
@@ -124,7 +124,7 @@ public abstract class ProcessBase implements Process {
     //
     protected boolean executeStep(ProcessStep toExecute) { // NOSONAR complex stuff this..
         if (!hasBailed()) {
-            ((ProcessSubjectBase) getSubject()).clearError();
+            getSubject().clearError();
             setProcessName(toExecute.processName());
             currentStatusUponFailure(toExecute.statusUponFailure());
             String messageSuffix = String.format(PROCESS_S_EXECUTING_STEP_S_ON_ITEM_S_FOR_SUBJECT_S, toExecute.processName(), toExecute.description(), id(), subjectIdentifier());
@@ -161,10 +161,10 @@ public abstract class ProcessBase implements Process {
     }
 
     private void setProcessName(String processName) {
-        ((ProcessSubjectBase) processSubject).setProcessName(processName);
+        processSubject.setProcessName(processName);
     }
 
-    protected ProcessSubject getSubject() {
+    protected T getSubject() {
         return processSubject;
     }
 
@@ -243,10 +243,10 @@ public abstract class ProcessBase implements Process {
         String errorCodeStr = null;
         hasBailed = true;
         if (errorCode != null) {
-            ((ProcessSubjectBase) processSubject).setErrorCode(errorCode);
+            processSubject.setErrorCode(errorCode);
             errorCodeStr = Integer.toString(errorCode);
         }
-        ((ProcessSubjectBase) processSubject).setStatus(statusUponFailure);
+        processSubject.setStatus(statusUponFailure);
         persistenceService.save(processSubject);
         String message = null;
         if (errorCodeStr == null) {
@@ -274,7 +274,7 @@ public abstract class ProcessBase implements Process {
     }
 
     private void saveInStatus(Enum<?> statusUponSuccess) {
-        ((ProcessSubjectBase) processSubject).setStatus(statusUponSuccess);
+        processSubject.setStatus(statusUponSuccess);
         persistenceService.save(processSubject);
     }
 }

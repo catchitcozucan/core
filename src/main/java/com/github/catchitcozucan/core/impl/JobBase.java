@@ -84,7 +84,7 @@ public abstract class JobBase implements Job, HistogramProvider {
     @Override
     public HistogramStatus getHistogram() {
         if (collectorIsAvailable()) {
-            return new HistogramStatus(name(), persistenceService.provideSubjectStream().collect(cycleHistogramCollector), null);
+            return new HistogramStatus(name(), (Map<String, Integer>) persistenceService.provideSubjectStream().collect(cycleHistogramCollector), null);
         } else if (!acceptEmptyHistogram) {
             return null;
         } else {

@@ -26,7 +26,7 @@ import com.github.catchitcozucan.core.internal.util.domain.BaseDomainObject;
 import com.github.catchitcozucan.core.internal.util.domain.ToStringBuilder;
 
 
-public abstract class ProcessSubjectBase extends BaseDomainObject implements ProcessSubject, Serializable {
+public abstract class ProcessSubjectBase<T> extends BaseDomainObject implements ProcessSubject, Serializable {
 
 	protected Enum<?> status;
 	private Integer errorCode;

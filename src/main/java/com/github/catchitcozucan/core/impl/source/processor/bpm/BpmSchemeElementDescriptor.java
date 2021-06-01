@@ -64,11 +64,11 @@ public class BpmSchemeElementDescriptor extends BaseDomainObject implements Comp
     private static final String IN_YOUR_STATUS_ENUM_STATE_AT_INDEX_N_YOUR_POSITIVE_OP_FAILURE = "In your status enum, state at index %d your positive state does NOT have an even index. This means that your statues are NOT lined up in the suppported order [ INITIAL_STATE, FAILURE_FST_OP, FST_OP_SUCCESSFULL, SND_OP_FAILURE.. ]";
 
     public enum Type {
-        START_EVENT, ACTIVITY, FINISH_STATE;
+        START_EVENT, ACTIVITY, FINISH_STATE
     }
 
     enum TypeInBetween {
-        FLOW, GATEWAY, DEFINITIONS, PROCESS;
+        FLOW, GATEWAY, DEFINITIONS, PROCESS
     }
 
     private final String id = new StringBuilder(ACTIVITY_PROPERTY).append(getBpmStyleId()).toString();

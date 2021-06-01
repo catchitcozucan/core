@@ -17,7 +17,9 @@
  */
 package com.github.catchitcozucan.core.impl.source.processor;
 
+import static com.github.catchitcozucan.core.impl.source.processor.DaProcessStepConstants.ALL_STATES_AS_STRINGS;
 import static com.github.catchitcozucan.core.impl.source.processor.DaProcessStepConstants.CRITERIA_STATES;
+import static com.github.catchitcozucan.core.impl.source.processor.DaProcessStepConstants.CRITERIA_STATES_AS_STRINGS;
 import static com.github.catchitcozucan.core.impl.source.processor.DaProcessStepConstants.CURLY_RIGHT;
 import static com.github.catchitcozucan.core.impl.source.processor.DaProcessStepConstants.DOT;
 import static com.github.catchitcozucan.core.impl.source.processor.DaProcessStepConstants.EMPTY;
@@ -207,7 +209,7 @@ public class DaProcessStepSourceAppender extends BaseDomainObject {
 
 	private String appendCriteriaStatesAndFinalStateAndToggleFormatting() {
 		StringBuilder addtionals = new StringBuilder();
-		addtionals.append(NL).append(String.format(NAME, originatingClass)).append(NL);
+		addtionals.append(String.format(NAME, originatingClass)).append(NL);
 		if (!bpmDescriptors.isEmpty() && bpmDescriptors.get(0) != null) {
 
 			String originatingClassPlusEnumFieldName = new StringBuilder(bpmDescriptors.get(0).getEnumContainer().getOriginatingClassPath()).append(".").append(bpmDescriptors.get(0).getEnumContainer().getEnumFieldName()).toString();
@@ -231,6 +233,12 @@ public class DaProcessStepSourceAppender extends BaseDomainObject {
 			});
 			criteriaStates = criteriaStates.replace(NEW_AND_FAIL_STATES, makeStateDescritions(originatingClassPlusEnumFieldName, statesShort));
 			addtionals.append(criteriaStates).append(NL);
+
+			String criteriaStatesAsStrings = CRITERIA_STATES_AS_STRINGS;
+			addtionals.append(criteriaStatesAsStrings).append(NL);
+
+			String allStatesAsStrings = String.format(ALL_STATES_AS_STRINGS, originatingClassPlusEnumFieldName);
+			addtionals.append(allStatesAsStrings).append(NL).append(NL);
 
 			String processInternal = String.format(PROCESS_INTERNAL, originatingClassPlusEnumFieldName);
 			processInternal = processInternal.replace(FORMATTER, STRING_FORMAT);

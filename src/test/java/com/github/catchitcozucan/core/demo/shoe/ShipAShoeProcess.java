@@ -189,7 +189,6 @@ public class ShipAShoeProcess extends ProcessBase<Order> {
 
     };
 
-
     public static final String PROCESS_NAME = com.github.catchitcozucan.core.demo.shoe.ShipAShoeProcess.class.getName().toUpperCase();
 
     public static final Enum<?> FINISH_STATE = com.github.catchitcozucan.core.demo.shoe.OrderStatus.Status.values()[com.github.catchitcozucan.core.demo.shoe.OrderStatus.Status.values().length - 1];
@@ -201,6 +200,14 @@ public class ShipAShoeProcess extends ProcessBase<Order> {
         com.github.catchitcozucan.core.demo.shoe.OrderStatus.Status.PACKAGING_FAILED,
         com.github.catchitcozucan.core.demo.shoe.OrderStatus.Status.SHIPPING_FAILED
     };
+
+    public static java.util.List<String> criteriaProcessesStatusesAsStrings() {
+        return java.util.Arrays.asList(CRITERIA_STATES).stream().map(Enum::name).collect(java.util.stream.Collectors.toList());
+    }
+
+    public static java.util.List<String> allProcessesStatusesAsStrings() {
+        return java.util.Arrays.asList(com.github.catchitcozucan.core.demo.shoe.OrderStatus.Status.values()).stream().map(Enum::name).collect(java.util.stream.Collectors.toList());
+    }
 
     public void processInternal(com.github.catchitcozucan.core.demo.shoe.OrderStatus.Status currentStatus) {
         switch (currentStatus) {

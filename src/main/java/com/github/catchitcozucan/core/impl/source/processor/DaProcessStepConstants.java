@@ -136,6 +136,18 @@ public class DaProcessStepConstants {
 			.append(NL).append("    };").append(NL).toString();
     //@formatter:on
 
+	//@formatter:off (Full status class name x3)
+	static final String CRITERIA_STATES_AS_STRINGS = new StringBuilder("    public static java.util.List<String> criteriaProcessesStatusesAsStrings() {").append(NL)
+			.append("        return java.util.Arrays.asList(CRITERIA_STATES).stream().map(Enum::name).collect(java.util.stream.Collectors.toList());")
+			.append(NL).append("    }").append(NL).toString();
+	//@formatter:on
+
+	//@formatter:off (Full status class name x3)
+	static final String ALL_STATES_AS_STRINGS = new StringBuilder("    public static java.util.List<String> allProcessesStatusesAsStrings() {").append(NL)
+			.append("        return java.util.Arrays.asList(%s.values()).stream().map(Enum::name).collect(java.util.stream.Collectors.toList());")
+			.append(NL).append("    }").toString();
+	//@formatter:on
+
 	//@formatter:off
 	static final String PROCESS_INTERNAL = new StringBuilder("    public void processInternal(%s currentStatus) {").append(NL)
 		.append("        switch (currentStatus) {").append(NL)

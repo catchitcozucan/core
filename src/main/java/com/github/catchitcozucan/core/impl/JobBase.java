@@ -58,7 +58,7 @@ public abstract class JobBase<T extends ProcessSubjectBase> implements Job, Hist
     private static final String TIME_REPORTING = "JOB EXEC TIME : %s PROCESS AVARAGE EXEC TIME : %s";
     private boolean amIWorking;
     private static final Logger LOGGER = LoggerFactory.getLogger(JobBase.class);
-    private final PersistenceService persistenceService;
+    protected final PersistenceService persistenceService;
     private final Enum<?>[] criteriaStates;
     private Nameable[] nameables;
     private boolean acceptEmptyHistogram;

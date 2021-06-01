@@ -11,114 +11,114 @@ import org.slf4j.LoggerFactory;
 @CompileOptions(relativeBpmDirectoryPath = "../../../../../../../resources/bpmSchemes", bpmActivitiesPerColumn = "3")
 public class LongProcess extends ProcessBase<LongSubject> {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(LongProcess.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(LongProcess.class);
 
-	protected LongProcess(LongSubject processSubject, PersistenceService persistenceService) {
-		super(processSubject, persistenceService);
-	}
+    protected LongProcess(LongSubject processSubject, PersistenceService persistenceService) {
+        super(processSubject, persistenceService);
+    }
 
-	@Override
-	public String name() {
-		return "The looooong process";
-	}
+    @Override
+    public String name() {
+        return "The looooong process";
+    }
 
-	@Override
-	public Enum<?>[] criteriaStates() {
-		return CRITERIA_STATES;
-	}
+    @Override
+    public Enum<?>[] criteriaStates() {
+        return CRITERIA_STATES;
+    }
 
-	@Override
-	public Enum<?> finishedState() {
-		return FINISH_STATE;
-	}
+    @Override
+    public Enum<?> finishedState() {
+        return FINISH_STATE;
+    }
 
-	@Override
-	public void process() {
-	}
+    @Override
+    public void process() {
+    }
 
-	@MakeStep(description = "step1", statusUponSuccess = "Status.STATE1", statusUponFailure = "Status.FAILED_STATE1", enumStateProvider = com.github.catchitcozucan.core.demo.longprocess.LongProcessStatus.class)
-	private void step1() {
-	}
+    @MakeStep(description = "step1", statusUponSuccess = "Status.STATE1", statusUponFailure = "Status.FAILED_STATE1", enumStateProvider = com.github.catchitcozucan.core.demo.longprocess.LongProcessStatus.class)
+    private void step1() {
+    }
 
-	@MakeStep(description = "step2", statusUponSuccess = "Status.STATE2", statusUponFailure = "Status.FAILED_STATE2", enumStateProvider = com.github.catchitcozucan.core.demo.longprocess.LongProcessStatus.class)
-	private void step2() {
-	}
+    @MakeStep(description = "step2", statusUponSuccess = "Status.STATE2", statusUponFailure = "Status.FAILED_STATE2", enumStateProvider = com.github.catchitcozucan.core.demo.longprocess.LongProcessStatus.class)
+    private void step2() {
+    }
 
-	@MakeStep(description = "step3", statusUponSuccess = "Status.STATE3", statusUponFailure = "Status.FAILED_STATE3", enumStateProvider = com.github.catchitcozucan.core.demo.longprocess.LongProcessStatus.class)
-	private void step3() {
-	}
+    @MakeStep(description = "step3", statusUponSuccess = "Status.STATE3", statusUponFailure = "Status.FAILED_STATE3", enumStateProvider = com.github.catchitcozucan.core.demo.longprocess.LongProcessStatus.class)
+    private void step3() {
+    }
 
-	@MakeStep(description = "step4", statusUponSuccess = "Status.STATE4", statusUponFailure = "Status.FAILED_STATE4", enumStateProvider = com.github.catchitcozucan.core.demo.longprocess.LongProcessStatus.class)
-	private void step4() {
-	}
+    @MakeStep(description = "step4", statusUponSuccess = "Status.STATE4", statusUponFailure = "Status.FAILED_STATE4", enumStateProvider = com.github.catchitcozucan.core.demo.longprocess.LongProcessStatus.class)
+    private void step4() {
+    }
 
-	@MakeStep(description = "step5", statusUponSuccess = "Status.STATE5", statusUponFailure = "Status.FAILED_STATE5", enumStateProvider = com.github.catchitcozucan.core.demo.longprocess.LongProcessStatus.class)
-	private void step5() {
-	}
+    @MakeStep(description = "step5", statusUponSuccess = "Status.STATE5", statusUponFailure = "Status.FAILED_STATE5", enumStateProvider = com.github.catchitcozucan.core.demo.longprocess.LongProcessStatus.class)
+    private void step5() {
+    }
 
-	@MakeStep(description = "step6", statusUponSuccess = "Status.STATE6", statusUponFailure = "Status.FAILED_STATE6", enumStateProvider = com.github.catchitcozucan.core.demo.longprocess.LongProcessStatus.class)
-	private void step6() {
-	}
+    @MakeStep(description = "step6", statusUponSuccess = "Status.STATE6", statusUponFailure = "Status.FAILED_STATE6", enumStateProvider = com.github.catchitcozucan.core.demo.longprocess.LongProcessStatus.class)
+    private void step6() {
+    }
 
-	@MakeStep(description = "step7", statusUponSuccess = "Status.STATE7", statusUponFailure = "Status.FAILED_STATE7", enumStateProvider = com.github.catchitcozucan.core.demo.longprocess.LongProcessStatus.class)
-	private void step7() {
-	}
+    @MakeStep(description = "step7", statusUponSuccess = "Status.STATE7", statusUponFailure = "Status.FAILED_STATE7", enumStateProvider = com.github.catchitcozucan.core.demo.longprocess.LongProcessStatus.class)
+    private void step7() {
+    }
 
-	@MakeStep(description = "step8", statusUponSuccess = "Status.STATE8", statusUponFailure = "Status.FAILED_STATE8", enumStateProvider = com.github.catchitcozucan.core.demo.longprocess.LongProcessStatus.class)
-	private void step8() {
-	}
+    @MakeStep(description = "step8", statusUponSuccess = "Status.STATE8", statusUponFailure = "Status.FAILED_STATE8", enumStateProvider = com.github.catchitcozucan.core.demo.longprocess.LongProcessStatus.class)
+    private void step8() {
+    }
 
-	@MakeStep(description = "step9", statusUponSuccess = "Status.STATE9", statusUponFailure = "Status.FAILED_STATE9", enumStateProvider = com.github.catchitcozucan.core.demo.longprocess.LongProcessStatus.class)
-	private void step9() {
-	}
+    @MakeStep(description = "step9", statusUponSuccess = "Status.STATE9", statusUponFailure = "Status.FAILED_STATE9", enumStateProvider = com.github.catchitcozucan.core.demo.longprocess.LongProcessStatus.class)
+    private void step9() {
+    }
 
-	@MakeStep(description = "step10", statusUponSuccess = "Status.STATE10", statusUponFailure = "Status.FAILED_STATE10", enumStateProvider = com.github.catchitcozucan.core.demo.longprocess.LongProcessStatus.class)
-	private void step10() {
-	}
+    @MakeStep(description = "step10", statusUponSuccess = "Status.STATE10", statusUponFailure = "Status.FAILED_STATE10", enumStateProvider = com.github.catchitcozucan.core.demo.longprocess.LongProcessStatus.class)
+    private void step10() {
+    }
 
-	@MakeStep(description = "step11", statusUponSuccess = "Status.STATE11", statusUponFailure = "Status.FAILED_STATE11", enumStateProvider = com.github.catchitcozucan.core.demo.longprocess.LongProcessStatus.class)
-	private void step11() {
-	}
+    @MakeStep(description = "step11", statusUponSuccess = "Status.STATE11", statusUponFailure = "Status.FAILED_STATE11", enumStateProvider = com.github.catchitcozucan.core.demo.longprocess.LongProcessStatus.class)
+    private void step11() {
+    }
 
-	@MakeStep(description = "step12", statusUponSuccess = "Status.STATE12", statusUponFailure = "Status.FAILED_STATE12", enumStateProvider = com.github.catchitcozucan.core.demo.longprocess.LongProcessStatus.class)
-	private void step12() {
-	}
+    @MakeStep(description = "step12", statusUponSuccess = "Status.STATE12", statusUponFailure = "Status.FAILED_STATE12", enumStateProvider = com.github.catchitcozucan.core.demo.longprocess.LongProcessStatus.class)
+    private void step12() {
+    }
 
-	@MakeStep(description = "step13", statusUponSuccess = "Status.STATE13", statusUponFailure = "Status.FAILED_STATE13", enumStateProvider = com.github.catchitcozucan.core.demo.longprocess.LongProcessStatus.class)
-	private void step13() {
-	}
+    @MakeStep(description = "step13", statusUponSuccess = "Status.STATE13", statusUponFailure = "Status.FAILED_STATE13", enumStateProvider = com.github.catchitcozucan.core.demo.longprocess.LongProcessStatus.class)
+    private void step13() {
+    }
 
-	@MakeStep(description = "step14", statusUponSuccess = "Status.STATE14", statusUponFailure = "Status.FAILED_STATE14", enumStateProvider = com.github.catchitcozucan.core.demo.longprocess.LongProcessStatus.class)
-	private void step14() {
-	}
+    @MakeStep(description = "step14", statusUponSuccess = "Status.STATE14", statusUponFailure = "Status.FAILED_STATE14", enumStateProvider = com.github.catchitcozucan.core.demo.longprocess.LongProcessStatus.class)
+    private void step14() {
+    }
 
-	@MakeStep(description = "step15", statusUponSuccess = "Status.STATE15", statusUponFailure = "Status.FAILED_STATE15", enumStateProvider = com.github.catchitcozucan.core.demo.longprocess.LongProcessStatus.class)
-	private void step15() {
-	}
+    @MakeStep(description = "step15", statusUponSuccess = "Status.STATE15", statusUponFailure = "Status.FAILED_STATE15", enumStateProvider = com.github.catchitcozucan.core.demo.longprocess.LongProcessStatus.class)
+    private void step15() {
+    }
 
-	@MakeStep(description = "step16", statusUponSuccess = "Status.STATE16", statusUponFailure = "Status.FAILED_STATE16", enumStateProvider = com.github.catchitcozucan.core.demo.longprocess.LongProcessStatus.class)
-	private void step16() {
-	}
+    @MakeStep(description = "step16", statusUponSuccess = "Status.STATE16", statusUponFailure = "Status.FAILED_STATE16", enumStateProvider = com.github.catchitcozucan.core.demo.longprocess.LongProcessStatus.class)
+    private void step16() {
+    }
 
-	@MakeStep(description = "step17", statusUponSuccess = "Status.STATE17", statusUponFailure = "Status.FAILED_STATE17", enumStateProvider = com.github.catchitcozucan.core.demo.longprocess.LongProcessStatus.class)
-	private void step17() {
-	}
+    @MakeStep(description = "step17", statusUponSuccess = "Status.STATE17", statusUponFailure = "Status.FAILED_STATE17", enumStateProvider = com.github.catchitcozucan.core.demo.longprocess.LongProcessStatus.class)
+    private void step17() {
+    }
 
-	@MakeStep(description = "step18", statusUponSuccess = "Status.STATE18", statusUponFailure = "Status.FAILED_STATE18", enumStateProvider = com.github.catchitcozucan.core.demo.longprocess.LongProcessStatus.class)
-	private void step18() {
-	}
+    @MakeStep(description = "step18", statusUponSuccess = "Status.STATE18", statusUponFailure = "Status.FAILED_STATE18", enumStateProvider = com.github.catchitcozucan.core.demo.longprocess.LongProcessStatus.class)
+    private void step18() {
+    }
 
-	@MakeStep(description = "step19", statusUponSuccess = "Status.STATE19", statusUponFailure = "Status.FAILED_STATE19", enumStateProvider = com.github.catchitcozucan.core.demo.longprocess.LongProcessStatus.class)
-	private void step19() {
-	}
+    @MakeStep(description = "step19", statusUponSuccess = "Status.STATE19", statusUponFailure = "Status.FAILED_STATE19", enumStateProvider = com.github.catchitcozucan.core.demo.longprocess.LongProcessStatus.class)
+    private void step19() {
+    }
 
-	@MakeStep(description = "step20", statusUponSuccess = "Status.STATE20", statusUponFailure = "Status.FAILED_STATE20", enumStateProvider = com.github.catchitcozucan.core.demo.longprocess.LongProcessStatus.class)
-	private void step20() {
-	}
+    @MakeStep(description = "step20", statusUponSuccess = "Status.STATE20", statusUponFailure = "Status.FAILED_STATE20", enumStateProvider = com.github.catchitcozucan.core.demo.longprocess.LongProcessStatus.class)
+    private void step20() {
+    }
 
-	@MakeStep(description = "step21", statusUponSuccess = "Status.STATE21", statusUponFailure = "Status.FAILED_STATE21", enumStateProvider = com.github.catchitcozucan.core.demo.longprocess.LongProcessStatus.class)
-	private void step21() {
-	}
+    @MakeStep(description = "step21", statusUponSuccess = "Status.STATE21", statusUponFailure = "Status.FAILED_STATE21", enumStateProvider = com.github.catchitcozucan.core.demo.longprocess.LongProcessStatus.class)
+    private void step21() {
+    }
 
     ///////CHKSUM: E1F46BA2014D5912A0D5116DB000E593XXXXXXXX/////////////////////
     //
@@ -739,7 +739,6 @@ public class LongProcess extends ProcessBase<LongSubject> {
 
     };
 
-
     public static final String PROCESS_NAME = com.github.catchitcozucan.core.demo.longprocess.LongProcess.class.getName().toUpperCase();
 
     public static final Enum<?> FINISH_STATE = com.github.catchitcozucan.core.demo.longprocess.LongProcessStatus.Status.values()[com.github.catchitcozucan.core.demo.longprocess.LongProcessStatus.Status.values().length - 1];
@@ -768,6 +767,14 @@ public class LongProcess extends ProcessBase<LongSubject> {
         com.github.catchitcozucan.core.demo.longprocess.LongProcessStatus.Status.FAILED_STATE20,
         com.github.catchitcozucan.core.demo.longprocess.LongProcessStatus.Status.FAILED_STATE21
     };
+
+    public static java.util.List<String> criteriaProcessesStatusesAsStrings() {
+        return java.util.Arrays.asList(CRITERIA_STATES).stream().map(Enum::name).collect(java.util.stream.Collectors.toList());
+    }
+
+    public static java.util.List<String> allProcessesStatusesAsStrings() {
+        return java.util.Arrays.asList(com.github.catchitcozucan.core.demo.longprocess.LongProcessStatus.Status.values()).stream().map(Enum::name).collect(java.util.stream.Collectors.toList());
+    }
 
     public void processInternal(com.github.catchitcozucan.core.demo.longprocess.LongProcessStatus.Status currentStatus) {
         switch (currentStatus) {

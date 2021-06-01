@@ -25,7 +25,6 @@ import com.github.catchitcozucan.core.exception.ProcessRuntimeException;
 import com.github.catchitcozucan.core.interfaces.IsolationLevel;
 import com.github.catchitcozucan.core.interfaces.PersistenceService;
 import com.github.catchitcozucan.core.interfaces.Process;
-import com.github.catchitcozucan.core.interfaces.ProcessSubject;
 import com.github.catchitcozucan.core.util.ThrowableUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,7 +50,7 @@ public abstract class ProcessBase<T extends ProcessSubjectBase> implements Proce
     private final Method stsMethod;
     private final Class<?> statusClass;
     private static final String STS_NO_ARG_METHOD_SIGNATURE = "getSts";
-    private PersistenceService persistenceService;
+    private PersistenceService<T> persistenceService;
     private Enum<?> statusUponFailure = null;
 
     private static Logger LOGGER = null; // NOSONAR
@@ -61,7 +60,7 @@ public abstract class ProcessBase<T extends ProcessSubjectBase> implements Proce
         LOGGER = LoggerFactory.getLogger(ProcessBase.class);
     }
 
-    protected ProcessBase(T processSubject, PersistenceService persistenceService) {
+    protected ProcessBase(T processSubject, PersistenceService<T> persistenceService) {
         processSubject.clearError();
         statusUponFailure = null;
         this.persistenceService = persistenceService;

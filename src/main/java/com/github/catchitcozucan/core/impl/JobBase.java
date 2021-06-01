@@ -58,18 +58,18 @@ public abstract class JobBase<T extends ProcessSubjectBase> implements Job, Hist
     private static final String TIME_REPORTING = "JOB EXEC TIME : %s PROCESS AVARAGE EXEC TIME : %s";
     private boolean amIWorking;
     private static final Logger LOGGER = LoggerFactory.getLogger(JobBase.class);
-    protected final PersistenceService persistenceService;
+    protected final PersistenceService<T> persistenceService;
     private final Enum<?>[] criteriaStates;
     private Nameable[] nameables;
     private boolean acceptEmptyHistogram;
 
-    public JobBase(PersistenceService persistenceService, Enum<?>[] criteriaStates) {
+    protected JobBase(PersistenceService<T> persistenceService, Enum<?>[] criteriaStates) {
         this.persistenceService = persistenceService;
         this.criteriaStates = criteriaStates;
         setupNameAbles();
     }
 
-    public JobBase(PersistenceService persistenceService, Enum<?>[] criteriaStates, boolean acceptEmptyHistogram) {
+    protected JobBase(PersistenceService<T> persistenceService, Enum<?>[] criteriaStates, boolean acceptEmptyHistogram) {
         this.persistenceService = persistenceService;
         this.criteriaStates = criteriaStates;
         setupNameAbles();
@@ -84,7 +84,7 @@ public abstract class JobBase<T extends ProcessSubjectBase> implements Job, Hist
     @Override
     public HistogramStatus getHistogram() {
         if (collectorIsAvailable()) {
-            return new HistogramStatus(name(), (Map<String, Integer>) persistenceService.provideSubjectStream().collect(cycleHistogramCollector), null);
+            return new HistogramStatus(name(), persistenceService.provideSubjectStream().collect(cycleHistogramCollector), null);
         } else if (!acceptEmptyHistogram) {
             return null;
         } else {
@@ -139,7 +139,7 @@ public abstract class JobBase<T extends ProcessSubjectBase> implements Job, Hist
             amIWorking = true;
             proc.process();
         } catch (Exception e) {
-            ProcessBase processBase = ((ProcessBase) proc);
+            ProcessBase<T> processBase = ((ProcessBase) proc);
             String messageSuffix = String.format(S_ON_ITEM_S_FOR_SUBJECT_S, proc.name(), ((ProcessBase) proc).getSubject().id(), ((ProcessBase) proc).getSubject().subjectIdentifier());
             Enum<?> currentStatusUponFailure = processBase.getCurrentStatusUponFailure();
             if (currentStatusUponFailure == null) {
@@ -187,9 +187,9 @@ public abstract class JobBase<T extends ProcessSubjectBase> implements Job, Hist
 
     private boolean collectorIsAvailable() {
         if (cycleHistogramCollector == null) {
-            Optional<ProcessSubject> processSubjectOptional = persistenceService.provideSubjectStream().filter(Objects::nonNull).findFirst();
+            Optional<T> processSubjectOptional = persistenceService.provideSubjectStream().filter(Objects::nonNull).findFirst();
             if (processSubjectOptional.isPresent()) {
-                ProcessSubject subject = processSubjectOptional.get();
+                ProcessSubject<T> subject = processSubjectOptional.get();
                 LifeCycleProvider lifeCycleProvider = new LifeCycleProvider() {
                     @Override
                     public Enum[] getCycle() {

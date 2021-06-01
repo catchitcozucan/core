@@ -33,7 +33,7 @@ public class ProcessLogging {
 	public static final String DISMISSED_LOG_DIR_SET_UP_VIA_S_CAUGHT_S = "Dismissed log dir set up via %s - caught %s";
 	public static final String VIA_SYSTEM_ENV_PROPERTY = " via system env property";
 	public static final String VIA_JVM_SYSTEM_PROPERTY = " via JVM system property";
-	public static final String EQUALS = "=";
+	public static final String EQUALS = "="; //NOSONAR
 	public static final String TRUE = "true";
 	public static final String FALSE = "false";
 	private static ProcessLogging INSTANCE; //NOSONAR

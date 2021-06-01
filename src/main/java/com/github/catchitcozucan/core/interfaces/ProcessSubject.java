@@ -21,7 +21,7 @@ import java.io.Serializable;
 
 import com.github.catchitcozucan.core.histogram.LifeCycleProvider;
 
-public interface ProcessSubject<T> extends LifeCycleProvider, Serializable {
+public interface ProcessSubject<T> extends LifeCycleProvider, Serializable { //NOSONAR
     Integer id();
     String subjectIdentifier();
     int getErrorCode();

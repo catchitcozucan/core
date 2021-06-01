@@ -92,19 +92,19 @@ public class MavenWriter {
 		return instance; // we will already have thrown in case we were not initialized correctly
 	}
 
-	public void error(Element e, String msg, Object... args) {
+	public void error(Element e, String msg, Object... args) { //NOSONAR
 		messager.printMessage(Diagnostic.Kind.ERROR, String.format(msg, args), e);
 	}
 
-	public void error(String msg) {
+	public void error(String msg) { //NOSONAR
 		System.out.println(ERROR + msg); //NOSONAR this is how Maven outputs..
 	}
 
-	public void info(String msg) {
+	public void info(String msg) { //NOSONAR
 		System.out.println(INFO + msg); //NOSONAR - this _is_ how primitive manve's output is..
 	}
 
-	public void warn(String msg) {
+	public void warn(String msg) { //NOSONAR
 		System.out.println(WARN + msg); //NOSONAR - this _is_ how primitive manve's output is..
 	}
 

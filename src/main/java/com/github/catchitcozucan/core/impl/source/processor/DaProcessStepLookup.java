@@ -81,7 +81,6 @@ public class DaProcessStepLookup {
 
                     if (srcAppender == null) {
                         File file = getFileViaSunClassesReflectionHack(classSymbol);
-                        // NOSONAR TODO - INTELLIJ GETS NULL IN HERE..!
                         if (file == null) {
                             return;
                         }

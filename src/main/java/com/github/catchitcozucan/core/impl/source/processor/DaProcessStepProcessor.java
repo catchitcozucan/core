@@ -17,6 +17,9 @@
  */
 package com.github.catchitcozucan.core.impl.source.processor;
 
+import static com.github.catchitcozucan.core.impl.source.processor.DaProcessStepConstants.ANNOT_COMPILEOPTIONS_JAVA_PATH;
+import static com.github.catchitcozucan.core.impl.source.processor.DaProcessStepConstants.ANNOT_MAKESTEP_JAVA_PATH;
+import static com.github.catchitcozucan.core.impl.source.processor.DaProcessStepConstants.ANNOT_PROCESSSTATUS_JAVA_PATH;
 import static com.github.catchitcozucan.core.impl.source.processor.DaProcessStepConstants.DOT;
 import static com.github.catchitcozucan.core.impl.source.processor.DaProcessStepConstants.EMPTY;
 import static com.github.catchitcozucan.core.impl.source.processor.DaProcessStepConstants.STEP;
@@ -62,7 +65,7 @@ import com.github.catchitcozucan.core.internal.util.io.IO;
 import com.github.catchitcozucan.core.util.ClassAnnotationUtil;
 import com.github.catchitcozucan.core.util.MavenWriter;
 
-@SupportedAnnotationTypes({ "MakeStep" })
+@SupportedAnnotationTypes({ ANNOT_MAKESTEP_JAVA_PATH, ANNOT_PROCESSSTATUS_JAVA_PATH, ANNOT_COMPILEOPTIONS_JAVA_PATH  })
 public class DaProcessStepProcessor extends AbstractProcessor {
 
     private static final String MAKE_STEP_ISSUES = "MakeStep issues : ";
@@ -81,6 +84,11 @@ public class DaProcessStepProcessor extends AbstractProcessor {
 
     public DaProcessStepProcessor() {
         super();
+    }
+
+    @Override
+    public SourceVersion getSupportedSourceVersion() {
+        return SourceVersion.latest();
     }
 
     @Override
@@ -457,16 +465,6 @@ public class DaProcessStepProcessor extends AbstractProcessor {
         sourceAppender.append(source, significantPart);
     }
 
-    @Override
-    public Set<String> getSupportedAnnotationTypes() {
-        return DaProcessStepConstants.NEN_BLACK_PROCESS_MAKESTEP_SUPPORTED_TYPES;
-    }
-
-    @Override
-    public SourceVersion getSupportedSourceVersion() {
-        return SourceVersion.latest();
-    }
-
     private static Class<?> loadStatusClassBySheerForceTmpCompileFromFile(File file) {
         File tmpDir = new File(DaProcessStepLookup.TMP_COMP_PATH);
         boolean tmpDirIsAvail = true;
@@ -493,7 +491,7 @@ public class DaProcessStepProcessor extends AbstractProcessor {
                 int importIndex = source.indexOf(IMPORT);
                 int stopIndex = source.indexOf(SEMI_COLON, importIndex) + 1;
                 String importDecl = source.substring(importIndex, stopIndex);
-                boolean processStatusImportFound = importDecl.contains(DaProcessStepConstants.ANNOT_PROCESSSTATUS_JAVA_PATH);
+                boolean processStatusImportFound = importDecl.contains(ANNOT_PROCESSSTATUS_JAVA_PATH);
                 if (!processStatusImportFound || source.indexOf(IMPORT, (importIndex + importDecl.length())) > -1) {
                     DaProcessStepConstants.error("Your status class cannot contain ANY other import that of ths ProcessStatus annotation. It is not allowed.");
                     return null;

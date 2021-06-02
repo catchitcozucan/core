@@ -162,6 +162,8 @@ public class DaProcessStepConstants {
 		.append(SPACE_RIGHT_CURLY).append(NL).toString();
 	//@formatter:on
 
+	static final String COM_SUN_TOOLS_JAVAC_FILE_PATH_FILE_OBJECT = "com.sun.tools.javac.file.PathFileObject";
+
 	private DaProcessStepConstants() {}
 
 	static void error(String msg) {

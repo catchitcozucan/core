@@ -59,6 +59,9 @@ public class DaProcessStepSourceAppender extends BaseDomainObject {
     private static final String STRING_FORMAT = "%s";
     private static final String COMMA = ",";
     private static final String SPACE = "        ";
+    public static final String FOUR_SPACES = "    ";
+    public static final String TAB = "\t";
+    public static final String REGEX_TAB = "[\t]";
     private StringBuilder sourceToAppend;
     private boolean hasAppended;
     private Set<ElementToWork> elementsToWork;
@@ -81,6 +84,7 @@ public class DaProcessStepSourceAppender extends BaseDomainObject {
     private String mavenRepoPath;
     private boolean criteriaStateOnlyFailure;
     private boolean acceptEnumFailures;
+    private boolean sourceFileSeemsTABIndented;
 
     DaProcessStepSourceAppender(File srcFile, String originatingClass, String originatingAppendeSource, String commentHeaderStart) {
         elementsToWork = new HashSet<>();
@@ -101,6 +105,10 @@ public class DaProcessStepSourceAppender extends BaseDomainObject {
         String sourceAfter = null;
         try {
             source = IO.fileToString(srcFile.toString(), sourceEncoding);
+            determineWhetherTheSourceFileSeemsTabIndented(source);
+            if (sourceFileSeemsTABIndented) {
+                source = source.replaceAll(REGEX_TAB, FOUR_SPACES);
+            }
             if (source.indexOf(commentHeaderStart) > -1) {
                 sourceBefore = source.substring(0, source.indexOf(commentHeaderStart));
                 sourceAfter = source.substring(source.indexOf(DaProcessStepConstants.COMMENT_HEADER_END) + DaProcessStepConstants.COMMENT_HEADER_END.length(), source.length());
@@ -112,6 +120,24 @@ public class DaProcessStepSourceAppender extends BaseDomainObject {
             this.completeSourceOrigSource = new StringBuilder(sourceBefore).append(sourceAfter).toString();
         } else {
             this.completeSourceOrigSource = source.replace(DaProcessStepConstants.COMMENT_HEADER_END, "");
+        }
+    }
+
+    private void determineWhetherTheSourceFileSeemsTabIndented(String source) {
+        int indexFornextTab = 0;
+        int rounds = 1;
+        if (source.contains(TAB)) {
+            while (rounds < 10 && rounds > 0) {
+                indexFornextTab = source.indexOf(TAB, indexFornextTab);
+                if (indexFornextTab > 0) {
+                    rounds++;
+                } else {
+                    rounds = -1;
+                }
+            }
+        }
+        if (rounds >= 0) {
+            sourceFileSeemsTABIndented = true;
         }
     }
 
@@ -265,6 +291,9 @@ public class DaProcessStepSourceAppender extends BaseDomainObject {
     }
 
     private void writeToFile(String completeSrc) throws IOException {
+        if (sourceFileSeemsTABIndented) {
+            completeSrc = completeSrc.replace(FOUR_SPACES, TAB);
+        }
         if (sourceEncoding != null) {
             IO.overwriteStringToFileWithEncoding(srcFile.getAbsolutePath(), completeSrc, sourceEncoding.displayName());
         } else {

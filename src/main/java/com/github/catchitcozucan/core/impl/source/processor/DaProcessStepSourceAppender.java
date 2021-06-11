@@ -85,9 +85,9 @@ public class DaProcessStepSourceAppender extends BaseDomainObject {
     private String mavenRepoPath;
     private boolean criteriaStateOnlyFailure;
     private boolean acceptEnumFailures;
-    private boolean sourceFileSeemsTABIndented;
+    private final boolean sourceFileSeemsTABIndented;
 
-    DaProcessStepSourceAppender(File srcFile, String originatingClass, String originatingAppendeSource, String commentHeaderStart) {
+    DaProcessStepSourceAppender(File srcFile, String originatingClass, String originatingAppendeSource, String commentHeaderStart, boolean sourceFileSeemsTABIndented) {
         elementsToWork = new HashSet<>();
         this.sourceEncoding = null;
         this.sourceToAppend = new StringBuilder();
@@ -95,6 +95,7 @@ public class DaProcessStepSourceAppender extends BaseDomainObject {
         this.originatingClass = originatingClass;
         this.originatingShort = originatingClass.substring(originatingClass.lastIndexOf(DaProcessStepConstants.DOT) + 1, originatingClass.length()).toUpperCase();
         this.originatingAppendeSource = IO.hasContents(originatingAppendeSource) ? removeSpaceAndNewlines(originatingAppendeSource) : EMPTY;
+        this.sourceFileSeemsTABIndented = sourceFileSeemsTABIndented;
         if (!this.originatingAppendeSource.equals(EMPTY) && this.originatingAppendeSource.contains(DaProcessStepConstants.CHKSUM)) {
             int chksumStart = this.originatingAppendeSource.indexOf(DaProcessStepConstants.CHKSUM_AND_COLON) + DaProcessStepConstants.CHKSUM_AND_COLON.length();
             chkSumOrig = this.originatingAppendeSource.substring(chksumStart, (this.originatingAppendeSource.indexOf(DaProcessStepConstants.SLASH, chksumStart + 1)));
@@ -106,9 +107,8 @@ public class DaProcessStepSourceAppender extends BaseDomainObject {
         String sourceAfter = null;
         try {
             source = IO.fileToString(srcFile.toString(), sourceEncoding);
-            determineWhetherTheSourceFileSeemsTabIndented(source);
             if (sourceFileSeemsTABIndented) {
-                source = source.replaceAll(REGEX_TAB, FOUR_SPACES);
+                source = tabsToSpace(source);
             }
             if (source.indexOf(commentHeaderStart) > -1) {
                 sourceBefore = source.substring(0, source.indexOf(commentHeaderStart));
@@ -124,7 +124,7 @@ public class DaProcessStepSourceAppender extends BaseDomainObject {
         }
     }
 
-    private void determineWhetherTheSourceFileSeemsTabIndented(String source) {
+    public static boolean determineWhetherTheSourceFileSeemsTabIndented(String source) {
         int indexFornextTab = 0;
         int rounds = 1;
         if (source.contains(TAB)) {
@@ -137,9 +137,15 @@ public class DaProcessStepSourceAppender extends BaseDomainObject {
                 }
             }
         }
-        if (rounds >= 0) {
-            sourceFileSeemsTABIndented = true;
+        if (rounds > 9) {
+            return true;
+        } else {
+            return false;
         }
+    }
+
+    public static String tabsToSpace(String source) {
+        return source.replaceAll(REGEX_TAB, FOUR_SPACES);
     }
 
     String getOriginatingClass() {

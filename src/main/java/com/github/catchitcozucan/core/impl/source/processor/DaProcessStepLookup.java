@@ -56,6 +56,7 @@ public class DaProcessStepLookup {
     private static final String PATH = "path";
     private static final String OOOPS_THERE_IS_SOMETHING_RELATING_TO_THIS_JVMS_INNER_WORKING_OUR_CLASS_SYMBOL_TO_FILE_HACKS_DO_NOT_FUNCTION = "Ooops... there is something relating to this JVMs inner working : our class-symbol-to-file-hacks do not function.";
     private static boolean JVMWARNINGHASBEENISSUED;
+
     private DaProcessStepLookup() {
     }
 
@@ -89,14 +90,18 @@ public class DaProcessStepLookup {
                         String headerStartToUser = DaProcessStepConstants.HEADER_START_NEW;
                         try {
                             String tmpSource = IO.fileToString(file.getAbsolutePath(), null);
-                            if (tmpSource.indexOf(DaProcessStepConstants.INTRO_TEXT) > -1) {
+                            boolean isTabIntended = DaProcessStepSourceAppender.determineWhetherTheSourceFileSeemsTabIndented(tmpSource);
+                            if (tmpSource.indexOf(DaProcessStepConstants.INTRO_TEXT_NO_TABS) > -1) {
+                                if (isTabIntended) {
+                                    tmpSource = DaProcessStepSourceAppender.tabsToSpace(tmpSource);
+                                }
                                 int endIndex = tmpSource.indexOf(DaProcessStepConstants.HEADER_START_OLD) + DaProcessStepConstants.COMMENT_HEADER_END.length();
                                 if (endIndex > tmpSource.length()) {
                                     endIndex = tmpSource.lastIndexOf("//") + NL.length();
                                 }
                                 currentSource = tmpSource.substring(tmpSource.indexOf(DaProcessStepConstants.CHKSUMPREFIX), endIndex);
                             }
-                            srcAppender = new DaProcessStepSourceAppender(file, originatingClass, currentSource, headerStartToUser);
+                            srcAppender = new DaProcessStepSourceAppender(file, originatingClass, currentSource, headerStartToUser, isTabIntended);
                             appenders.add(srcAppender);
                         } catch (IOException e) {
                             DaProcessStepConstants.error(annotatedElement, String.format("Could not readup sourcefile %s", file.getAbsolutePath()));

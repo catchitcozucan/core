@@ -26,6 +26,7 @@ import static com.github.catchitcozucan.core.impl.source.processor.DaProcessStep
 import static com.github.catchitcozucan.core.impl.source.processor.DaProcessStepConstants.FINISH_STATE;
 import static com.github.catchitcozucan.core.impl.source.processor.DaProcessStepConstants.HEADER_START_OLD;
 import static com.github.catchitcozucan.core.impl.source.processor.DaProcessStepConstants.NAME;
+import static com.github.catchitcozucan.core.impl.source.processor.DaProcessStepConstants.NAME_SHORT;
 import static com.github.catchitcozucan.core.impl.source.processor.DaProcessStepConstants.NL;
 import static com.github.catchitcozucan.core.impl.source.processor.DaProcessStepConstants.PROCESS_INTERNAL;
 
@@ -235,6 +236,7 @@ public class DaProcessStepSourceAppender extends BaseDomainObject {
     private String appendCriteriaStatesAndFinalStateAndToggleFormatting() {
         StringBuilder addtionals = new StringBuilder();
         addtionals.append(String.format(NAME, originatingClass)).append(NL);
+        addtionals.append(String.format(NAME_SHORT, originatingClass)).append(NL);
         if (!bpmDescriptors.isEmpty() && bpmDescriptors.get(0) != null) {
 
             String originatingClassPlusEnumFieldName = new StringBuilder(bpmDescriptors.get(0).getEnumContainer().getOriginatingClassPath()).append(".").append(bpmDescriptors.get(0).getEnumContainer().getEnumFieldName()).toString();

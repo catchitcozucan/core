@@ -125,6 +125,7 @@ public class DaProcessStepConstants {
     //@formatter:on
 
 	static final String NAME = "    public static final String PROCESS_NAME = %s.class.getName().toUpperCase();"; // just the proceess class name
+	static final String NAME_SHORT = "    public static final String PROCESS_NAME_SHORT = %s.class.getSimpleName().toUpperCase();"; // just the proceess class name
 
 	//@formatter:off (Full status class name x3)
 	static final String FINISH_STATE = new StringBuilder("    public static final Enum<?> FINISH_STATE = %s.values()[%s.values().length - 1];").append(NL).toString();

@@ -18,6 +18,7 @@
 package com.github.catchitcozucan.core.impl.source.processor;
 
 import java.util.Arrays;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import com.github.catchitcozucan.core.internal.util.io.IO;
@@ -102,4 +103,13 @@ public class EnumContainer {
 		Arrays.stream(enums).forEach(e -> nameables[index.getAndIncrement()] = () -> e.name()); //NOSONAR
 		return nameables;
 	}
+
+	public static Enum ofString(Enum[] enums, String lookup){
+		Optional<Enum> match = Arrays.stream(enums).filter(e -> e.name().equals(lookup)).findFirst();
+		if(match.isPresent()){
+			return match.get();
+		}
+		return null;
+	}
+
 }

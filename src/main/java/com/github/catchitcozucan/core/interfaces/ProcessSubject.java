@@ -25,4 +25,5 @@ public interface ProcessSubject<T> extends LifeCycleProvider, Serializable { //N
     Integer id();
     String subjectIdentifier();
     int getErrorCode();
+    boolean isFinished();
 }

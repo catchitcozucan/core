@@ -101,6 +101,12 @@ public abstract class ProcessSubjectBase<T> extends BaseDomainObject implements 
         return processName;
     }
 
+    @Override
+    public boolean isFinished() {
+        Enum[] cycle = getCycle();
+        return cycle[cycle.length - 1].equals(status);
+    }
+
     public Enum getStatusFromString(String statusString) {
         return getStatusFromStringInner(statusString);
     }

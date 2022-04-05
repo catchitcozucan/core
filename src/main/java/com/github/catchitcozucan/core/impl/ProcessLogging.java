@@ -18,9 +18,11 @@
 package com.github.catchitcozucan.core.impl;
 
 import java.io.File;
+import java.util.Optional;
 
 import com.github.catchitcozucan.core.interfaces.LogConfig;
 import com.github.catchitcozucan.core.internal.util.io.IO;
+import com.github.catchitcozucan.core.internal.util.io.LoggingService;
 import com.github.catchitcozucan.core.internal.util.io.Slf4JSetup;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -123,8 +125,11 @@ public class ProcessLogging {
 	}
 
 	public static synchronized void halt() {
-		Slf4JSetup.getInstance().halt();
-		INSTANCE = null;
+		Optional<LoggingService> optional = Slf4JSetup.getInstanceOptional();
+		if (optional.isPresent()) {
+			optional.get().halt();
+			INSTANCE = null;
+		}
 	}
 
 	public static synchronized void initLogging() {

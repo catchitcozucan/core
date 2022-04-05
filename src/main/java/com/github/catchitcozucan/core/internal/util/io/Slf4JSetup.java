@@ -19,6 +19,7 @@ package com.github.catchitcozucan.core.internal.util.io;
 
 import java.io.File;
 import java.nio.charset.StandardCharsets;
+import java.util.Optional;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
@@ -120,6 +121,14 @@ public class Slf4JSetup implements LoggingService {
             return INSTANCE;
         } else {
             throw new IllegalStateException(THE_LOGGING_SERVICE_IS_NOT_INITIALIZED);
+        }
+    }
+
+    public static synchronized Optional<LoggingService> getInstanceOptional() {
+        if (INSTANCE != null) {
+            return Optional.of(INSTANCE);
+        } else {
+            return Optional.empty();
         }
     }
 

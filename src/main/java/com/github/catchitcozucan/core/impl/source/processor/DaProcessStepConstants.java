@@ -155,7 +155,7 @@ public class DaProcessStepConstants {
 		.append("        switch (currentStatus) {").append(NL)
 		.append("STATUSES_AND_STEPS")
 		.append("            default:").append(NL)
-		.append("                throw new ProcessRuntimeException(String.format(\"Got bad input : FORMATTER FORMATTER which is in state FORMATTER [FORMATTER]\",").append(NL)
+		.append("                throw new com.github.catchitcozucan.core.exception.ProcessRuntimeException(String.format(\"Got bad input : FORMATTER FORMATTER which is in state FORMATTER [FORMATTER]\",").append(NL)
 		.append("                    PROCESS_NAME,").append(NL)
 		.append("                    getSubject().id(),").append(NL)
 		.append("                    getSubject().getCurrentStatus().name(),").append(NL)

@@ -117,6 +117,14 @@ public class Async {
 		return jobWithNameIsQueuedOrRunning(jobName);
 	}
 
+	boolean isNamedProcessRunningOrInQueue(String processName) {
+		return processWithNameIsQueuedOrRunning(processName);
+	}
+
+	boolean isNamedTaskRunningOrInQueue(String taskName) {
+		return taskWithNameIsQueuedOrRunning(taskName);
+	}
+
 	Set<RunState> getCurrentState() {
 		if (!isExecuting()) {
 			return new HashSet<>();
@@ -360,6 +368,22 @@ public class Async {
 			return false;
 		} else {
 			return isKindQueuedOrRunning(RejectableTypedRelativeWithName.Type.JOB.name(), jobName);
+		}
+	}
+
+	private boolean processWithNameIsQueuedOrRunning(String processName) {
+		if (runningIds.isEmpty() && queuedIds.isEmpty() && waitingJobs.isEmpty()) {
+			return false;
+		} else {
+			return isKindQueuedOrRunning(RejectableTypedRelativeWithName.Type.PROCESS.name(), processName);
+		}
+	}
+
+	private boolean taskWithNameIsQueuedOrRunning(String taskName) {
+		if (runningIds.isEmpty() && queuedIds.isEmpty() && waitingJobs.isEmpty()) {
+			return false;
+		} else {
+			return isKindQueuedOrRunning(RejectableTypedRelativeWithName.Type.TASK.name(), taskName);
 		}
 	}
 

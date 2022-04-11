@@ -22,11 +22,11 @@ import java.util.Set;
 import com.github.catchitcozucan.core.exception.ProcessRuntimeException;
 import com.github.catchitcozucan.core.impl.startup.NumberOfTimeUnits;
 import com.github.catchitcozucan.core.interfaces.AsyncExecutor;
+import com.github.catchitcozucan.core.interfaces.CatchItConfig;
+import com.github.catchitcozucan.core.interfaces.Job;
 import com.github.catchitcozucan.core.interfaces.ListenerJobs;
 import com.github.catchitcozucan.core.interfaces.ListenerProcesses;
 import com.github.catchitcozucan.core.interfaces.ListenerTasks;
-import com.github.catchitcozucan.core.interfaces.CatchItConfig;
-import com.github.catchitcozucan.core.interfaces.Job;
 import com.github.catchitcozucan.core.interfaces.Process;
 import com.github.catchitcozucan.core.interfaces.Task;
 import com.github.catchitcozucan.core.interfaces.WorkingEntity;
@@ -189,6 +189,16 @@ public class CatchIt implements AsyncExecutor, WorkingEntity {
     @Override
     public boolean isNamedJobRunningOrInQueue(String jobName) {
         return Async.getInstance().isNamedJobRunningOrInQueue(jobName);
+    }
+
+    @Override
+    public boolean isNamedProcessRunningOrInQueue(String processName) {
+        return Async.getInstance().isNamedProcessRunningOrInQueue(processName);
+    }
+
+    @Override
+    public boolean isNamedTaskRunningOrInQueue(String taskName) {
+        return Async.getInstance().isNamedTaskRunningOrInQueue(taskName);
     }
 
     @Override

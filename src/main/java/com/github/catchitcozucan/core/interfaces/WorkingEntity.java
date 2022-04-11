@@ -24,5 +24,7 @@ import com.github.catchitcozucan.core.impl.RunState;
 public interface WorkingEntity {
 	boolean isExecuting();
 	boolean isNamedJobRunningOrInQueue(String jobName);
+	boolean isNamedProcessRunningOrInQueue(String processName);
+	boolean isNamedTaskRunningOrInQueue(String taskName);
 	Set<RunState> getCurrentState();
 }

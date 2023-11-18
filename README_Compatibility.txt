@@ -47,3 +47,12 @@ Ola Aronsson
 nollettnoll AB
 2021-01-28
 
+--
+
+Currently 2023-11-14 I'm running
+
+openjdk version "20.0.1" 2023-04-18
+OpenJDK Runtime Environment (build 20.0.1+9-29)
+OpenJDK 64-Bit Server VM (build 20.0.1+9-29, mixed mode, sharing)
+
+which works perfectly fine.

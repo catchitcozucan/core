@@ -133,6 +133,7 @@
                         <include>**/*.xml</include>
                         <include>**/*.properties</include>
                     </excludes>
+                    <finalName>${project.build.finalName}-debug</finalName>
                 </configuration>
             </plugin>
             <!-- SKIPPING UNTIL THERE IS PROPER support for JDK9 and above

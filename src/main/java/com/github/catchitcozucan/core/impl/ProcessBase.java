@@ -45,6 +45,7 @@ public abstract class ProcessBase<T extends ProcessSubjectBase> implements Proce
     public static final String CRITICAL_PROCESS_STEP_LEAKED_TO_JOB_DURING = "CRITICAL : processStep LEAKED to JOB during";
     public static final String CAUSE = " cause : ";
     public static final String PROCESS_INSTANCE_OF_S_HAS_SUCCESSFULLY_COMPLETED_ITEM_S_HAS_REACHED_FINAL_STATE_S_S = "Process instance of '%s' has successfully completed. Item %s has reached final state %s [%s]";
+    private static final Object[] NOARGS = new Object[] {};
     private boolean hasBailed; // NOSONAR - THIS CODE IS JUST A SKETCH SO FAR
     private final T processSubject; // NOSONAR - THIS CODE IS JUST A SKETCH SO FAR
     private final Method stsMethod;
@@ -185,7 +186,7 @@ public abstract class ProcessBase<T extends ProcessSubjectBase> implements Proce
             if (stsMethod == null) {
                 return processSubject.getCurrentStatus().name();
             } else {
-                raw = stsMethod.invoke(processSubject.getCurrentStatus(), new Class[] {}).toString(); // NOSONAR
+                raw = stsMethod.invoke(processSubject.getCurrentStatus(), NOARGS).toString(); // NOSONAR
                 if (raw.length() != 1) {
                     throw new ProcessRuntimeException(String.format(STATUS_DESCRIPTION_ENUN_IS_IMPLEMENTED_WRONGLY_IT_SHOULD_BE_A_CHAR_OF_LENGTH_1_I_GOT_S, raw));
                 }

@@ -88,13 +88,13 @@ public class JarLoader {
                 try { //NOSONAR
                     return cl.newInstance(); //NOSONAR
                 } catch (InstantiationException | IllegalAccessException e) {
-                    return new Boolean(false); //NOSONAR
+                    return Boolean.FALSE;
                 }
             } else {
-                return new Boolean(true); //NOSONAR
+                return Boolean.TRUE;
             }
         } catch (ClassNotFoundException e) {
-            return new Boolean(false); //NOSONAR
+            return Boolean.FALSE;
         }
     }
 

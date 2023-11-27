@@ -47,7 +47,6 @@ import com.github.catchitcozucan.core.internal.util.io.IO;
 public class DaProcessStepSourceAppender extends BaseDomainObject {
     public static final String BPM_2_0_SCHEME_XML = "_BPM_2.0_Scheme.xml";
     public static final String X = "X";
-    public static final String NEW_CHKSUM_IS = "    new chksum is : ";
     public static final String OOOOPS_CHKSUM_OVERFLOW = "    Oooops - chksum overflow....";
     private static final String NEW_AND_FAIL_STATES = "NEW_AND_FAIL_STATES";
     private static final String FORMATTER = "FORMATTER";
@@ -63,6 +62,7 @@ public class DaProcessStepSourceAppender extends BaseDomainObject {
     public static final String FOUR_SPACES = "    ";
     public static final String TAB = "\t";
     public static final String REGEX_TAB = "[\t]";
+    private static final String NEW_CHKSUM_IS = "    new chksum is : %s";
     private StringBuilder sourceToAppend;
     private boolean hasAppended;
     private Set<ElementToWork> elementsToWork;
@@ -170,7 +170,6 @@ public class DaProcessStepSourceAppender extends BaseDomainObject {
             }
             this.chkSum = chkSum + padding.toString();
         }
-        DaProcessStepConstants.info(NEW_CHKSUM_IS + this.chkSum);
     }
 
     private String removeSpaceAndNewlines(String in) {
@@ -213,6 +212,7 @@ public class DaProcessStepSourceAppender extends BaseDomainObject {
                 }
                 if (!chkSum.equals(chkSumOrig)) {
                     removePreviousAddition();
+                    DaProcessStepConstants.info(String.format(NEW_CHKSUM_IS, chkSum));
                     DaProcessStepConstants.info("  - steps have changed : RE-WRITING");
                     int replaceStart = 2;
                     if (NL.length() == 2) {

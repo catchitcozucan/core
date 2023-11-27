@@ -164,6 +164,8 @@ public class BpmSchemeGenerator extends BaseDomainObject {
     private static final int DIAG_FLOW_TO_FINISH_TASK = 9;
     private static final int STEP_UP_PER_DEPTH = 250 + (FLOW_HEIGHT / 2);
     private static final int COLON_WIDTH = 320;
+    private static final int GW_HEIGHT = 50;
+    private static final int GW_HALF_HEIGHT = GW_HEIGHT / 2;
 
     // @formatter:off
     private static final Point[] getElementYs(int component, int colon, int depth) {
@@ -217,7 +219,7 @@ public class BpmSchemeGenerator extends BaseDomainObject {
 
     private static final String DIAG_COMP_GW = new StringBuilder()
           .append(INTENDENT_TWO).append("<bpmndi:BPMNShape id=\"%s_di\" bpmnElement=\"%s\" isMarkerVisible=\"true\">").append(NL)
-            .append(INTENDENT_THREE).append("<dc:Bounds x=\"%d\" y=\"%d\" width=\"50\" height=\"50\" />").append(NL)
+            .append(INTENDENT_THREE).append("<dc:Bounds x=\"%d\" y=\"%d\" width=\"50\" height=\"").append(GW_HEIGHT).append("\" />").append(NL)
             .append(INTENDENT_THREE).append("<bpmndi:BPMNLabel>").append(NL)
             .append(INTENDENT_FOUR).append("<dc:Bounds x=\"%d\" y=\"%d\" width=\"47\" height=\"27\" />").append(NL)
             .append(INTENDENT_THREE).append("</bpmndi:BPMNLabel>").append(NL)
@@ -432,7 +434,7 @@ public class BpmSchemeGenerator extends BaseDomainObject {
         Point[] finishYs = getElementYs(DIAG_FINISH_TASK, colon, depth);
         Point[] flowFromTree = getElementYs(DIAG_FLOW_TO_FINISH_TASK, colon, depth);
         diagramSection.append(String.format(DIAG_COMP_FINSH_ACTIVITY, taskId, taskId, finishYs[0].x, finishYs[0].y));
-        diagramSection.append(String.format(DIAG_COMP_FLOW_TO_FINISH, flowTaskIncoming, flowTaskIncoming, flowFromTree[0].x, flowFromTree[0].y, flowFromTree[1].x, flowFromTree[1].y));
+        diagramSection.append(String.format(DIAG_COMP_FLOW_TO_FINISH, flowTaskIncoming, flowTaskIncoming, flowFromTree[0].x, flowFromTree[0].y + GW_HALF_HEIGHT, flowFromTree[1].x, flowFromTree[1].y));
     }
 
     @Override

@@ -137,7 +137,12 @@ public class DaProcessStepLookup {
             classSymbol = (File) ReflectionUtils.getFieldValueSilent(ReflectionUtils.getFieldValueSilent(ee, CLASSFILE), FILE); // JDK-8
             if (classSymbol == null) {
                 Object classSymbolObj = ReflectionUtils.getFieldValueSilent(ReflectionUtils.getFieldValueSilent(ee, CLASSFILE), PATH); // AFTER JDK-8
-                classSymbol = new File(classSymbolObj.toString());
+                if (classSymbolObj != null) {
+                    classSymbol = new File(classSymbolObj.toString());
+                }
+            }
+            if (classSymbol==null) {
+                return; //yup, this is where Intellij-rebuild will end up.. for _now_
             }
             String completePath = classSymbol.getParent() + File.separator + ee.getAnnotation(CompileOptions.class).relativeBpmDirectoryPath();
             String mavenModulePath = ee.getAnnotation(CompileOptions.class).mavenModulePathToStatusEnumeration();

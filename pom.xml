@@ -66,16 +66,9 @@
             <version>1.18.30</version>
             <scope>compile</scope>
         </dependency>
-        <dependency>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-jar-plugin</artifactId>
-            <version>3.1.2</version>
-            <scope>provided</scope>
-        </dependency>
     </dependencies>
 
     <build>
-        <finalName>${project.build}-debug</finalName>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -119,6 +112,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
+                <version>3.1.2</version>
                 <configuration>
                     <archive>
                         <manifest>
@@ -139,6 +133,7 @@
                         <include>**/*.xml</include>
                         <include>**/*.properties</include>
                     </excludes>
+                    <finalName>${project.build.finalName}-debug</finalName>
                 </configuration>
             </plugin>
             <plugin>
@@ -173,7 +168,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>
-                <version>3.3.0</version>
+                <version>3.0.1</version>
                 <executions>
                     <execution>
                         <id>attach-sources</id>

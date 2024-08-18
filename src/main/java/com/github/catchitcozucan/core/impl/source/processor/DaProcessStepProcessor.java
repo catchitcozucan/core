@@ -17,44 +17,8 @@
  */
 package com.github.catchitcozucan.core.impl.source.processor;
 
-import static com.github.catchitcozucan.core.impl.source.processor.DaProcessStepConstants.ANNOT_COMPILEOPTIONS_JAVA_PATH;
-import static com.github.catchitcozucan.core.impl.source.processor.DaProcessStepConstants.ANNOT_MAKESTEP_JAVA_PATH;
-import static com.github.catchitcozucan.core.impl.source.processor.DaProcessStepConstants.ANNOT_PROCESSSTATUS_JAVA_PATH;
-import static com.github.catchitcozucan.core.impl.source.processor.DaProcessStepConstants.DOT;
-import static com.github.catchitcozucan.core.impl.source.processor.DaProcessStepConstants.EMPTY;
-import static com.github.catchitcozucan.core.impl.source.processor.DaProcessStepConstants.STEP;
-import static com.github.catchitcozucan.core.impl.source.processor.DaProcessStepConstants.error;
-import static com.github.catchitcozucan.core.impl.source.processor.DaProcessStepConstants.info;
-import static com.github.catchitcozucan.core.impl.source.processor.DaProcessStepConstants.warn;
-import static com.github.catchitcozucan.core.util.MavenWriter.MESSAGE_SEPARATOR;
-
-import java.io.File;
-import java.io.IOException;
-import java.net.URL;
-import java.net.URLClassLoader;
-import java.nio.charset.Charset;
-import java.nio.file.Files;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.concurrent.atomic.AtomicInteger;
-
-import javax.annotation.processing.AbstractProcessor;
-import javax.annotation.processing.ProcessingEnvironment;
-import javax.annotation.processing.RoundEnvironment;
-import javax.annotation.processing.SupportedAnnotationTypes;
-import javax.lang.model.SourceVersion;
-import javax.lang.model.element.Element;
-import javax.lang.model.element.TypeElement;
-import javax.tools.JavaCompiler;
-import javax.tools.ToolProvider;
-
-import com.github.catchitcozucan.core.MakeStep;
 import com.github.catchitcozucan.core.CompileOptions;
+import com.github.catchitcozucan.core.MakeStep;
 import com.github.catchitcozucan.core.ProcessStatus;
 import com.github.catchitcozucan.core.exception.ProcessRuntimeException;
 import com.github.catchitcozucan.core.impl.source.processor.bpm.BpmSchemeElementDescriptor;
@@ -65,7 +29,29 @@ import com.github.catchitcozucan.core.internal.util.io.IO;
 import com.github.catchitcozucan.core.util.ClassAnnotationUtil;
 import com.github.catchitcozucan.core.util.MavenWriter;
 
-@SupportedAnnotationTypes({ ANNOT_MAKESTEP_JAVA_PATH, ANNOT_PROCESSSTATUS_JAVA_PATH, ANNOT_COMPILEOPTIONS_JAVA_PATH  })
+import javax.annotation.processing.AbstractProcessor;
+import javax.annotation.processing.ProcessingEnvironment;
+import javax.annotation.processing.RoundEnvironment;
+import javax.annotation.processing.SupportedAnnotationTypes;
+import javax.lang.model.SourceVersion;
+import javax.lang.model.element.Element;
+import javax.lang.model.element.TypeElement;
+import javax.tools.JavaCompiler;
+import javax.tools.ToolProvider;
+import java.io.File;
+import java.io.IOException;
+import java.net.URL;
+import java.net.URLClassLoader;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
+
+import static com.github.catchitcozucan.core.impl.source.processor.DaProcessStepConstants.*;
+import static com.github.catchitcozucan.core.util.MavenWriter.MESSAGE_SEPARATOR;
+
+@SupportedAnnotationTypes({ANNOT_MAKESTEP_JAVA_PATH, ANNOT_PROCESSSTATUS_JAVA_PATH, ANNOT_COMPILEOPTIONS_JAVA_PATH})
 public class DaProcessStepProcessor extends AbstractProcessor {
 
     private static final String MAKE_STEP_ISSUES = "MakeStep issues : ";
@@ -79,6 +65,8 @@ public class DaProcessStepProcessor extends AbstractProcessor {
     private static final String SEMI_COLON = ";";
     private static final String METHOD_NAME = "METHOD_NAME";
     private static final String PARENTHESIS = "()";
+
+    private static final List<String> failStates = new ArrayList<>();
     private Set<String> hasRecievedCommentHeader;
 
     public DaProcessStepProcessor() {
@@ -306,6 +294,7 @@ public class DaProcessStepProcessor extends AbstractProcessor {
     }
 
     private void workAppenderElements(DaProcessStepSourceAppender sourceAppender, List<Integer> chkSumIndex) { //NOSONAR
+        failStates.clear();
         List<BpmSchemeElementDescriptor> bpmDescriptors = new ArrayList<>();
         boolean oneStepCase = sourceAppender.getElementsToWork() != null && sourceAppender.getElementsToWork().size() == 1;
         sourceAppender.getElementsToWork().stream().forEachOrdered(elementToWork -> {
@@ -352,12 +341,22 @@ public class DaProcessStepProcessor extends AbstractProcessor {
 
                 // add method
                 info(String.format("    Step evaluated successfully : %s, enumpath  : %s, statusUponSuccess : %s, statusUponFailure : %s, description : \"%s\" ", elementToWork.getMethodName(), enumStateProvider.getClassPath(), statusUponSuccess, statusUponFailure, description));
-                addMethod(sourceAppender, elementToWork.getMethodName().replace(PARENTHESIS, ""), enumStateProvider.getClassPath(), statusUponSuccess, statusUponFailure, description, processName);
+                String statusUponFailureEnumPath = addMethod(sourceAppender, elementToWork.getMethodName().replace(PARENTHESIS, ""), enumStateProvider.getClassPath(), statusUponSuccess, statusUponFailure, description, processName);
+                if (failStates.isEmpty()) {
+                    failStates.add("PATH:" + statusUponFailureEnumPath.substring(0, statusUponFailureEnumPath.lastIndexOf(".")));
+                }
+                if (failStates.size() == 1) {
+                    failStates.add("        " + statusUponFailureEnumPath);
+                } else {
+                    failStates.add(statusUponFailureEnumPath);
+                }
             }
         });
 
         Collections.sort(bpmDescriptors);
         validateDescriptors(bpmDescriptors);
+        String collectedFailStates = new StringBuilder(failStates.stream().filter(f -> !f.startsWith("PATH:")).collect(Collectors.joining(".name(),"+NL+"        "))).append(".name()").append(NL).toString();
+        sourceAppender.append(DaProcessStepConstants.FAIL_STATES.replace("FAILSTATES", collectedFailStates), null);
         sourceAppender.append(DaProcessStepConstants.THEEND, null);
         Collections.sort(chkSumIndex);
         StringBuilder chkSumBasis = new StringBuilder();
@@ -448,10 +447,11 @@ public class DaProcessStepProcessor extends AbstractProcessor {
         }
     }
 
-    private void addMethod(DaProcessStepSourceAppender sourceAppender, String toCall, String enumPath, String statusUponSuccess, String statusUponFailure, String description, String processName) {
+    private String addMethod(DaProcessStepSourceAppender sourceAppender, String toCall, String enumPath, String statusUponSuccess, String statusUponFailure, String description, String processName) {
         String instanceName = new StringBuilder(toCall).append(STEP).toString();
         String body = String.format(DaProcessStepConstants.BODY, toCall, processName, description, enumPath, statusUponSuccess, enumPath, statusUponFailure);
         writeSourceFile(sourceAppender, body, instanceName);
+        return enumPath + "." + statusUponFailure;
     }
 
     private void writeSourceFile(DaProcessStepSourceAppender sourceAppender, String body, String instanceName) {
@@ -509,7 +509,7 @@ public class DaProcessStepProcessor extends AbstractProcessor {
                 className = compiledName.replace(".class", "");
                 File compiled = new File(file.getAbsolutePath().replace("java", "class"));
                 URL classUrl = compiled.getParentFile().toURI().toURL();
-                URLClassLoader classLoader = URLClassLoader.newInstance(new URL[] { classUrl });
+                URLClassLoader classLoader = URLClassLoader.newInstance(new URL[]{classUrl});
                 return Class.forName(className, true, classLoader);
             } catch (IOException ignore) {
                 warn(String.format("Could not test compile file for class %s due to IO-issues..", className));

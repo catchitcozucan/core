@@ -57,6 +57,9 @@ public class DaProcessStepConstants {
 	static final String COMMENT_HEADER_SIGN = "written by Ola Aronsson";
 	static final String COMMENT_HEADER_END = new StringBuilder().append(NL).append(HEADER_START_OLD).append(NL).append(SPACES_AND_SLASHES).append(NL).append("    // End DaProcessStepProcessor generation").append(NL).append(SPACES_AND_SLASHES).append(NL).toString();
 	static final String NONE = "NONE";
+	static final String FAIL_STATES = "    public static final java.util.List<java.lang.String> FAIL_STATES = java.util.Arrays.asList("+NL+
+			"FAILSTATES"
+			+"    );"+NL;
 	static final String THEEND = COMMENT_HEADER_END + NL + "}";
 	static final String OVERRIDE = "        @Override";
 	static final String SPACES_AND_CURLY = "        }";

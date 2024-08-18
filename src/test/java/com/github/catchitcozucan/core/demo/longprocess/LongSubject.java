@@ -34,6 +34,11 @@ public class LongSubject extends ProcessSubjectBase {
 	}
 
 	@Override
+	public boolean isInFailState() {
+		return LongProcess.FAIL_STATES.stream().anyMatch(f -> f.equals(getCurrentStatus().name()));
+	}
+
+	@Override
 	public Enum[] getCycle() {
 		return TripStatus.Status.values();
 	}

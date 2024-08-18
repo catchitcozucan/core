@@ -46,6 +46,7 @@ public class HistogramStatus implements Comparable<HistogramStatus> {
 	private static final String SUM = "\", \"sum\": ";
 	private static final String ACTUALLY_FINISHED = ", \"actuallyFinished\": ";
 	private static final String ACTUAL_STEP_PROGRESS = ", \"actualStepProgress\": ";
+	private static final String NO_OF_SUBJECTS_IN_FAIL_STATE = ", \"noOfSubjectsInFailState\": ";
 	private static final String DATA = ", \"data\": [";
 	private static final String JSON_BODY_CLOSURE = "]}]}";
 	private static final String SINGLE_QOUTE = "'";
@@ -70,9 +71,12 @@ public class HistogramStatus implements Comparable<HistogramStatus> {
 	private final Map<String, Integer> rawData;
 	private String failureStatusRegExp;
 
-	public HistogramStatus(String nameOfHistogram, Map<String, Integer> sortedInEnum, String failureStatusRegExp) {
+	private Long numberOfSubjectsInFailstate;
+
+	public HistogramStatus(String nameOfHistogram, Map<String, Integer> sortedInEnum, String failureStatusRegExp, Long noOfSubjectsInFailState) {
 		this(nameOfHistogram, sortedInEnum);
 		this.failureStatusRegExp = failureStatusRegExp;
+		this.numberOfSubjectsInFailstate = noOfSubjectsInFailState;
 	}
 
 	public HistogramStatus(String nameOfHistogram, Map<String, Integer> sortedInEnum) {
@@ -115,6 +119,10 @@ public class HistogramStatus implements Comparable<HistogramStatus> {
 		return actualProgressPercent;
 	}
 
+	public Long getNumberOfSubjectsInFailstate(){
+		return numberOfSubjectsInFailstate;
+	}
+
 	@Override
 	public String toString() {
 		return toJson(false, false, false);
@@ -147,6 +155,10 @@ public class HistogramStatus implements Comparable<HistogramStatus> {
 		json.append(actuallyFinishedPercent);
 		json.append(ACTUAL_STEP_PROGRESS);
 		json.append(actualProgressPercent);
+		if (numberOfSubjectsInFailstate != null) {
+			json.append(NO_OF_SUBJECTS_IN_FAIL_STATE);
+			json.append(numberOfSubjectsInFailstate);
+		}
 		json.append(DATA);
 
 		if (!flipFailures && !returnOnlyFailures) {

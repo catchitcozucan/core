@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -84,7 +85,15 @@ public abstract class JobBase<T extends ProcessSubjectBase> implements Job, Hist
     @Override
     public HistogramStatus getHistogram() {
         if (collectorIsAvailable()) {
-            return new HistogramStatus(name(), persistenceService.provideSubjectStream().collect(cycleHistogramCollector), null);
+
+            AtomicLong noOfFailStateSubjects = new AtomicLong(0);
+            persistenceService.provideSubjectStream().forEach(e -> {
+                if(e.isInFailState()){
+                    noOfFailStateSubjects.getAndIncrement();
+                }
+            });
+
+            return new HistogramStatus(name(), persistenceService.provideSubjectStream().collect(cycleHistogramCollector), null, noOfFailStateSubjects.get());
         } else if (!acceptEmptyHistogram) {
             return null;
         } else {
@@ -99,7 +108,7 @@ public abstract class JobBase<T extends ProcessSubjectBase> implements Job, Hist
         if (data == null || data.length == 0) {
             throw new IllegalArgumentException(YOU_ARE_REQUIRED_TO_PASS_IN_SOME_DATA_YOU_SENT_NULL_OR_AN_EMPTY_ARRAY);
         }
-        return new HistogramStatus(name(), makeUpData(data), null);
+        return new HistogramStatus(name(), makeUpData(data), null, null);
     }
 
     @Override

@@ -33,6 +33,11 @@ public class TripSubject extends ProcessSubjectBase {
 	}
 
 	@Override
+	public boolean isInFailState() {
+		return TripProcess.FAIL_STATES.stream().anyMatch(f -> f.equals(getCurrentStatus().name()));
+	}
+
+	@Override
 	public Enum[] getCycle() {
 		return TripStatus.Status.values();
 	}

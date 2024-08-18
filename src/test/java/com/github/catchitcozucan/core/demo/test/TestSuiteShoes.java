@@ -194,21 +194,30 @@ public class TestSuiteShoes {
 
 		// failures flipped and javascript-wrapped for page insertion..
 		status = job.getHistogram();
-		assertEquals(status.toJson(true, false, true), "'{ \"entityNames\": \"Process-Histogram\", \"bucketNames\": [\"NEW_ORDER\", \"SHOE_NOT_YET_AVAILABLE\", \"SHOE_FETCHED_FROM_WAREHOUSE\", \"LACES_NOT_IN_PLACE\", \"LACES_IN_PLACE\", \"PACKAGING_FAILED\", \"PACKED\", \"SHIPPING_FAILED\", \"SHIPPED\"], \"histogramz\": [{\"nameOfHistogram\": \"Shipping ordered shoes\", \"sum\": 100, " +
-				"\"actuallyFinished\": 100, " + "\"actualStepProgress\": 100," + " \"data\": [0, 0, 0, 0, 0, 0, 0, 0, 100]}]}'");
 
+		assertEquals(status.toJson(true, false, true), "'{ \"entityNames\": \"Process-Histogram\", \"bucketNames\": [\"NEW_ORDER\", \"SHOE_NOT_YET_AVAILABLE\", \"SHOE_FETCHED_FROM_WAREHOUSE\", \"LACES_NOT_IN_PLACE\", \"LACES_IN_PLACE\", \"PACKAGING_FAILED\", \"PACKED\", \"SHIPPING_FAILED\", \"SHIPPED\"], \"histogramz\": [{\"nameOfHistogram\": \"Shipping ordered shoes\", \"sum\": 100, " +
+				"\"actuallyFinished\": 100, " + "\"actualStepProgress\": 100," +  " \"noOfSubjectsInFailState\": 0,"+" \"data\": [0, 0, 0, 0, 0, 0, 0, 0, 100]}]}'");
+
+		OrderRepository.getInstance().reInitFlushInvokeErrors();
+
+		job.doJob();
+
+		// failures flipped and javascript-wrapped for page insertion..
+		status = job.getHistogram();
+		assertTrue(status.getActuallyFinishedPercent() < 100);
+		assertTrue(status.getNumberOfSubjectsInFailstate()> 0);
 
 		// just.. to be clear, you can of course FAKE results easily too
-		HistogramStatus statusHittePå = new HistogramStatus(job.name(), makeUpData(new Integer[] { 4, 7, 20, 1, 5, 2, 23, 0, 28 }), null);
+		HistogramStatus statusHittePå = new HistogramStatus(job.name(), makeUpData(new Integer[] { 4, 7, 20, 1, 5, 2, 23, 0, 28 }), null, null);
 		System.out.println(statusHittePå.toJson(true, false, true));
 
 		// just.. to be clear, you can of course FAKE results easily too and only see negatives
-		HistogramStatus statusHittePå2 = new HistogramStatus(job.name(), makeUpData(new Integer[] { 4, 7, 20, 1, 5, 2, 23, 0, 28 }), null);
+		HistogramStatus statusHittePå2 = new HistogramStatus(job.name(), makeUpData(new Integer[] { 4, 7, 20, 1, 5, 2, 23, 0, 28 }), null, null);
 		assertEquals("{ \"entityNames\": \"Process-Histogram\", \"bucketNames\": [\"SHOE_NOT_YET_AVAILABLE\", \"LACES_NOT_IN_PLACE\", \"PACKAGING_FAILED\", \"SHIPPING_FAILED\"], \"histogramz\": [{\"nameOfHistogram\": \"Shipping ordered shoes\", \"sum\": 90, \"actuallyFinished\": 31, \"actualStepProgress\": 61, \"data\": [-7, -1, -2, 0]}]}", statusHittePå2.toJson(true, true, false));
 
 
 		// just.. to be clear, you can of course FAKE results easily too and only see negatives
-		HistogramStatus statusHittePå3 = new HistogramStatus(job.name(), makeUpData(new Integer[] { 4, 7, 20, 1, 5, 2, 23, 0, 28 }), ".*NOT.*$");
+		HistogramStatus statusHittePå3 = new HistogramStatus(job.name(), makeUpData(new Integer[] { 4, 7, 20, 1, 5, 2, 23, 0, 28 }), ".*NOT.*$",null);
 		assertEquals("{ \"entityNames\": \"Process-Histogram\", \"bucketNames\": [\"SHOE_NOT_YET_AVAILABLE\", \"LACES_NOT_IN_PLACE\"], \"histogramz\": [{\"nameOfHistogram\": \"Shipping ordered shoes\", \"sum\": 90, \"actuallyFinished\": 31, \"actualStepProgress\": 61, \"data\": [-7, -1]}]}", statusHittePå3.toJson(true, true, false));
 	}
 

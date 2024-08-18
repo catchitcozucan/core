@@ -35,6 +35,11 @@ public class Order extends ProcessSubjectBase {
 		return adressId;
 	}
 
+	@Override
+	public boolean isInFailState() {
+		return ShipAShoeProcess.FAIL_STATES.stream().anyMatch(f -> f.equals(getCurrentStatus().name()));
+	}
+
 	public void packageOrder() {
 		isPacked = true;
 		if (orderId.intValue() == TripOrderRepository.ERROR_ID) {

@@ -235,7 +235,7 @@ public class ProcessThreadPool implements Exitable {
                 myRunnable.run();
             } finally { // NOSONAR
                 long execTimeInMillis = System.currentTimeMillis() - start;
-                LOG.info(String.format(S_EXITING_AFTER_S, Thread.currentThread().getName(), SizeUtils.getFormattedMillisPrintoutFriendly(execTimeInMillis))); // NOSONAR BULL.
+                LOG.debug(String.format(S_EXITING_AFTER_S, Thread.currentThread().getName(), SizeUtils.getFormattedMillisPrintoutFriendly(execTimeInMillis))); // NOSONAR BULL.
                 return execTimeInMillis; // NOSONAR
             }
         }
